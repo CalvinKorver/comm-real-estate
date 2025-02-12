@@ -26,6 +26,6 @@
       ]
     }
   },
-  "include": ["src", ".storybook/**/*"],
+  "include": ["src", ".storybook/**/*", "server.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

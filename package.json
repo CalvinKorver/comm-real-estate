@@ -17,11 +17,15 @@
     "build-storybook-docs": "storybook build --docs --output-dir storybook-docs-static"
   },
   "dependencies": {
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@radix-ui/react-dropdown-menu": "^2",
     "@radix-ui/react-icons": "^1",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "lucide-react": "^0.316.0",
     "react": "^18",
     "react-dom": "^18",
@@ -39,6 +43,7 @@
     "@storybook/test": "^8.0.0-alpha.15",
     "@storybook/test-runner": "^0",
     "@types/jest": "^29",
+    "@types/mailchimp__mailchimp_marketing": "^3.0.21",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
