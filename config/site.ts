@@ -11,6 +11,6 @@ export const siteConfig = {
     },
   ],
   links: {
-    twitter: "https://calvinkorver.com",
+    home: "https://calvinkorver.com",
   },
 }
