@@ -10,4 +10,7 @@ export const siteConfig = {
       href: "/",
     },
   ],
+  links: {
+    twitter: "https://calvinkorver.com",
+  },
 }
