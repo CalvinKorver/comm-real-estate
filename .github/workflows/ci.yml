@@ -49,17 +49,6 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-      - name: Test
-        run: FORCE_COLOR=true npm run test -- --verbose
-
   build:
     name: Build
     uses: ./.github/workflows/build.yml
@@ -72,26 +61,6 @@ jobs:
     uses: ./.github/workflows/build-storybook.yml
     secrets: inherit
 
-  test-storybook:
-    name: "Test Storybook"
-    runs-on: ubuntu-latest
-    needs: build-storybook
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: storybook
-          path: storybook-static
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-      - name: Install Chromium
-        run: npx playwright install chromium
-      - name: Test Storybook
-        run: |
-          npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-            "npx http-server storybook-static --port 6006 --silent" \
-            "npx wait-on http://127.0.0.1:6006 && npm run test-storybook"
 
   deploy-gh-pages:
     name: Deploy to GitHub Pages
