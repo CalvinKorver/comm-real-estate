@@ -7,7 +7,7 @@ export default function PrivacyPolicy() {
         
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
-          <p className="mb-4">Thank you for choosing to use our application ("App"). This Privacy Policy is designed to help you understand how we handle information when you use our App.</p>
+          <p className="mb-4">Thank you for choosing to use our application (&quot;App&quot;). This Privacy Policy is designed to help you understand how we handle information when you use our App.</p>
         </section>
         
         <section className="mb-8">
@@ -39,13 +39,13 @@ export default function PrivacyPolicy() {
         </section>
         
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Children's Privacy</h2>
+          <h2 className="text-2xl font-semibold mb-4">Children&apos;s Privacy</h2>
           <p className="mb-4">Our App does not collect information from anyone, including children under the age of 13.</p>
         </section>
         
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Changes to This Privacy Policy</h2>
-          <p className="mb-4">We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
+          <p className="mb-4">We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date.</p>
         </section>
         
         <section className="mb-8">
@@ -56,7 +56,7 @@ export default function PrivacyPolicy() {
         
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Compliance with Apple App Store Guidelines</h2>
-          <p className="mb-4">This App complies with Apple's App Store Review Guidelines regarding privacy and data collection practices. As required by the App Store, we provide this privacy policy explaining our data collection practices, which in this case is that we do not collect any personalizable user data.</p>
+          <p className="mb-4">This App complies with Apple&apos;s App Store Review Guidelines regarding privacy and data collection practices. As required by the App Store, we provide this privacy policy explaining our data collection practices, which in this case is that we do not collect any personalizable user data.</p>
         </section>
       </div>
     </div>

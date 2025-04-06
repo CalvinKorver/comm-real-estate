@@ -95,7 +95,7 @@ const MarketingPage = () => {
                   <Alert className="border-green-200 bg-green-50 text-green-800
                                   dark:border-green-800 dark:bg-green-900/30 dark:text-green-300">
                     <AlertDescription>
-                      Thanks for signing up! We'll notify you when PaceKit launches.
+                      Thanks for signing up! We&apos;ll notify you when PaceKit launches.
                     </AlertDescription>
                   </Alert>
                 )}
