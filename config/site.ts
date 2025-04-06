@@ -12,5 +12,6 @@ export const siteConfig = {
   ],
   links: {
     home: "https://calvinkorver.com",
+    privacy: "/privacy",
   },
 }

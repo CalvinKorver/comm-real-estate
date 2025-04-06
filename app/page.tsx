@@ -127,7 +127,7 @@ const MarketingPage = () => {
       <footer className="bg-gray-900 py-12 text-white dark:bg-black">
         <div className="mx-auto max-w-7xl px-6">
           <div className="text-center text-gray-400 dark:text-gray-500">
-            <p>&copy; 2025 Pace Kit. All rights reserved.</p>
+            <p>&copy; 2025 Pace Kit. All rights reserved. <a href="/privacy" className="hover:text-gray-300 dark:hover:text-gray-400">Privacy Policy</a></p>
           </div>
         </div>
       </footer>
