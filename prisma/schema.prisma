@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  firstName String
+  lastName  String
+  workouts  Workout[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Workout {
+  id          String    @id @default(uuid())
+  name        String
+  isFavorite  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  imageName   String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  blocks      Block[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("workouts")
+}
+
+model Block {
+  id            String          @id @default(uuid())
+  blockType     BlockType
+  workoutId     String
+  workout       Workout         @relation(fields: [workoutId], references: [id])
+  
+  // Metric information
+  metricType    MetricType?
+  distance      Float?
+  distanceUnit  DistanceUnit?
+  duration      Int?            // in seconds
+  
+  // Work block specific fields
+  repeats       Int?
+  paceConstraint PaceConstraint?
+  
+  // Rest block relationship
+  restBlockId   String?
+  restBlock     Block?          @relation("RestBlock", fields: [restBlockId], references: [id])
+  workBlocks    Block[]         @relation("RestBlock")
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("blocks")
+}
+
+model PaceConstraint {
+  id        String        @id @default(uuid())
+  duration  Int
+  unit      DistanceUnit
+  blockId   String        @unique
+  block     Block         @relation(fields: [blockId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("pace_constraints")
+}
+
+enum BlockType {
+  WARMUP
+  COOLDOWN
+  WORK
+  REST
+}
+
+enum MetricType {
+  DISTANCE
+  TIME
+}
+
+enum DistanceUnit {
+  METERS
+  KILOMETERS
+  MILES
+  YARDS
+}

@@ -64,3 +64,12 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 .next
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+prisma/migrations/
+.env.*
+!.env.example
+
+generated/prisma/
