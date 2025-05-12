@@ -1,4 +1,4 @@
-import { getWorkouts, calculateTotalDistance, createWorkout, CreateWorkoutInput } from './workouts'
+import { getWorkouts, calculateTotalDistance, createWorkout, CreateWorkoutInput } from '../lib/workouts'
 import { Workout, BlockType, MetricType, DistanceUnit } from '@/types/workout'
 
 // Mock console methods to keep test output clean

@@ -1,26 +1,24 @@
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth from 'next-auth';
-import { SQLiteAdapter } from '@next-auth/sqlite-adapter';
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import db from '@/lib/db';
+import { prisma } from '@/lib/prisma';
+import { compare } from 'bcrypt';
 
-// Initialize the SQLite adapter with our database connection
-const adapter = SQLiteAdapter(db);
-
-// Configure authentication options
 export const authOptions = {
-  adapter: adapter,
+  adapter: PrismaAdapter(prisma),
   providers: [
     // GitHub authentication
     GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.GITHUB_ID || '',
+      clientSecret: process.env.GITHUB_SECRET || '',
     }),
     // Google authentication
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
     // Email/Password authentication
     CredentialsProvider({
@@ -30,43 +28,53 @@ export const authOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Here you would typically:
-        // 1. Verify the credentials against your database
-        // 2. Return the user object if valid, null if invalid
-
-        // Example implementation (replace with actual database logic):
-        if (credentials.email === "user@example.com" && credentials.password === "password") {
-          return { id: "1", name: "Test User", email: "user@example.com" };
+        if (!credentials?.email || !credentials?.password) {
+          return null;
         }
 
-        // If credentials are invalid, return null
-        return null;
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        });
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+        };
       }
     }),
   ],
   session: {
-    strategy: "jwt", // Use JWT for session handling
+    strategy: "jwt"
   },
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Add user data to the JWT token if available
+    async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      // Add user ID to the session
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.userId;
       }
       return session;
     },
   },
   pages: {
-    signIn: '/auth/signin', // Custom sign-in page
-    signOut: '/auth/signout', // Custom sign-out page
-    error: '/auth/error', // Error page
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+    error: '/auth/error',
   },
 };
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image'
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
 
 const MarketingPage = () => {
   const [email, setEmail] = useState('');
@@ -53,6 +54,15 @@ const MarketingPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+      <div className="absolute top-6 right-6 z-50 ">
+        <Link 
+          href="/workouts"
+          className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800  transition-colors
+                    dark:bg-red-700  dark:hover:bg-red-800  shadow-md"
+        >
+          Dashboard
+        </Link>
+      </div>
       {/* Hero Section */}
       <header className="flex-1 bg-white dark:bg-gray-800">
         <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-16">
