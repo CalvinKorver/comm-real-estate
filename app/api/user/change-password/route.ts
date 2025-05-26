@@ -2,22 +2,33 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { hash, compare } from 'bcrypt';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+
+// Add a type for the extended user
+interface ExtendedUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
 
 export async function POST(request: Request) {
   try {
     // Get the authenticated user's session
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    // Use type assertion to treat the user as an ExtendedUser
+    const user = session?.user as ExtendedUser | undefined;
+
+    if (!user?.id) {
       return NextResponse.json(
         { error: 'You must be logged in to change your password' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
     const { currentPassword, newPassword } = await request.json();
 
     // Validate input
@@ -36,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Get the user with their current password
-    const user = await prisma.user.findUnique({
+    const userWithPassword = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -44,7 +55,7 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user || !user.password) {
+    if (!userWithPassword || !userWithPassword.password) {
       return NextResponse.json(
         { error: 'User not found or no password set' },
         { status: 404 }
@@ -52,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     // Verify the current password
-    const isPasswordValid = await compare(currentPassword, user.password);
+    const isPasswordValid = await compare(currentPassword, userWithPassword.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },

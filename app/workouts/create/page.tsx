@@ -4,18 +4,25 @@ import { useState } from "react"
 import { BlockType, MetricType, DistanceUnit } from "@/types/workout"
 import Link from "next/link"
 import BuildingBlock from "@/components/BuildingBlock"
+import WorkBuildingBlock from "@/components/WorkBuildingBlock"
 import { createWorkout } from "@/lib/workouts"
 import { useRouter } from "next/navigation"
 
 interface Block {
   type: BlockType
-  distance: number
+  distance?: number
+  duration?: number
+  metricType: MetricType
+  paceConstraint?: {
+    duration: number
+    unit: DistanceUnit
+  }
 }
 
 const AVAILABLE_BLOCKS = [
-  { type: BlockType.WARMUP, label: "Add Warmup", color: "bg-blue-600 hover:bg-blue-700" },
-  { type: BlockType.WORK, label: "Add Work", color: "bg-red-600 hover:bg-red-700" },
-  { type: BlockType.COOLDOWN, label: "Add Cooldown", color: "bg-green-600 hover:bg-green-700" }
+  { type: BlockType.WARMUP, label: "Add Warmup", color: "bg-gray-500 hover:bg-gray-600" },
+  { type: BlockType.WORK, label: "Add Work", color: "bg-gray-500 hover:bg-gray-600" },
+  { type: BlockType.COOLDOWN, label: "Add Cooldown", color: "bg-gray-500 hover:bg-gray-600" }
 ]
 
 export default function CreateWorkoutPage() {
@@ -26,12 +33,30 @@ export default function CreateWorkoutPage() {
   const [error, setError] = useState<string | null>(null)
 
   const handleAddBlock = (type: BlockType) => {
-    setBlocks([...blocks, { type, distance: 1.0 }])
+    setBlocks([...blocks, { type, duration: 0, metricType: MetricType.DISTANCE }])
   }
 
   const handleDistanceChange = (index: number, distance: number) => {
     const newBlocks = [...blocks]
     newBlocks[index].distance = distance
+    setBlocks(newBlocks)
+  }
+
+  const handleDurationChange = (index: number, duration: number) => {
+    const newBlocks = [...blocks]
+    newBlocks[index].duration = duration
+    setBlocks(newBlocks)
+  }
+
+  const handleMetricTypeChange = (index: number, metricType: MetricType) => {
+    const newBlocks = [...blocks]
+    newBlocks[index].metricType = metricType
+    setBlocks(newBlocks)
+  }
+
+  const handlePaceConstraintChange = (index: number, paceConstraint: { duration: number; unit: DistanceUnit } | undefined) => {
+    const newBlocks = [...blocks]
+    newBlocks[index].paceConstraint = paceConstraint
     setBlocks(newBlocks)
   }
 
@@ -84,9 +109,11 @@ export default function CreateWorkoutPage() {
         userId: user.id,
         blocks: blocks.map(block => ({
           blockType: block.type,
-          metricType: MetricType.DISTANCE,
+          metricType: block.metricType,
           distance: block.distance,
-          distanceUnit: DistanceUnit.MILES
+          distanceUnit: DistanceUnit.MILES,
+          duration: block.duration,
+          paceConstraint: block.paceConstraint
         }))
       })
 
@@ -104,27 +131,20 @@ export default function CreateWorkoutPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Create Workout</h1>
-        <Link
-          href="/workouts"
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          Cancel
-        </Link>
+
       </div>
 
       <div className="space-y-6">
         {/* Workout Name Input */}
         <div>
-          <label htmlFor="workoutName" className="block text-sm font-medium text-gray-700 mb-1">
-            Workout Name
-          </label>
+
           <input
             type="text"
             id="workoutName"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="Enter workout name"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="Workout name"
           />
         </div>
 
@@ -140,17 +160,39 @@ export default function CreateWorkoutPage() {
           {AVAILABLE_BLOCKS.map(({ type, label, color }) => {
             const isAdded = isBlockTypeAdded(type)
             const blockIndex = blocks.findIndex(block => block.type === type)
-
+            
             if (isAdded) {
-              return (
-                <BuildingBlock
-                  key={type}
-                  type={type}
-                  distance={blocks[blockIndex].distance}
-                  onDistanceChange={(distance) => handleDistanceChange(blockIndex, distance)}
-                  onRemove={() => handleRemoveBlock(blockIndex)}
-                />
-              )
+              if (type === BlockType.WORK) {
+                return (
+                  <WorkBuildingBlock
+                    key={type}
+                    type={type}
+                    distance={blocks[blockIndex].distance}
+                    duration={blocks[blockIndex].duration}
+                    onDistanceChange={(distance) => handleDistanceChange(blockIndex, distance)}
+                    onDurationChange={(duration) => handleDurationChange(blockIndex, duration)}
+                    onRemove={() => handleRemoveBlock(blockIndex)}
+                    metricType={blocks[blockIndex].metricType}
+                    onMetricTypeChange={(metricType) => handleMetricTypeChange(blockIndex, metricType)}
+                    paceConstraint={blocks[blockIndex].paceConstraint}
+                    onPaceConstraintChange={(paceConstraint) => handlePaceConstraintChange(blockIndex, paceConstraint)}
+                  />
+                )
+              } else {
+                return (
+                  <BuildingBlock
+                    key={type}
+                    type={type}
+                    distance={blocks[blockIndex].distance}
+                    duration={blocks[blockIndex].duration}
+                    onDistanceChange={(distance) => handleDistanceChange(blockIndex, distance)}
+                    onDurationChange={(duration) => handleDurationChange(blockIndex, duration)}
+                    onRemove={() => handleRemoveBlock(blockIndex)}
+                    metricType={blocks[blockIndex].metricType}
+                    onMetricTypeChange={(metricType) => handleMetricTypeChange(blockIndex, metricType)}
+                  />
+                )
+              }
             }
 
             return (
@@ -164,13 +206,17 @@ export default function CreateWorkoutPage() {
             )
           })}
         </div>
-
-        {/* Save Button */}
-        <div className="flex justify-end mt-8">
+        <div className="flex flex-row justify-between space-x-4">
+          <button
+            className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors text-lg font-medium"
+            onClick={() => router.push('/workouts')}
+          >
+            Cancel
+          </button>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Save Workout'}
           </button>

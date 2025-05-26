@@ -1,22 +1,33 @@
 // app/api/user/profile/route.ts
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+
+// Add a type for the extended user
+interface ExtendedUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
 
 export async function PUT(request: Request) {
   try {
     // Get the authenticated user's session
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    // Use type assertion to treat the user as an ExtendedUser
+    const user = session?.user as ExtendedUser | undefined;
+
+    if (!user?.id) {
       return NextResponse.json(
         { error: 'You must be logged in to update your profile' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
     const { firstName, lastName, email } = await request.json();
 
     // Basic input validation
@@ -28,7 +39,7 @@ export async function PUT(request: Request) {
     }
 
     // Check if email is changing and if it's already taken
-    if (email && email !== session.user.email) {
+    if (email && email !== user.email) {
       const existingUser = await prisma.user.findUnique({
         where: { email: email }
       });

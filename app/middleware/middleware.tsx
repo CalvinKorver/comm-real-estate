@@ -20,18 +20,23 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Redirect logic
-  if (isPublicPath && token) {
-    // If user is logged in and trying to access a public path like login/register
-    // Redirect them to workouts page
-    if (path.startsWith('/auth/')) {
-      return NextResponse.redirect(new URL('/workouts', request.url));
-    }
+  console.log(`[Middleware] Path: ${path}, isPublicPath: ${isPublicPath}, hasToken: ${!!token}`);
+
+  // Workout routes should be protected
+  if (path.startsWith('/workouts') && !token) {
+    console.log(`[Middleware] Redirecting to login: ${path}`);
+    return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
+  // Redirect logic for auth pages
+  if (path.startsWith('/auth/') && token) {
+    console.log(`[Middleware] User already logged in, redirecting to workouts`);
+    return NextResponse.redirect(new URL('/workouts', request.url));
+  }
+
+  // For all other protected routes
   if (!isPublicPath && !token) {
-    // If user is not logged in and trying to access a protected path
-    // Redirect them to login page
+    console.log(`[Middleware] Protected route, redirecting to login: ${path}`);
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
@@ -42,9 +47,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/workouts',
     '/workouts/:path*',
     '/auth/:path*',
     '/privacy',
     '/contact',
+    '/profile/:path*',
   ],
 };

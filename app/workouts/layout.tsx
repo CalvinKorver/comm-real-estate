@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { fontSans } from "@/lib/fonts"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
+import { ProtectedRoute } from "@/components/protected-route"
 
 interface WorkoutLayoutProps {
   children: React.ReactNode
@@ -11,13 +12,15 @@ interface WorkoutLayoutProps {
 
 export default function WorkoutLayout({ children }: WorkoutLayoutProps) {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      {/* Include the SiteHeader at the top of every workout page */}
-      <SiteHeader />
-      
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 pt-8">{children}</main>
-      
-      <TailwindIndicator />
-    </div>
+    <ProtectedRoute>
+      <div className="relative flex min-h-screen flex-col">
+        {/* Include the SiteHeader at the top of every workout page */}
+        <SiteHeader />
+        
+        <main className="flex-1 max-w-2xl w-full mx-auto px-4 pt-8">{children}</main>
+        
+        <TailwindIndicator />
+      </div>
+    </ProtectedRoute>
   )
 }

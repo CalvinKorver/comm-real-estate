@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { User, LogOut, Settings, Workout, Plus } from 'lucide-react';
+import { User, LogOut, Settings, Dumbbell, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function UserNav() {
@@ -84,7 +84,7 @@ export function UserNav() {
             className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             onClick={() => setIsOpen(false)}
           >
-            <Workout className="mr-2 h-4 w-4" />
+            <Dumbbell className="mr-2 h-4 w-4" />
             Your Workouts
           </Link>
           <Link

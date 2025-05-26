@@ -69,7 +69,7 @@ export async function POST(request: Request) {
           data: {
             blockType,
             workoutId: workout.id,
-            metricType,
+            metricType: metricType || MetricType.DISTANCE,
             distance,
             distanceUnit,
             duration,

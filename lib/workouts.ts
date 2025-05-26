@@ -139,4 +139,33 @@ export async function archiveWorkout(id: string, isActive: boolean = false): Pro
     console.error('Client: Error updating workout status:', error)
     throw error
   }
+}
+
+export async function deleteWorkout(id: string): Promise<boolean> {
+  try {
+    console.log("Client: Deleting workout", id)
+    const response = await fetch(`/api/workouts/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Client: Failed to delete workout:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      throw new Error(`Failed to delete workout: ${response.status} ${response.statusText}`)
+    }
+    
+    const result = await response.json()
+    console.log("Client: Successfully deleted workout:", result)
+    return result.success
+  } catch (error) {
+    console.error('Client: Error deleting workout:', error)
+    throw error
+  }
 } 

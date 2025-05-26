@@ -79,3 +79,61 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+
+/* Time Picker Styling */
+.min-sec-picker .react-time-picker__wrapper {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
+  padding: 0.5rem;
+  color: white;
+}
+
+.min-sec-picker .react-time-picker__inputGroup {
+  color: white;
+  font-size: 20px;
+}
+
+.min-sec-picker .react-time-picker__inputGroup__input {
+  color: white;
+  background: transparent;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.min-sec-picker .react-time-picker__button {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.min-sec-picker .react-time-picker__button:hover {
+  color: white;
+}
+
+.min-sec-picker .react-time-picker__button:enabled:hover .react-time-picker__button__icon, 
+.min-sec-picker .react-time-picker__button:enabled:focus .react-time-picker__button__icon {
+  stroke: white;
+}
+
+.min-sec-picker .react-time-picker__button__icon {
+  stroke: rgba(255, 255, 255, 0.7);
+}
+
+.min-sec-picker .react-time-picker__hour,
+.min-sec-picker .react-time-picker__hour12 {
+  display: none;
+}
+
+.min-sec-picker .react-time-picker__inputGroup > *:nth-child(1),
+.min-sec-picker .react-time-picker__inputGroup > *:nth-child(2),
+.min-sec-picker .react-time-picker__inputGroup > *:nth-child(3) {
+  display: none;
+}
+
+/* Light theme */
+.light .min-sec-picker .react-time-picker__wrapper {
+  background-color: white;
+  border: 1px solid rgb(229, 231, 235);
+  color: rgb(55, 65, 81);
+  height: 50px;
+} 

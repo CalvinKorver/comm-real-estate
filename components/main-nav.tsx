@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
 import { UserNav } from "@/components/user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 interface MainNavProps {
   items?: NavItem[]
@@ -17,6 +20,11 @@ interface MainNavProps {
 export function MainNav({ items }: MainNavProps) {
   const { data: session, status } = useSession()
   const isLoading = status === 'loading'
+  const router = useRouter()
+
+  const handleSignOut = () => {
+    router.push('/auth/signout')
+  }
 
   return (
     <div className="flex w-full justify-between items-center">
@@ -48,6 +56,18 @@ export function MainNav({ items }: MainNavProps) {
 
       {/* Add user profile and theme toggle to the right side */}
       <div className="flex items-center space-x-4">
+        {session && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSignOut}
+            className="text-muted-foreground hover:text-foreground"
+            title="Sign out"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">Sign out</span>
+          </Button>
+        )}
         <ThemeToggle />
         
         {isLoading ? (
