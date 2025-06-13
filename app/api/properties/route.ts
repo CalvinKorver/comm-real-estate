@@ -74,7 +74,6 @@ export async function POST(request: Request) {
         net_operating_income,
         price,
         return_on_investment,
-        owner,
         number_of_units,
         square_feet
       }
