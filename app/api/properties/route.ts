@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 // GET /api/properties - Get all properties or a single property by ID
 export async function GET(request: Request) {
   try {
+    console.log('API: Fetching properties from database')
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -24,7 +25,12 @@ export async function GET(request: Request) {
     }
 
     // Get all properties
-    const properties = await prisma.property.findMany()
+    const properties = await prisma.property.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    console.log('API: Successfully fetched properties:', properties.length)
     return NextResponse.json(properties)
   } catch (error) {
     console.error('API: Error fetching properties:', error)

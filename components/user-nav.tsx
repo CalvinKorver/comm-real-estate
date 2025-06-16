@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { User, LogOut, Settings, Dumbbell, Plus } from 'lucide-react';
+import { User, LogOut, Settings, Home, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function UserNav() {
@@ -80,20 +80,20 @@ export function UserNav() {
             Your Profile
           </Link>
           <Link
-            href="/workouts"
+            href="/properties"
             className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             onClick={() => setIsOpen(false)}
           >
-            <Dumbbell className="mr-2 h-4 w-4" />
-            Your Workouts
+            <Home className="mr-2 h-4 w-4" />
+            Properties
           </Link>
           <Link
-            href="/workouts/create"
+            href="/properties/create"
             className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             onClick={() => setIsOpen(false)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create Workout
+            Add Property
           </Link>
           <div className="border-t border-gray-200 dark:border-gray-700"></div>
           <button

@@ -3,9 +3,9 @@ import { NavItem } from "@/types/nav"
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "PaceKit",
+  name: "Keystone",
   description:
-    "Design your perfect run. Sync to your watch. Start moving.",
+    "Commercial Real Estate Investment Management",
   
   mainNav: [] as NavItem[]
 }

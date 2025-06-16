@@ -31,7 +31,7 @@ const ContactPage = () => {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    recipient: 'support@pacekit.io'
+                    recipient: 'support@keystone.io'
                 }),
             });
             

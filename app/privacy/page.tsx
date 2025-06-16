@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
           <p className="mb-4">If you have any questions about this Privacy Policy, please contact us at:</p>
-          <p className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md inline-block">contact@pacekit.com</p>
+          <p className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md inline-block">contact@keystone.com</p>
         </section>
         
         <section className="mb-8">
