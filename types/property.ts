@@ -1,3 +1,5 @@
+// types/property.ts
+
 export interface Property {
   id: string
   street_address: string
@@ -11,4 +13,22 @@ export interface Property {
   square_feet: number
   createdAt: Date
   updatedAt: Date
-} 
+}
+
+export interface PropertyWithImages extends Property {
+  images?: string[]
+}
+
+export interface PropertyPageProps {
+  params: {
+    id: string
+  }
+}
+
+export interface PropertyImageGridProps {
+  images: string[]
+}
+
+export interface PropertyDetailsProps {
+  property: Property
+}
