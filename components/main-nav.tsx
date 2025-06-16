@@ -29,7 +29,7 @@ export function MainNav({ items }: MainNavProps) {
   return (
     <div className="flex w-full justify-between items-center">
       <div className="flex gap-6 md:gap-10">
-        <Link href="/workouts" className="flex items-center space-x-2">
+        <Link href="/properties" className="flex items-center space-x-2">
           <Icons.logo className="h-6 w-6" />
           <span className="inline-block font-bold">{siteConfig.name}</span>
         </Link>
@@ -68,7 +68,7 @@ export function MainNav({ items }: MainNavProps) {
             <span className="sr-only">Sign out</span>
           </Button>
         )}
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
         
         {isLoading ? (
           <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse dark:bg-gray-700"></div>
