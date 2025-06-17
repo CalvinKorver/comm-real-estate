@@ -13,6 +13,7 @@ export interface Property {
   square_feet: number
   createdAt: Date
   updatedAt: Date
+  owners?: Owner[]
 }
 
 export interface PropertyWithImages extends Property {
@@ -31,4 +32,11 @@ export interface PropertyImageGridProps {
 
 export interface PropertyDetailsProps {
   property: Property
+}
+
+export interface Owner {
+  id: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
 }

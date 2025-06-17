@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog"
+import { Icons } from "@/components/icons"
 
 export default function PropertiesPage() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export default function PropertiesPage() {
   const [error, setError] = useState<string | null>(null)
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [search, setSearch] = useState("")
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
 
   const fetchProperties = async () => {
     try {
@@ -46,6 +49,42 @@ export default function PropertiesPage() {
   useEffect(() => {
     fetchProperties()
   }, [])
+
+  useEffect(() => {
+    setFilteredProperties(properties)
+  }, [properties])
+
+  function filterProperties(query: string) {
+    const lower = query.toLowerCase()
+    setFilteredProperties(
+      properties.filter((property) => {
+        // Address, city, zip, owner string
+        if (
+          property.street_address.toLowerCase().includes(lower) ||
+          property.city.toLowerCase().includes(lower) ||
+          property.zip_code.toString().includes(lower) ||
+          (property.owner && property.owner.toLowerCase().includes(lower))
+        ) {
+          return true
+        }
+        // Owners array (firstName, lastName, phoneNumber)
+        if (property.owners) {
+          return property.owners.some(
+            (owner) =>
+              owner.firstName.toLowerCase().includes(lower) ||
+              owner.lastName.toLowerCase().includes(lower) ||
+              owner.phoneNumber.toLowerCase().includes(lower)
+          )
+        }
+        return false
+      })
+    )
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    filterProperties(search)
+  }
 
   const handleCreateProperty = () => {
     router.push('/properties/create')
@@ -80,18 +119,34 @@ export default function PropertiesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col items-center mb-8 space-y-4">
         <h1 className="text-4xl font-bold">Properties</h1>
+        <form onSubmit={handleSearch} className="flex w-full max-w-xl mx-auto">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-emerald-600 text-white rounded-r-lg hover:bg-emerald-700 flex items-center justify-center"
+            aria-label="Search"
+          >
+            <Icons.sun className="w-5 h-5" />
+          </button>
+        </form>
       </div>
       <div className="space-y-4">
         {isLoading ? (
           <p className="text-gray-500">Loading properties...</p>
         ) : error ? (
           <p className="text-red-500">{error}</p>
-        ) : properties.length === 0 ? (
+        ) : filteredProperties.length === 0 ? (
           <p className="text-gray-500">No properties found</p>
         ) : (
-          properties.map((property) => (
+          filteredProperties.map((property) => (
             <div 
               key={property.id} 
               className="block p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow relative bg-gray-200"
