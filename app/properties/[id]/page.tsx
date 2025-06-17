@@ -11,22 +11,19 @@ interface PropertyPageProps {
 
 export default async function PropertyPage({ params }: PropertyPageProps) {
   const property = await prisma.property.findUnique({
-    where: { id: params.id }
+    where: { id: params.id },
+    include: {
+      images: true,
+      owners: true
+    }
   })
 
   if (!property) {
     notFound()
   }
 
-  // Mock images for now - you'll want to add an images field to your Property model
-  const mockImages = [
-    '/api/placeholder/800/600', // Main image
-    '/api/placeholder/400/300', // Kitchen
-    '/api/placeholder/400/300', // Living room
-    '/api/placeholder/400/300', // Bathroom
-    '/api/placeholder/400/300', // Bedroom
-    '/api/placeholder/400/300', // Exterior
-  ]
+  // Use the actual property images if they exist, otherwise use the default images
+  const propertyImages = property.images?.map(img => img.url) || []
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +39,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         </div>
 
         {/* Image Grid */}
-        <PropertyImageGrid images={mockImages} />
+        <PropertyImageGrid images={propertyImages} />
 
         {/* Property Details */}
         <PropertyDetails property={property} />

@@ -52,13 +52,13 @@ export async function POST(request: Request) {
       net_operating_income,
       price,
       return_on_investment,
-      owner,
+      owners,
       number_of_units,
       square_feet
     } = body
 
     // Validate required fields
-    if (!street_address || !city || !zip_code || !price || !owner) {
+    if (!street_address || !city || !zip_code || !price || !owners) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }

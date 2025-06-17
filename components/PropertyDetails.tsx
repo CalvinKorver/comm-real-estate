@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { MapPin, Building2, Square, TrendingUp, User } from 'lucide-react'
+import Image from 'next/image'
+
 
 interface Property {
   id: string
@@ -16,6 +18,21 @@ interface Property {
   square_feet: number
   createdAt: Date
   updatedAt: Date
+  owners: {
+    id: string
+    firstName: string
+    lastName: string
+    streetAddress: string
+    city: string
+    zipCode: string
+    phoneNumber: string
+  }[]
+  images: {
+    id: string
+    url: string
+    alt: string | null
+    order: number
+  }[]
 }
 
 interface PropertyDetailsProps {
@@ -41,6 +58,29 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Left side - Main details */}
       <div className="lg:col-span-2 space-y-6">
+        {/* Image Gallery */}
+        {/* {property.images && property.images.length > 0 && (
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2">
+              {property.images.map((image, index) => (
+                <div 
+                  key={image.id} 
+                  className={`relative ${index === 0 ? 'md:col-span-2' : ''} aspect-[4/3]`}
+                >
+                  <Image
+                    src={image.url}
+                    alt={image.alt || `Property image ${index + 1}`}
+                    fill
+                    className="object-cover rounded-lg"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )} */}
+
         {/* Status and pricing */}
         <div className="bg-card p-6 rounded-lg border">
           <div className="flex items-center gap-2 mb-4">
@@ -115,15 +155,21 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 
         {/* Property Owner */}
         <div className="bg-card p-6 rounded-lg border">
-          <h2 className="text-xl font-semibold mb-4">Listed by</h2>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-              <User className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-semibold">{property.owner}</p>
-              <p className="text-sm text-muted-foreground">Property Owner</p>
-            </div>
+          <h2 className="text-xl font-semibold mb-4">Owners</h2>
+          <div className="flex items-center gap-3 grid grid-cols-1">
+            {property.owners &&  property.owners.length > 0 ? (
+                property.owners.map((owner) => (
+                <div className="flex items-center gap-3">
+                    <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                    <User className="h-6 w-6 text-muted-foreground" />
+                  </span>
+                <span key={owner.id}>
+                    <p className="font-semibold">{owner.firstName} {owner.lastName}</p>
+                    <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
+                </span>
+                </div>
+                ))
+            ) : (<div>No owners found</div>)}
           </div>
         </div>
       </div>
@@ -131,20 +177,21 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       {/* Right side - Action buttons */}
       <div className="space-y-4">
         <div className="bg-card p-6 rounded-lg border sticky top-6">
-          <Button className="w-full mb-3 bg-red-600 hover:bg-red-700">
-            Request showing
-          </Button>
-          <p className="text-sm text-muted-foreground mb-4 text-center">
+        <p className="text-sm text-muted-foreground mb-4 text-center">
             Tour for free, no strings attached
           </p>
+          <Button className="w-full mb-3 bg-green-600 hover:bg-green-700">
+            Request showing
+          </Button>
+          
           
           <Button variant="outline" className="w-full mb-6">
             Start your offer
           </Button>
           
-          <p className="text-xs text-muted-foreground text-center">
+          {/* <p className="text-xs text-muted-foreground text-center">
             A local agent will help you prepare and negotiate.
-          </p>
+          </p> */}
 
           {/* Quick Stats */}
           <div className="mt-6 pt-6 border-t space-y-3">
