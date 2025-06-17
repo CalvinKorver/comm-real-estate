@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Property } from "@/types/property"
+import { Property, Owner } from "@/types/property"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Trash } from "lucide-react"
@@ -36,6 +36,8 @@ export default function PropertiesPage() {
         throw new Error('Failed to fetch properties')
       }
       const data = await response.json()
+      console.log("fetched")
+      console.log(data)
       setProperties(data)
       setError(null)
     } catch (error) {
@@ -56,29 +58,38 @@ export default function PropertiesPage() {
 
   function filterProperties(query: string) {
     const lower = query.toLowerCase()
+    console.log("Query:", query);
     setFilteredProperties(
       properties.filter((property) => {
         // Address, city, zip, owner string
+        console.log(property.owners)
         if (
           property.street_address.toLowerCase().includes(lower) ||
           property.city.toLowerCase().includes(lower) ||
-          property.zip_code.toString().includes(lower) ||
-          (property.owner && property.owner.toLowerCase().includes(lower))
+          property.zip_code.toString().includes(lower)
         ) {
+          console.log('returning true"')
           return true
         }
-        // Owners array (firstName, lastName, phoneNumber)
-        if (property.owners) {
-          return property.owners.some(
-            (owner) =>
-              owner.firstName.toLowerCase().includes(lower) ||
-              owner.lastName.toLowerCase().includes(lower) ||
-              owner.phoneNumber.toLowerCase().includes(lower)
-          )
-        }
-        return false
+        return (property.owners && property.owners.find((owner) => owner.firstName.includes(query)));
       })
-    )
+    );
+  }
+
+  const containsOwner = (query: string, owners: Owner[]) => {
+    // console.log('in containsOwner')
+    // console.log(owners)
+    // console.log(query)
+    owners.forEach((owner) => {
+      // console.log("FIRST")
+      // console.log(owner.firstName);
+      if (owner.firstName.includes(query)) {
+        console.log("returning true in containsOwner")
+        return true
+      }
+    })
+    return false
+  
   }
 
   const handleSearch = (e: React.FormEvent) => {
@@ -119,14 +130,12 @@ export default function PropertiesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="flex flex-col items-center mb-8 space-y-4">
-        <h1 className="text-4xl font-bold">Properties</h1>
-        <form onSubmit={handleSearch} className="flex w-full max-w-xl mx-auto">
+      <form onSubmit={handleSearch} className="flex w-full max-w-xl mx-auto">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
+            placeholder="Search (for owners, addresses, etc)"
             className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
           <button
@@ -134,9 +143,12 @@ export default function PropertiesPage() {
             className="px-4 py-2 bg-emerald-600 text-white rounded-r-lg hover:bg-emerald-700 flex items-center justify-center"
             aria-label="Search"
           >
-            <Icons.sun className="w-5 h-5" />
+            <Icons.searchIcon className="w-5 h-5" />
           </button>
         </form>
+      <div className="flex flex-col items-center mb-8 space-y-4">
+        
+        
       </div>
       <div className="space-y-4">
         {isLoading ? (
@@ -176,9 +188,16 @@ export default function PropertiesPage() {
 
                 </div>
                 <div className="pt-2">
-                  <h3 className="font-semibold-800">Details</h3>
-                  <p className="text-sm text-gray-600">Projected Cash Flow: $4,000/month</p>
-                  <p className="text-sm text-gray-600">Annual Taxes: $25,000/year</p>
+                  {/* <h3 className="font-semibold-800">Details</h3> */}
+                  <p className = "text-gray-600 text-sm">
+                  <span >Projected Cashflow: </span> 
+                  <span className="text-sm font-semibold" >${Math.round(Math.random() * 10000)}/month</span>
+                  </p>
+
+                  <p className = "text-gray-600 text-sm">
+                  <span className="text-sm text-gray-600">Annual Taxes: </span>
+                  <span className="font-semibold">$25,000/year</span>
+                  </p>
                 
                   </div>
               </Link>

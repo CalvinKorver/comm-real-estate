@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { MapPin, Building2, Square, TrendingUp, User } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 
 interface Property {
@@ -157,17 +158,24 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         <div className="bg-card p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4">Owners</h2>
           <div className="flex items-center gap-3 grid grid-cols-1">
+            
             {property.owners &&  property.owners.length > 0 ? (
                 property.owners.map((owner) => (
-                <div className="flex items-center gap-3">
-                    <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-muted-foreground" />
-                  </span>
-                <span key={owner.id}>
-                    <p className="font-semibold">{owner.firstName} {owner.lastName}</p>
-                    <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
-                </span>
-                </div>
+                    <Link 
+                        key={property.id}
+                            href={`/owners/${owner.id}`}
+                            className="">
+                    <div className="flex items-center gap-3">
+                        <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-6 w-6 text-muted-foreground" />
+                    </span>
+                    <span key={owner.id}>
+                        <p className="font-semibold">{owner.firstName} {owner.lastName}</p>
+                        <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
+                    </span>
+                    </div>
+                </Link>
+                
                 ))
             ) : (<div>No owners found</div>)}
           </div>
