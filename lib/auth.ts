@@ -1,6 +1,5 @@
 // lib/auth.ts
 import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -26,7 +25,6 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     // GitHub authentication
     GithubProvider({
@@ -47,22 +45,29 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('[Auth] Missing credentials');
           return null;
         }
+
+        console.log('[Auth] Attempting to authorize user:', credentials.email);
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
 
         if (!user || !user.password) {
+          console.log('[Auth] User not found or no password:', credentials.email);
           return null;
         }
 
         const isPasswordValid = await compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
+          console.log('[Auth] Invalid password for user:', credentials.email);
           return null;
         }
+
+        console.log('[Auth] User authorized successfully:', credentials.email);
 
         return {
           id: user.id,
@@ -74,7 +79,11 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -95,4 +104,6 @@ export const authOptions: NextAuthOptions = {
     signOut: '/auth/signout',
     error: '/auth/error',
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 };
