@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { BlockType, DistanceUnit, MetricType } from "@/types/workout"
 import ActiveToggle from "@/components/ActiveToggle"
-import MinuteSecondPicker from "@/components/MinuteSecondPicker"
 
 export interface BaseBlockProps {
   type: BlockType
@@ -52,11 +51,7 @@ export function renderMetricInput(
             step="0.1"
           />
         ) : (
-          <MinuteSecondPicker
-            value={duration}
-            onChange={onDurationChange || (() => {})}
-            className="w-full"
-          />
+          null
         )}
       </div>
       <div className="text-2xl text-white/70">

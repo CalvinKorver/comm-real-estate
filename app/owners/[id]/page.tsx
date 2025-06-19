@@ -3,13 +3,8 @@ import { getOwnerWithProperties } from '@/lib/properties'
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-interface OwnerPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default async function OwnerPage({ params }: OwnerPageProps) {
+export default async function OwnerPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   // Get base URL for server-side fetch
   let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   if (typeof window === 'undefined') {
@@ -22,7 +17,7 @@ export default async function OwnerPage({ params }: OwnerPageProps) {
       if (host) baseUrl = `${proto}://${host}`;
     }
   }
-  const ownerWithProperties = await getOwnerWithProperties(params.id, baseUrl)
+  const ownerWithProperties = await getOwnerWithProperties(id, baseUrl)
 
   if (!ownerWithProperties) {
     notFound()

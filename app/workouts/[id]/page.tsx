@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react"
 import { Workout } from "@/types/workout"
 import { getWorkouts, archiveWorkout, deleteWorkout } from "@/lib/workouts"
 import Block from "@/components/Block"
-import WorkBlock from "@/components/WorkBlock"
+// import WorkBlock from "@/components/WorkBlock"
 import ActiveToggle from "@/components/ActiveToggle"
 import { BlockType, DistanceUnit, MetricType } from "@/types/workout"
 import { useRouter } from "next/navigation"
@@ -163,21 +163,9 @@ export default function WorkoutDetailPage({ params }: { params: Promise<{ id: st
             repeats: block.repeats
           } : undefined
 
-            return (
-              <WorkBlock
-                key={block.id}
-                label={label}
-                distance={distance}
-                unit={unit}
-                time={time}
-                pace={pace}
-                rest={rest}
-                highlight={highlight}
-                metricType={block.metricType}
-              />
-            )
-          }
-          
+          // <WorkBlock ... />
+        }
+        
 
         // For other blocks, use regular Block component
         return (

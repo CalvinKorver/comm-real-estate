@@ -3,15 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { PropertyImageGrid } from '@/components/PropertyImageGrid'
 import { PropertyDetails } from '@/components/PropertyDetails'
 
-interface PropertyPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default async function PropertyPage({ params }: PropertyPageProps) {
+export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const property = await prisma.property.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       images: true,
       owners: true
@@ -24,6 +19,19 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
   // Use the actual property images if they exist, otherwise use the default images
   const propertyImages = property.images?.map(img => img.url) || []
+
+  // Map property to match PropertyDetails prop type
+  const propertyForDetails = {
+    ...property,
+    owner: property.owners?.[0]?.id || '', // fallback for required 'owner' field
+    owners: (property.owners || []).map(owner => ({
+      ...owner,
+      streetAddress: owner.streetAddress || '',
+      city: owner.city || '',
+      zipCode: owner.zipCode || '',
+    })),
+    images: property.images || [],
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +50,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         <PropertyImageGrid images={propertyImages} />
 
         {/* Property Details */}
-        <PropertyDetails property={property} />
+        <PropertyDetails property={propertyForDetails} />
       </div>
     </div>
   )

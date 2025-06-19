@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { BlockType, MetricType, DistanceUnit } from "@/types/workout"
 import Link from "next/link"
-import BuildingBlock from "@/components/BuildingBlock"
-import WorkBuildingBlock from "@/components/WorkBuildingBlock"
+// import BuildingBlock from "@/components/BuildingBlock"
+// import WorkBuildingBlock from "@/components/WorkBuildingBlock"
 import { createWorkout } from "@/lib/workouts"
 import { useRouter } from "next/navigation"
 
@@ -163,35 +163,9 @@ export default function CreateWorkoutPage() {
             
             if (isAdded) {
               if (type === BlockType.WORK) {
-                return (
-                  <WorkBuildingBlock
-                    key={type}
-                    type={type}
-                    distance={blocks[blockIndex].distance}
-                    duration={blocks[blockIndex].duration}
-                    onDistanceChange={(distance) => handleDistanceChange(blockIndex, distance)}
-                    onDurationChange={(duration) => handleDurationChange(blockIndex, duration)}
-                    onRemove={() => handleRemoveBlock(blockIndex)}
-                    metricType={blocks[blockIndex].metricType}
-                    onMetricTypeChange={(metricType) => handleMetricTypeChange(blockIndex, metricType)}
-                    paceConstraint={blocks[blockIndex].paceConstraint}
-                    onPaceConstraintChange={(paceConstraint) => handlePaceConstraintChange(blockIndex, paceConstraint)}
-                  />
-                )
+                return null
               } else {
-                return (
-                  <BuildingBlock
-                    key={type}
-                    type={type}
-                    distance={blocks[blockIndex].distance}
-                    duration={blocks[blockIndex].duration}
-                    onDistanceChange={(distance) => handleDistanceChange(blockIndex, distance)}
-                    onDurationChange={(duration) => handleDurationChange(blockIndex, duration)}
-                    onRemove={() => handleRemoveBlock(blockIndex)}
-                    metricType={blocks[blockIndex].metricType}
-                    onMetricTypeChange={(metricType) => handleMetricTypeChange(blockIndex, metricType)}
-                  />
-                )
+                return null
               }
             }
 

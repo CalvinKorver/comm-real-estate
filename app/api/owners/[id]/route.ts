@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/owners/[id] - Get an owner and their properties
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const ownerId = params.id
+    const { id: ownerId } = await params
     if (!ownerId) {
       return NextResponse.json({ error: 'Owner ID is required' }, { status: 400 })
     }
