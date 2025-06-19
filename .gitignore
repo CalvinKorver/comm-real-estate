@@ -73,3 +73,4 @@ prisma/migrations/
 !.env.example
 
 generated/prisma/
+package-lock.json
