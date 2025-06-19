@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Property } from '@/types/property'
-import Link from 'next/link'
+    import Link from 'next/link'
 
 export default function PropertyList() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -31,7 +31,7 @@ export default function PropertyList() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Properties</h2>
+      
       <div className="grid gap-4">
         {properties.map((property) => (
           <Link

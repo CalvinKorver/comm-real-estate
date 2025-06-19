@@ -28,9 +28,12 @@ export async function GET(request: Request) {
     const properties = await prisma.property.findMany({
       orderBy: {
         createdAt: 'desc'
+      },
+      include: {
+        owners: true,
       }
     })
-    console.log('API: Successfully fetched properties:', properties.length)
+    console.log(properties)
     return NextResponse.json(properties)
   } catch (error) {
     console.error('API: Error fetching properties:', error)
@@ -52,13 +55,13 @@ export async function POST(request: Request) {
       net_operating_income,
       price,
       return_on_investment,
-      owner,
+      owners,
       number_of_units,
       square_feet
     } = body
 
     // Validate required fields
-    if (!street_address || !city || !zip_code || !price || !owner) {
+    if (!street_address || !city || !zip_code || !price || !owners) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
         net_operating_income,
         price,
         return_on_investment,
-        owner,
+        owners,
         number_of_units,
         square_feet
       }

@@ -94,7 +94,7 @@ export default function SignUpPage() {
           <Icons.logo className="mx-auto h-12 w-12" />
           <h1 className="mt-6 text-3xl font-bold">Create an account</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Sign up to get started with PaceKit
+            Sign up to get started with 
           </p>
         </div>
 

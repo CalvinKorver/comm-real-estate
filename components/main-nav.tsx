@@ -8,7 +8,6 @@ import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
 import { UserNav } from "@/components/user-nav"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -31,6 +30,7 @@ export function MainNav({ items }: MainNavProps) {
       <div className="flex gap-6 md:gap-10">
         <Link href="/properties" className="flex items-center space-x-2">
           <Icons.logo className="h-6 w-6" />
+          
           <span className="inline-block font-bold">{siteConfig.name}</span>
         </Link>
         {items?.length ? (

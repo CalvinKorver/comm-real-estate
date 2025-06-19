@@ -19,13 +19,27 @@ model Property {
   net_operating_income  Int
   price                 Int
   return_on_investment  Int
-  owner                 String
   number_of_units       Int
   square_feet           Int
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  images                PropertyImage[]
+  owners                Owner[]   @relation("PropertyToOwner")
 
   @@map("properties")
+}
+
+model Owner {
+  id            String     @id @default(uuid())
+  firstName     String
+  lastName      String
+  streetAddress String?
+  city          String?
+  zipCode       String?
+  phoneNumber   String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  properties    Property[] @relation("PropertyToOwner")
 }
 
 model User {
@@ -78,4 +92,17 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  url        String
+  alt        String?
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@map("property_images")
 }

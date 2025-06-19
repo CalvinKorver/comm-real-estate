@@ -99,4 +99,41 @@ export async function deleteProperty(id: string): Promise<boolean> {
     console.error('Client: Error deleting property:', error)
     throw error
   }
+}
+
+export async function getOwnerWithProperties(ownerId: string, baseUrl?: string) {
+  try {
+    console.log("Client: Fetching owner with properties", ownerId)
+    let url = `/api/owners/${ownerId}`;
+    // If running on the server, use absolute URL
+    if (typeof window === 'undefined') {
+      // Use provided baseUrl or fallback to process.env.NEXT_PUBLIC_BASE_URL
+      const absBase = baseUrl || process.env.NEXT_PUBLIC_BASE_URL;
+      if (!absBase) {
+        throw new Error('Base URL is required for server-side fetches. Set NEXT_PUBLIC_BASE_URL in your environment.')
+      }
+      url = `${absBase.replace(/\/$/, '')}/api/owners/${ownerId}`;
+    }
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Client: Failed to fetch owner with properties:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      throw new Error(`Failed to fetch owner with properties: ${response.status} ${response.statusText}`)
+    }
+    const ownerWithProperties = await response.json()
+    console.log("Client: Successfully fetched owner with properties:", ownerWithProperties)
+    return ownerWithProperties
+  } catch (error) {
+    console.error('Client: Error fetching owner with properties:', error)
+    throw error
+  }
 } 
