@@ -162,7 +162,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             {property.owners &&  property.owners.length > 0 ? (
                 property.owners.map((owner) => (
                     <Link 
-                        key={property.id}
+                        key={owner.id}
                             href={`/owners/${owner.id}`}
                             className="">
                     <div className="flex items-center gap-3">
