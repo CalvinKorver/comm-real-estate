@@ -17,6 +17,8 @@ model Property {
   street_address        String
   city                  String
   zip_code              Int
+  state                 String?   // Made optional initially to handle existing records
+  parcel_id             String?   @unique
   net_operating_income  Int
   price                 Int
   return_on_investment  Int
@@ -34,13 +36,33 @@ model Owner {
   id            String     @id @default(uuid())
   firstName     String
   lastName      String
+  fullName      String?    // For cases where we have a single name field
+  llcContact    String?    // LLC Contact information
   streetAddress String?
   city          String?
+  state         String?
   zipCode       String?
-  phoneNumber   String
+  phoneNumber   String?    // Keep existing for backward compatibility
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   properties    Property[] @relation("PropertyToOwner")
+  contacts      Contact[]
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  phone     String?  // Optional phone number
+  email     String?  // Optional email address
+  type      String   // Required type: Email, Cell, Home, Work, etc.
+  priority  Int      // Priority for ordering (lower number = higher priority)
+  ownerId   String   // Foreign key to Owner
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  @@unique([ownerId, type, priority]) // Ensure unique priority per type per owner
+  @@map("contacts")
 }
 
 model User {

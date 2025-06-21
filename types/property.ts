@@ -5,6 +5,8 @@ export interface Property {
   street_address: string
   city: string
   zip_code: number
+  state?: string
+  parcel_id?: string
   net_operating_income: number
   price: number
   return_on_investment: number
@@ -37,5 +39,25 @@ export interface Owner {
   id: string
   firstName: string
   lastName: string
-  phoneNumber: string
+  fullName?: string
+  llcContact?: string
+  streetAddress?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  phoneNumber?: string
+  createdAt: Date
+  updatedAt: Date
+  contacts?: Contact[]
+}
+
+export interface Contact {
+  id: string
+  phone?: string
+  email?: string
+  type: string
+  priority: number
+  ownerId: string
+  createdAt: Date
+  updatedAt: Date
 }
