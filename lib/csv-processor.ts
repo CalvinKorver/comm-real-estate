@@ -73,10 +73,14 @@ export function processCSVRow(row: CSVRow): {
   };
 
   // Process property data
+  const city = row.City?.trim() || 'unknown';
+  const zipStr = row.Zip?.trim() || '0';
+  const zipCode = parseInt(zipStr, 10) || 0;
+  
   const property: ProcessedProperty = {
     street_address: row.Address || '',
-    city: row.City || '',
-    zip_code: parseInt(row.Zip || '0', 10) || 0,
+    city: city,
+    zip_code: zipCode,
     state: row.State || undefined,
     parcel_id: row.ParcelId || undefined,
   };
@@ -100,16 +104,17 @@ export function validateCSVRow(row: CSVRow): { isValid: boolean; errors: string[
     errors.push('Address is required');
   }
 
-  if (!row.City?.trim()) {
-    errors.push('City is required');
-  }
+  // City and Zip are now optional - will be set to "unknown" if empty
+  // if (!row.City?.trim()) {
+  //   errors.push('City is required');
+  // }
 
-  if (!row.Zip?.trim()) {
-    errors.push('Zip is required');
-  }
+  // if (!row.Zip?.trim()) {
+  //   errors.push('Zip is required');
+  // }
 
-  // Validate zip code format
-  if (row.Zip && !/^\d{5}(-\d{4})?$/.test(row.Zip)) {
+  // Validate zip code format only if zip is provided
+  if (row.Zip && row.Zip.trim() && !/^\d{5}(-\d{4})?$/.test(row.Zip)) {
     errors.push('Zip code must be in valid format (e.g., 12345 or 12345-6789)');
   }
 
