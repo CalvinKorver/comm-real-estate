@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getOwnerWithProperties } from '@/lib/properties'
+import { getOwnerWithProperties } from '@/lib/client/properties'
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 

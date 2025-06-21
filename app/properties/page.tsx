@@ -18,6 +18,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Icons } from "@/components/icons"
 
+interface PaginationData {
+  currentPage: number
+  totalPages: number
+  totalCount: number
+  limit: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
 export default function PropertiesPage() {
   const router = useRouter()
   const [properties, setProperties] = useState<Property[]>([])
@@ -26,19 +35,30 @@ export default function PropertiesPage() {
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [search, setSearch] = useState("")
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationData | null>(null)
 
-  const fetchProperties = async () => {
+  const fetchProperties = async (page: number = 1, searchQuery: string = "") => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/properties')
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10'
+      })
+      
+      if (searchQuery) {
+        params.append('search', searchQuery)
+      }
+      
+      const response = await fetch(`/api/properties?${params}`)
       if (!response.ok) {
         throw new Error('Failed to fetch properties')
       }
       const data = await response.json()
       console.log("fetched")
       console.log(data)
-      setProperties(data)
+      setProperties(data.properties)
+      setPagination(data.pagination)
       setError(null)
     } catch (error) {
       setError('Failed to load properties')
@@ -49,52 +69,17 @@ export default function PropertiesPage() {
   }
 
   useEffect(() => {
-    fetchProperties()
-  }, [])
-
-  useEffect(() => {
-    setFilteredProperties(properties)
-  }, [properties])
-
-  function filterProperties(query: string) {
-    const lower = query.toLowerCase()
-    console.log("Query:", query);
-    setFilteredProperties(
-      properties.filter((property) => {
-        // Address, city, zip, owner string
-        console.log(property.owners)
-        if (
-          property.street_address.toLowerCase().includes(lower) ||
-          property.city.toLowerCase().includes(lower) ||
-          property.zip_code.toString().includes(lower)
-        ) {
-          console.log('returning true"')
-          return true
-        }
-        return (property.owners && property.owners.find((owner) => owner.firstName.includes(query)));
-      })
-    );
-  }
-
-  const containsOwner = (query: string, owners: Owner[]) => {
-    // console.log('in containsOwner')
-    // console.log(owners)
-    // console.log(query)
-    owners.forEach((owner) => {
-      // console.log("FIRST")
-      // console.log(owner.firstName);
-      if (owner.firstName.includes(query)) {
-        console.log("returning true in containsOwner")
-        return true
-      }
-    })
-    return false
-  
-  }
+    fetchProperties(currentPage, search)
+  }, [currentPage])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    filterProperties(search)
+    setCurrentPage(1) // Reset to first page when searching
+    fetchProperties(1, search)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
   }
 
   const handleCreateProperty = () => {
@@ -118,7 +103,7 @@ export default function PropertiesPage() {
       if (!response.ok) {
         throw new Error('Failed to delete property')
       }
-      await fetchProperties() // Refresh the list
+      await fetchProperties(currentPage, search) // Refresh the list
     } catch (error) {
       console.error('Error deleting property:', error)
       setError('Failed to delete property')
@@ -126,6 +111,70 @@ export default function PropertiesPage() {
       setIsDeleting(false)
       setPropertyToDelete(null)
     }
+  }
+
+  const renderPagination = () => {
+    if (!pagination || pagination.totalPages <= 1) return null
+
+    const pages = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1)
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    // Previous button
+    if (pagination.hasPreviousPage) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(pagination.currentPage - 1)}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
+        >
+          Previous
+        </button>
+      )
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-2 text-sm font-medium border ${
+            i === pagination.currentPage
+              ? 'bg-emerald-600 text-white border-emerald-600'
+              : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {i}
+        </button>
+      )
+    }
+
+    // Next button
+    if (pagination.hasNextPage) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(pagination.currentPage + 1)}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
+        >
+          Next
+        </button>
+      )
+    }
+
+    return (
+      <div className="flex justify-center mt-8">
+        <div className="flex space-x-0">
+          {pages}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -155,10 +204,10 @@ export default function PropertiesPage() {
           <p className="text-gray-500">Loading properties...</p>
         ) : error ? (
           <p className="text-red-500">{error}</p>
-        ) : filteredProperties.length === 0 ? (
+        ) : properties.length === 0 ? (
           <p className="text-gray-500">No properties found</p>
         ) : (
-          filteredProperties.map((property) => (
+          properties.map((property) => (
             <div 
               key={property.id} 
               className="block p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow relative bg-gray-200"
@@ -189,15 +238,15 @@ export default function PropertiesPage() {
                 </div>
                 <div className="pt-2">
                   {/* <h3 className="font-semibold-800">Details</h3> */}
-                  <p className = "text-gray-600 text-sm">
-                  <span >Projected Cashflow: </span> 
+                  {/* <p className = "text-gray-600 text-sm"> */}
+                  {/* <span >Projected Cashflow: </span> 
                   <span className="text-sm font-semibold" >${Math.round(Math.random() * 10000)}/month</span>
                   </p>
 
                   <p className = "text-gray-600 text-sm">
                   <span className="text-sm text-gray-600">Annual Taxes: </span>
                   <span className="font-semibold">$25,000/year</span>
-                  </p>
+                  </p> */}
                 
                   </div>
               </Link>
@@ -206,6 +255,17 @@ export default function PropertiesPage() {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {renderPagination()}
+
+      {/* Results info */}
+      {pagination && (
+        <div className="text-center mt-4 text-sm text-gray-600">
+          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of {pagination.totalCount} properties
+        </div>
+      )}
+
       <div className="mt-8 flex justify-center">
         <button
           onClick={handleCreateProperty}

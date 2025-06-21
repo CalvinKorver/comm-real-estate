@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
-import { CSVRow, processCSVRow, validateCSVRow } from './csv-processor';
-import { prisma } from './prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { CSVRow, processCSVRow, validateCSVRow, createContactsForOwner } from './csv-processor';
+import { prisma } from '@/lib/shared/prisma';
 import { createContactsFromCSV } from '@/types/contact';
 
 export interface UploadResult {

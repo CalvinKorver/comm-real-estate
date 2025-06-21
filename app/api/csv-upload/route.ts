@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processCSVUpload } from '@/lib/csv-upload-processor';
+import { processCSVUpload } from '@/lib/services/csv-upload-processor';
 
 export async function POST(request: NextRequest) {
   try {

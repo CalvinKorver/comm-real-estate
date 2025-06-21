@@ -1,7 +1,7 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import { fontSans } from "@/lib/fonts"
+import { cn } from "@/lib/shared/utils"
+import { fontSans } from "@/lib/shared/fonts"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ProtectedRoute } from "@/components/protected-route"

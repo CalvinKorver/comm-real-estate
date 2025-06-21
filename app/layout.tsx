@@ -2,10 +2,11 @@
 import "@/styles/globals.css"
 import { Metadata, Viewport } from "next"
 import { siteConfig } from "@/config/site"
-import { fontSans } from "@/lib/fonts"
-import { cn } from "@/lib/utils"
+import { fontSans } from "@/lib/shared/fonts"
+import { cn } from "@/lib/shared/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
+import { Inter } from 'next/font/google'
 
 export const metadata: Metadata = {
   title: {
