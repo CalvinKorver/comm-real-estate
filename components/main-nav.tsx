@@ -5,10 +5,10 @@ import Link from "next/link"
 import { useSession } from 'next-auth/react'
 import { NavItem } from "@/types/nav"
 import { siteConfig } from "@/config/site"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/shared/utils"
 import { Icons } from "@/components/icons"
 import { UserNav } from "@/components/user-nav"
-import { LogOut } from "lucide-react"
+import { LogOut, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 
@@ -64,11 +64,18 @@ export function MainNav({ items }: MainNavProps) {
             className="text-muted-foreground hover:text-foreground"
             title="Sign out"
           >
-            <LogOut className="h-5 w-5" />
-            <span className="sr-only">Sign out</span>
+
           </Button>
         )}
-        {/* <ThemeToggle /> */}
+        <Button 
+        className="h-8 w-24 bg-green-600 rounded-full hover:bg-green-700 text-white text-muted-foreground hover:text-foreground"
+          variant="ghost"
+          size="icon"
+          title="upload-csv"
+          onClick={() => router.push('/csv-upload')}>
+            {/* <span className="mr-1"><Plus className="h-4 w-4 text-white" /></span> */}
+            <span className="text-white">Upload</span>
+        </Button>
         
         {isLoading ? (
           <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse dark:bg-gray-700"></div>

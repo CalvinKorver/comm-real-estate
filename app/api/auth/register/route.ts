@@ -1,6 +1,6 @@
 // app/api/auth/register/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/shared/prisma';
 import { hash } from 'bcrypt';
 
 export async function POST(request: Request) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { Workout } from "@/types/workout"
-import { getWorkouts, archiveWorkout, deleteWorkout } from "@/lib/workouts"
+import { getWorkouts, archiveWorkout, deleteWorkout } from "@/lib/client/workouts"
 import Block from "@/components/Block"
 // import WorkBlock from "@/components/WorkBlock"
 import ActiveToggle from "@/components/ActiveToggle"

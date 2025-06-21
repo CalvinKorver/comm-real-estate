@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma'
+import { hash } from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -6,6 +7,19 @@ async function main() {
   // Clean existing data
   await prisma.property.deleteMany()
   await prisma.user.deleteMany()
+
+  // Create a test user
+  const hashedPassword = await hash('password123', 10);
+  const testUser = await prisma.user.create({
+    data: {
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@example.com',
+      password: hashedPassword,
+    },
+  });
+
+  console.log('Test user created:', testUser.email);
 
   const owner1 = await prisma.owner.create({
     data: {

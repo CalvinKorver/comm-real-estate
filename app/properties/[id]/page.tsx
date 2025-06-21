@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/shared/prisma'
 import { PropertyImageGrid } from '@/components/PropertyImageGrid'
 import { PropertyDetails } from '@/components/PropertyDetails'
 
@@ -29,6 +29,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       streetAddress: owner.streetAddress || '',
       city: owner.city || '',
       zipCode: owner.zipCode || '',
+      phoneNumber: owner.phoneNumber || '', // Ensure phoneNumber is always a string
     })),
     images: property.images || [],
   }

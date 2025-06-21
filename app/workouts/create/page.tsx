@@ -5,7 +5,7 @@ import { BlockType, MetricType, DistanceUnit } from "@/types/workout"
 import Link from "next/link"
 // import BuildingBlock from "@/components/BuildingBlock"
 // import WorkBuildingBlock from "@/components/WorkBuildingBlock"
-import { createWorkout } from "@/lib/workouts"
+import { createWorkout } from "@/lib/client/workouts"
 import { useRouter } from "next/navigation"
 
 interface Block {

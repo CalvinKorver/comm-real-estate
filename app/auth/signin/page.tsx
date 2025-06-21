@@ -38,6 +38,7 @@ export default function SignInPage() {
     } catch (error) {
       setError('An unexpected error occurred');
       console.error('Sign in error:', error);
+    } finally {
       setIsLoading(false);
     }
   };
