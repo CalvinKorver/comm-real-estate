@@ -39,7 +39,11 @@ export class PropertyService {
    */
   static async getPropertyById(id: string) {
     const property = await prisma.property.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        owners: true,
+        coordinates: true,
+      }
     })
 
     if (!property) {
@@ -91,6 +95,7 @@ export class PropertyService {
       },
       include: {
         owners: true,
+        coordinates: true,
       },
       skip,
       take: limit
@@ -143,10 +148,31 @@ export class PropertyService {
     const property = await prisma.property.create({
       data: propertyData,
       include: {
-        owners: true
+        owners: true,
+        coordinates: true,
       }
     })
 
     return property
+  }
+
+  /**
+   * Get properties with coordinates for mapping
+   */
+  static async getPropertiesWithCoordinates() {
+    return await prisma.property.findMany({
+      where: {
+        coordinates: {
+          isNot: null
+        }
+      },
+      include: {
+        coordinates: true,
+        owners: true,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
   }
 } 

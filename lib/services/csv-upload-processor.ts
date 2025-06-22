@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CSVRow, processCSVRow, validateCSVRow, createContactsForOwner } from './csv-processor';
 import { prisma } from '@/lib/shared/prisma';
 import { createContactsFromCSV } from '@/types/contact';
+import { CoordinateService } from './coordinate-service';
 
 export interface UploadResult {
   success: boolean;
@@ -20,6 +21,8 @@ export interface UploadResult {
   createdOwners: number;
   createdProperties: number;
   createdContacts: number;
+  geocodedProperties: number;
+  geocodingErrors: string[];
 }
 
 export interface ProcessedData {
@@ -200,7 +203,12 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
       createdOwners: 0,
       createdProperties: 0,
       createdContacts: 0,
+      geocodedProperties: 0,
+      geocodingErrors: [],
     };
+
+    // Initialize coordinate service
+    const coordinateService = new CoordinateService();
 
     // Track addresses to detect duplicates
     const processedAddresses = new Set<string>();
@@ -303,6 +311,25 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
           data: contactInputs,
         });
 
+        // Geocode the property
+        try {
+          const coordinates = await coordinateService.getOrCreateCoordinates(
+            createdProperty.id,
+            property.street_address,
+            property.city,
+            property.state,
+            property.zip_code.toString()
+          );
+
+          if (coordinates) {
+            result.geocodedProperties++;
+          } else {
+            result.geocodingErrors.push(`Failed to geocode: ${property.street_address}, ${property.city}`);
+          }
+        } catch (geocodingError) {
+          result.geocodingErrors.push(`Geocoding error for ${property.street_address}: ${geocodingError}`);
+        }
+
         result.createdOwners++;
         result.createdProperties++;
         result.createdContacts += createdContacts.count;
@@ -330,6 +357,8 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
       createdOwners: 0,
       createdProperties: 0,
       createdContacts: 0,
+      geocodedProperties: 0,
+      geocodingErrors: [],
     };
   }
 }
@@ -370,5 +399,7 @@ export async function saveProcessedData(data: ProcessedData): Promise<UploadResu
     createdOwners: data.owners.length,
     createdProperties: data.properties.length,
     createdContacts: data.contacts.length,
+    geocodedProperties: 0,
+    geocodingErrors: [],
   };
 } 

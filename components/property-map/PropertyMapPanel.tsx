@@ -6,8 +6,14 @@ import { PANEL_WIDTHS } from '@/lib/map-constants'
 export default function PropertyMapPanel({
   properties,
   selectedProperty,
+  highlightedPropertyId,
+  center,
+  zoom,
   onPropertySelect,
   onPropertyDeselect,
+  onMarkerClick,
+  onMapCenterChange,
+  onMapZoomChange,
   className = ""
 }: PropertyMapPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -41,8 +47,15 @@ export default function PropertyMapPanel({
       {/* Map Container */}
       <div className="flex-1">
         <GoogleMapContainer 
+          properties={properties}
+          center={center}
+          zoom={zoom}
+          highlightedPropertyId={highlightedPropertyId}
           onMapError={setError}
           onMapReady={() => setIsLoading(false)}
+          onMarkerClick={onMarkerClick}
+          onMapCenterChange={onMapCenterChange}
+          onMapZoomChange={onMapZoomChange}
         />
       </div>
     </section>

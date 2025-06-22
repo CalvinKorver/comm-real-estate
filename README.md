@@ -3,6 +3,65 @@
 ## Overview
 A commercial real estate investment management platform built with Next.js, Prisma, NextAuth, and Vercel Postgres.
 
+## Features
+
+### Property Management
+- Create, view, edit, and delete properties
+- Property search and filtering
+- Owner management and contact information
+- Property images and details
+
+### Interactive Map View
+- **Google Maps Integration**: Properties are displayed on an interactive Google Maps interface
+- **Property Markers**: Each property with coordinates is shown as a marker on the map
+- **Price Labels**: Markers display the property price in a formatted label (e.g., "$1500k")
+- **Automatic Bounds**: Map automatically fits to show all property markers
+- **Responsive Design**: Map works on both desktop and mobile devices
+
+### Map Features
+- **Coordinate Support**: Properties can have latitude/longitude coordinates stored in the database
+- **Marker Management**: Markers are automatically created, updated, and cleaned up
+- **Click Handling**: Markers can be clicked for property details (extensible)
+- **Custom Styling**: Map markers have custom CSS styling for better visibility
+
+### Geocoding
+- Google Maps Geocoding API integration
+- Batch geocoding for multiple properties
+- Address validation and coordinate storage
+
+## Map Implementation
+
+### Database Schema
+Properties can have associated coordinates stored in a separate `Coordinate` table:
+```sql
+model Coordinate {
+  id          String   @id @default(uuid())
+  propertyId  String   @unique
+  latitude    Float
+  longitude   Float
+  confidence  String   // 'high', 'medium', 'low'
+  placeId     String?  // Google Place ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+```
+
+### Components
+- `GoogleMapContainer`: Core map component that handles Google Maps integration
+- `PropertyMapView`: Main map view component with property list and map panels
+- `PropertyMapPanel`: Map panel component
+- `PropertyListPanel`: Property list panel component
+
+### Usage
+Navigate to `/properties/map` to view the interactive property map. The map will:
+1. Fetch all properties from the API
+2. Filter properties that have coordinates
+3. Create Google Maps markers for each property
+4. Display price labels on markers
+5. Automatically fit the map bounds to show all markers
+
 ## Getting Started
 
 ### 1. Clone the repository

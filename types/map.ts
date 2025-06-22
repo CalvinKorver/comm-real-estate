@@ -65,9 +65,15 @@ export interface PropertyMarker {
 }
 
 export interface MarkerConfig {
-  url: string
-  scaledSize: { width: number; height: number }
-  anchor: { x: number; y: number }
+  id: string
+  position: Coordinates
+  title?: string
+  description?: string
+  icon?: string
+  color?: string
+  size?: 'small' | 'medium' | 'large'
+  clickable?: boolean
+  draggable?: boolean
 }
 
 export interface MarkerSettings {
@@ -106,22 +112,33 @@ export interface MapViewport {
 
 // Component prop interfaces
 export interface GoogleMapContainerProps {
+  properties?: Property[]
   center?: Coordinates
   zoom?: number
   className?: string
   style?: MapStyle
   options?: MapInitializationOptions
+  highlightedPropertyId?: string | null
   onMapReady?: (map: google.maps.Map) => void
   onMapError?: (error: string) => void
   onMapClick?: (coordinates: Coordinates) => void
   onMapBoundsChanged?: (viewport: MapViewport) => void
+  onMarkerClick?: (property: Property) => void
+  onMapCenterChange?: (center: Coordinates) => void
+  onMapZoomChange?: (zoom: number) => void
 }
 
 export interface PropertyMapPanelProps {
   properties: Property[]
   selectedProperty?: Property | null
+  highlightedPropertyId?: string | null
+  center?: Coordinates
+  zoom?: number
   onPropertySelect?: (property: Property) => void
   onPropertyDeselect?: () => void
+  onMarkerClick?: (property: Property) => void
+  onMapCenterChange?: (center: Coordinates) => void
+  onMapZoomChange?: (zoom: number) => void
   className?: string
 }
 
@@ -236,4 +253,64 @@ export type {
   MapConfig as MapOptions,
   PropertyMarker as Marker,
   MapState as State
+}
+
+/**
+ * Property marker specific configuration
+ */
+export interface PropertyMarkerConfig extends MarkerConfig {
+  property: Property
+  price?: string
+  roi?: string
+  units?: number
+}
+
+/**
+ * Map view configuration
+ */
+export interface MapViewConfig {
+  center: Coordinates
+  zoom: number
+  minZoom?: number
+  maxZoom?: number
+  mapType?: 'roadmap' | 'satellite' | 'hybrid' | 'terrain'
+}
+
+/**
+ * Map bounds for filtering properties
+ */
+export interface MapBounds {
+  north: number
+  south: number
+  east: number
+  west: number
+}
+
+/**
+ * Map interaction state
+ */
+export interface MapInteractionState {
+  isDragging: boolean
+  isZooming: boolean
+  selectedMarkerId?: string
+  hoveredMarkerId?: string
+}
+
+/**
+ * Map filter options
+ */
+export interface MapFilters {
+  priceRange?: {
+    min: number
+    max: number
+  }
+  roiRange?: {
+    min: number
+    max: number
+  }
+  unitsRange?: {
+    min: number
+    max: number
+  }
+  propertyTypes?: string[]
 } 

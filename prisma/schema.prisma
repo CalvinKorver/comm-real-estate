@@ -28,8 +28,24 @@ model Property {
   updatedAt             DateTime  @updatedAt
   images                PropertyImage[]
   owners                Owner[]   @relation("PropertyToOwner")
+  coordinates           Coordinate?
 
   @@map("properties")
+}
+
+model Coordinate {
+  id          String   @id @default(uuid())
+  propertyId  String   @unique
+  latitude    Float
+  longitude   Float
+  confidence  String   // 'high', 'medium', 'low'
+  placeId     String?  // Google Place ID for future reference
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@map("coordinates")
 }
 
 model Owner {

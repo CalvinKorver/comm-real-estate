@@ -1,1 +1,14 @@
 /* Add this to existing CSS */
+
+/* Property marker label styles */
+.property-marker-label {
+  background-color: #10b981;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}

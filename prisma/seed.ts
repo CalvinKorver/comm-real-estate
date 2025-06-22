@@ -72,6 +72,14 @@ async function main() {
           { id: owner3.id },
         ],
       },
+      coordinates: {
+        create: {
+          latitude: 47.6062,
+          longitude: -122.3321,
+          confidence: 'high',
+          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+        }
+      },
       images: {
         create: [
           { url: '/p1-1.jpg', alt: 'Property Main Image', order: 0 },
@@ -100,6 +108,14 @@ async function main() {
           { id: owner1.id }
         ],
       },
+      coordinates: {
+        create: {
+          latitude: 47.8107,
+          longitude: -122.3774,
+          confidence: 'high',
+          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+        }
+      },
       images: {
         create: [
           { url: '/p1-1.jpg', alt: 'Property Main Image', order: 0 },
@@ -127,6 +143,14 @@ async function main() {
         connect: [
           { id: owner2.id }
         ],
+      },
+      coordinates: {
+        create: {
+          latitude: 47.4750,
+          longitude: -122.2889,
+          confidence: 'high',
+          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+        }
       },
       images: {
         create: [
