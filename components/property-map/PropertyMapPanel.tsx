@@ -41,6 +41,7 @@ export default function PropertyMapPanel({
       {/* Map Container */}
       <div className="flex-1">
         <GoogleMapContainer 
+          properties={properties}
           onMapError={setError}
           onMapReady={() => setIsLoading(false)}
         />

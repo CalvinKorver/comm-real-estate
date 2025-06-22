@@ -16,6 +16,7 @@ import type {
   MapInitializationOptions,
   MapViewport
 } from '@/types/map'
+import type { Property } from '@/types/property'
 
 declare global {
   interface Window {
@@ -24,6 +25,7 @@ declare global {
 }
 
 export default function GoogleMapContainer({ 
+  properties = [],
   center = MAP_CENTERS.NEW_YORK,
   zoom = ZOOM_LEVELS.CITY,
   className = "",
@@ -36,8 +38,54 @@ export default function GoogleMapContainer({
 }: GoogleMapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
+  const markersRef = useRef<google.maps.Marker[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Helper function to create markers for properties with coordinates
+  const createMarkers = (map: google.maps.Map, properties: Property[]) => {
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.setMap(null))
+    markersRef.current = []
+
+    // Filter properties that have coordinates
+    const propertiesWithCoordinates = properties.filter(property => property.coordinates)
+
+    // Create markers for each property
+    propertiesWithCoordinates.forEach(property => {
+      if (property.coordinates) {
+        const marker = new google.maps.Marker({
+          position: {
+            lat: property.coordinates.latitude,
+            lng: property.coordinates.longitude
+          },
+          map: map,
+          title: `${property.street_address}, ${property.city}`,
+        //   label: {
+        //     text: `$${(property.price / 1000).toFixed(0)}k`,
+        //     className: 'property-marker-label'
+        //   }
+        })
+
+        // Add click listener to marker
+        marker.addListener('click', () => {
+          // You can add custom marker click handling here
+          console.log('Marker clicked:', property)
+        })
+
+        markersRef.current.push(marker)
+      }
+    })
+
+    // Fit map bounds to show all markers if there are any
+    if (markersRef.current.length > 0) {
+      const bounds = new google.maps.LatLngBounds()
+      markersRef.current.forEach(marker => {
+        bounds.extend(marker.getPosition()!)
+      })
+      map.fitBounds(bounds)
+    }
+  }
 
   useEffect(() => {
     const initializeMap = async () => {
@@ -71,6 +119,9 @@ export default function GoogleMapContainer({
         )
 
         mapInstanceRef.current = map
+
+        // Create markers for properties
+        createMarkers(map, properties)
 
         // Set up map event listeners
         if (onMapReady) {
@@ -125,12 +176,23 @@ export default function GoogleMapContainer({
 
     // Cleanup function
     return () => {
+      // Clear markers
+      markersRef.current.forEach(marker => marker.setMap(null))
+      markersRef.current = []
+      
       if (mapInstanceRef.current) {
         // Clean up map instance if needed
         mapInstanceRef.current = null
       }
     }
   }, [center.lat, center.lng, zoom, style, options, onMapReady, onMapError, onMapClick, onMapBoundsChanged])
+
+  // Update markers when properties change
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      createMarkers(mapInstanceRef.current, properties)
+    }
+  }, [properties])
 
   // Update map center and zoom when props change
   useEffect(() => {

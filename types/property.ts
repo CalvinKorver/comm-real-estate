@@ -15,6 +15,13 @@ export interface Property {
   createdAt: Date
   updatedAt: Date
   owners?: Owner[]
+  coordinates?: {
+    id: string
+    latitude: number
+    longitude: number
+    confidence: string
+    placeId?: string
+  }
 }
 
 export interface PropertyWithImages extends Property {

@@ -54,9 +54,12 @@ export async function POST(request: NextRequest) {
         createdOwners: result.createdOwners,
         createdProperties: result.createdProperties,
         createdContacts: result.createdContacts,
+        geocodedProperties: result.geocodedProperties,
+        geocodingErrors: result.geocodingErrors.length,
       },
       errors: result.errors,
       duplicates: result.duplicates,
+      geocodingErrors: result.geocodingErrors,
     });
 
   } catch (error) {
