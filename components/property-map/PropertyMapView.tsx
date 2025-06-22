@@ -16,13 +16,43 @@ export default function PropertyMapView({
   mapStyle = MAP_STYLES.LIGHT
 }: PropertyMapViewProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [mapCenter, setMapCenter] = useState<Coordinates>(defaultCenter)
+  const [mapZoom, setMapZoom] = useState<number>(defaultZoom)
+  const [highlightedMarkerId, setHighlightedMarkerId] = useState<string | null>(null)
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
+    
+    // If property has coordinates, center the map on it
+    if (property.coordinates) {
+      setMapCenter({
+        lat: property.coordinates.latitude,
+        lng: property.coordinates.longitude
+      })
+      setMapZoom(ZOOM_LEVELS.STREET) // Closer zoom for individual property
+      setHighlightedMarkerId(property.id)
+    }
   }
 
   const handlePropertyDeselect = () => {
     setSelectedProperty(null)
+    setHighlightedMarkerId(null)
+    // Optionally reset map to show all properties
+    // setMapCenter(defaultCenter)
+    // setMapZoom(defaultZoom)
+  }
+
+  const handleMarkerClick = (property: Property) => {
+    setSelectedProperty(property)
+    setHighlightedMarkerId(property.id)
+  }
+
+  const handleMapCenterChange = (center: Coordinates) => {
+    setMapCenter(center)
+  }
+
+  const handleMapZoomChange = (zoom: number) => {
+    setMapZoom(zoom)
   }
 
   return (
@@ -34,8 +64,14 @@ export default function PropertyMapView({
           <PropertyMapPanel
             properties={properties}
             selectedProperty={selectedProperty}
+            highlightedPropertyId={highlightedMarkerId}
+            center={mapCenter}
+            zoom={mapZoom}
             onPropertySelect={handlePropertySelect}
             onPropertyDeselect={handlePropertyDeselect}
+            onMarkerClick={handleMarkerClick}
+            onMapCenterChange={handleMapCenterChange}
+            onMapZoomChange={handleMapZoomChange}
             className="h-full"
           />
         </div>
@@ -67,8 +103,14 @@ export default function PropertyMapView({
         <PropertyMapPanel
           properties={properties}
           selectedProperty={selectedProperty}
+          highlightedPropertyId={highlightedMarkerId}
+          center={mapCenter}
+          zoom={mapZoom}
           onPropertySelect={handlePropertySelect}
           onPropertyDeselect={handlePropertyDeselect}
+          onMarkerClick={handleMarkerClick}
+          onMapCenterChange={handleMapCenterChange}
+          onMapZoomChange={handleMapZoomChange}
           className="flex-1 h-full min-h-0"
         />
       </div>

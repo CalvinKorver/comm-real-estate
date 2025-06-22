@@ -118,17 +118,27 @@ export interface GoogleMapContainerProps {
   className?: string
   style?: MapStyle
   options?: MapInitializationOptions
+  highlightedPropertyId?: string | null
   onMapReady?: (map: google.maps.Map) => void
   onMapError?: (error: string) => void
   onMapClick?: (coordinates: Coordinates) => void
   onMapBoundsChanged?: (viewport: MapViewport) => void
+  onMarkerClick?: (property: Property) => void
+  onMapCenterChange?: (center: Coordinates) => void
+  onMapZoomChange?: (zoom: number) => void
 }
 
 export interface PropertyMapPanelProps {
   properties: Property[]
   selectedProperty?: Property | null
+  highlightedPropertyId?: string | null
+  center?: Coordinates
+  zoom?: number
   onPropertySelect?: (property: Property) => void
   onPropertyDeselect?: () => void
+  onMarkerClick?: (property: Property) => void
+  onMapCenterChange?: (center: Coordinates) => void
+  onMapZoomChange?: (zoom: number) => void
   className?: string
 }
 

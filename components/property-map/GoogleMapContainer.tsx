@@ -31,22 +31,49 @@ export default function GoogleMapContainer({
   className = "",
   style = MAP_STYLES.LIGHT,
   options = {},
+  highlightedPropertyId = null,
   onMapReady,
   onMapError,
   onMapClick,
-  onMapBoundsChanged
+  onMapBoundsChanged,
+  onMarkerClick,
+  onMapCenterChange,
+  onMapZoomChange
 }: GoogleMapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<google.maps.Marker[]>([])
+  const markersMapRef = useRef<Map<string, google.maps.Marker>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Helper function to create marker icon
+  const createMarkerIcon = (isSelected: boolean) => {
+    return {
+      url: isSelected 
+        ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C10.477 0 6 4.477 6 10c0 7 10 22 10 22s10-15 10-22c0-5.523-4.477-10-10-10z" fill="#dc2626"/>
+            <circle cx="16" cy="10" r="6" fill="#ffffff"/>
+          </svg>
+        `)
+        : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C10.477 0 6 4.477 6 10c0 7 10 22 10 22s10-15 10-22c0-5.523-4.477-10-10-10z" fill="#2563eb"/>
+            <circle cx="16" cy="10" r="6" fill="#ffffff"/>
+          </svg>
+        `),
+      scaledSize: new google.maps.Size(32, 32),
+      anchor: new google.maps.Point(16, 32)
+    }
+  }
 
   // Helper function to create markers for properties with coordinates
   const createMarkers = (map: google.maps.Map, properties: Property[]) => {
     // Clear existing markers
     markersRef.current.forEach(marker => marker.setMap(null))
     markersRef.current = []
+    markersMapRef.current.clear()
 
     // Filter properties that have coordinates
     const propertiesWithCoordinates = properties.filter(property => property.coordinates)
@@ -54,6 +81,7 @@ export default function GoogleMapContainer({
     // Create markers for each property
     propertiesWithCoordinates.forEach(property => {
       if (property.coordinates) {
+        const isSelected = highlightedPropertyId === property.id
         const marker = new google.maps.Marker({
           position: {
             lat: property.coordinates.latitude,
@@ -61,19 +89,17 @@ export default function GoogleMapContainer({
           },
           map: map,
           title: `${property.street_address}, ${property.city}`,
-        //   label: {
-        //     text: `$${(property.price / 1000).toFixed(0)}k`,
-        //     className: 'property-marker-label'
-        //   }
+          icon: createMarkerIcon(isSelected),
+          animation: isSelected ? google.maps.Animation.BOUNCE : undefined
         })
 
         // Add click listener to marker
         marker.addListener('click', () => {
-          // You can add custom marker click handling here
-          console.log('Marker clicked:', property)
+          onMarkerClick?.(property)
         })
 
         markersRef.current.push(marker)
+        markersMapRef.current.set(property.id, marker)
       }
     })
 
@@ -85,6 +111,20 @@ export default function GoogleMapContainer({
       })
       map.fitBounds(bounds)
     }
+  }
+
+  // Helper function to update marker highlighting
+  const updateMarkerHighlighting = () => {
+    markersMapRef.current.forEach((marker, propertyId) => {
+      const isSelected = highlightedPropertyId === propertyId
+      marker.setIcon(createMarkerIcon(isSelected))
+      
+      if (isSelected) {
+        marker.setAnimation(google.maps.Animation.BOUNCE)
+      } else {
+        marker.setAnimation(null)
+      }
+    })
   }
 
   useEffect(() => {
@@ -162,6 +202,26 @@ export default function GoogleMapContainer({
           })
         }
 
+        // Add center and zoom change listeners
+        if (onMapCenterChange || onMapZoomChange) {
+          map.addListener('center_changed', () => {
+            const center = map.getCenter()
+            if (center && onMapCenterChange) {
+              onMapCenterChange({
+                lat: center.lat(),
+                lng: center.lng()
+              })
+            }
+          })
+
+          map.addListener('zoom_changed', () => {
+            const zoom = map.getZoom()
+            if (zoom !== undefined && onMapZoomChange) {
+              onMapZoomChange(zoom)
+            }
+          })
+        }
+
         setIsLoading(false)
       } catch (err) {
         console.error('Error initializing map:', err)
@@ -179,13 +239,14 @@ export default function GoogleMapContainer({
       // Clear markers
       markersRef.current.forEach(marker => marker.setMap(null))
       markersRef.current = []
+      markersMapRef.current.clear()
       
       if (mapInstanceRef.current) {
         // Clean up map instance if needed
         mapInstanceRef.current = null
       }
     }
-  }, [center.lat, center.lng, zoom, style, options, onMapReady, onMapError, onMapClick, onMapBoundsChanged])
+  }, [center.lat, center.lng, zoom, style, options, onMapReady, onMapError, onMapClick, onMapBoundsChanged, onMapCenterChange, onMapZoomChange])
 
   // Update markers when properties change
   useEffect(() => {
@@ -193,6 +254,13 @@ export default function GoogleMapContainer({
       createMarkers(mapInstanceRef.current, properties)
     }
   }, [properties])
+
+  // Update marker highlighting when highlightedPropertyId changes
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      updateMarkerHighlighting()
+    }
+  }, [highlightedPropertyId])
 
   // Update map center and zoom when props change
   useEffect(() => {
