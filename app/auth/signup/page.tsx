@@ -77,7 +77,7 @@ export default function SignUpPage() {
       }
 
       // If successful, redirect to dashboard
-      router.push('/workouts');
+      router.push('/properties/map');
       router.refresh();
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred');

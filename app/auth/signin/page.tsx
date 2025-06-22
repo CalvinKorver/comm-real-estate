@@ -33,7 +33,7 @@ export default function SignInPage() {
       }
 
       // If successful, redirect to dashboard or home
-      router.push('/workouts');
+      router.push('/properties/map');
       router.refresh();
     } catch (error) {
       setError('An unexpected error occurred');

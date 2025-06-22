@@ -7,5 +7,14 @@ export const siteConfig = {
   description:
     "Commercial Real Estate Investment Management",
   
-  mainNav: [] as NavItem[]
+  mainNav: [
+    {
+      title: "Properties",
+      href: "/properties",
+    },
+    {
+      title: "Map",
+      href: "/properties/map",
+    },
+  ] as NavItem[]
 }
