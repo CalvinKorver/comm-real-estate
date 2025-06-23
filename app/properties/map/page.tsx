@@ -51,7 +51,7 @@ export default function PropertiesMapPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col h-screen">
-        <div className="bg-white border-b flex-shrink-0">
+        <div className="bg-white border-b shrink-0">
           <div className="w-full px-4 py-4">
             <h1 className="text-2xl font-bold text-foreground mb-1">
               Properties Map
@@ -74,7 +74,7 @@ export default function PropertiesMapPage() {
   if (error) {
     return (
       <div className="flex flex-col h-screen">
-        <div className="bg-white border-b flex-shrink-0">
+        <div className="bg-white border-b shrink-0">
           <div className="w-full px-4 py-4">
             <h1 className="text-2xl font-bold text-foreground mb-1">
               Properties Map
@@ -108,7 +108,7 @@ export default function PropertiesMapPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-var(--header-height))]">
       {/* Header */}
-      <div className="bg-white border-b flex-shrink-0">
+      <div className="bg-white border-b shrink-0">
         <div className="w-full px-4 py-4">
           <h1 className="text-2xl font-bold text-foreground mb-1">
             Properties Map

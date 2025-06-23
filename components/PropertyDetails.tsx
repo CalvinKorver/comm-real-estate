@@ -66,7 +66,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
               {property.images.map((image, index) => (
                 <div 
                   key={image.id} 
-                  className={`relative ${index === 0 ? 'md:col-span-2' : ''} aspect-[4/3]`}
+                  className={`relative ${index === 0 ? 'md:col-span-2' : ''} aspect-4/3`}
                 >
                   <Image
                     src={image.url}
