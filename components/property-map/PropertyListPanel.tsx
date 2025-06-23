@@ -57,15 +57,55 @@ export default function PropertyListPanel({
                   <div className="flex gap-4 text-xs text-muted-foreground">
                     <span>{property.number_of_units} units</span>
                     <span>{property.square_feet.toLocaleString()} sq ft</span>
-                    <span>{property.return_on_investment}% ROI</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-foreground text-lg">
-                    ${property.price.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    ${property.net_operating_income.toLocaleString()}/year NOI
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">{property.owners?.[0]?.firstName} {property.owners?.[0]?.lastName}</span>
+                    <br />
+                    {(() => {
+                      const contacts = property.owners?.[0]?.contacts || [];
+                      const phoneContacts = contacts.filter(contact => contact.phone);
+                      
+                      if (phoneContacts.length > 0) {
+                        const firstPhone = phoneContacts[0].phone;
+                        const additionalCount = phoneContacts.length - 1;
+                        return (
+                          <>
+                            {firstPhone}
+                            {additionalCount > 0 && (
+                              <span className="text-muted-foreground text-xs">
+                                {' '}+{additionalCount} more
+                              </span>
+                            )}
+                          </>
+                        );
+                      }
+                      
+                      return property.owners?.[0]?.phoneNumber || 'No phone number';
+                    })()}
+                    <br />
+                    {(() => {
+                      const contacts = property.owners?.[0]?.contacts || [];
+                      const emailContacts = contacts.filter(contact => contact.email);
+                      
+                      if (emailContacts.length > 0) {
+                        const firstEmail = emailContacts[0].email;
+                        const additionalCount = emailContacts.length - 1;
+                        return (
+                          <>
+                            {firstEmail}
+                            {additionalCount > 0 && (
+                              <span className="text-muted-foreground text-xs">
+                                {' '}+{additionalCount} more
+                              </span>
+                            )}
+                          </>
+                        );
+                      }
+                      
+                      return 'No email';
+                    })()}
                   </p>
                 </div>
               </div>

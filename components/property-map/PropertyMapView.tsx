@@ -161,7 +161,7 @@ function PropertyMapViewContent({
                   <span className="text-sm text-muted-foreground">Units:</span>
                   <span className="font-medium">{selectedProperty.number_of_units}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Square Feet:</span>
                   <span className="font-medium">{selectedProperty.square_feet.toLocaleString()}</span>
                 </div>
@@ -172,7 +172,7 @@ function PropertyMapViewContent({
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">NOI:</span>
                   <span className="font-medium">${selectedProperty.net_operating_income.toLocaleString()}/year</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
