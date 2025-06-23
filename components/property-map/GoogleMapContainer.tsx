@@ -45,6 +45,7 @@ export default function GoogleMapContainer({
   const markersRef = useRef<google.maps.Marker[]>([])
   const markersMapRef = useRef<Map<string, google.maps.Marker>>(new Map())
   const isUpdatingMapRef = useRef(false) // Flag to prevent feedback loops
+  const isIdleRef = useRef(true)
   
   // Use centralized state management
   const { 
@@ -234,33 +235,31 @@ export default function GoogleMapContainer({
           })
         }
 
-        // Add center and zoom change listeners
-        map.addListener('center_changed', () => {
-          // Only update context if we're not programmatically updating the map
-          if (!isUpdatingMapRef.current) {
-            const center = map.getCenter()
-            if (center) {
-              const newCenter = {
-                lat: center.lat(),
-                lng: center.lng()
-              }
-              setCenter(newCenter)
-              onMapCenterChange?.(newCenter)
-            }
+        // Add an idle listener to update the context when the map has stopped moving
+        map.addListener('idle', () => {
+          if (isUpdatingMapRef.current) {
+            isUpdatingMapRef.current = false
+            return
           }
+
+          const center = map.getCenter()
+          const zoom = map.getZoom()
+
+          if (center && zoom !== undefined) {
+            const newCenter = { lat: center.lat(), lng: center.lng() }
+            console.log('Map is idle, updating context state:', { center: newCenter, zoom })
+            setCenter(newCenter)
+            setZoom(zoom)
+            onMapCenterChange?.(newCenter)
+            onMapZoomChange?.(zoom)
+          }
+          isIdleRef.current = true
         })
 
-        map.addListener('zoom_changed', () => {
-          // Only update context if we're not programmatically updating the map
-          if (!isUpdatingMapRef.current) {
-            const zoom = map.getZoom()
-            if (zoom !== undefined) {
-              setZoom(zoom)
-              onMapZoomChange?.(zoom)
-            }
-          }
+        map.addListener('dragstart', () => {
+          isIdleRef.current = false
         })
-
+        
         // Initialize context state with actual map values
         const actualCenter = map.getCenter()
         const actualZoom = map.getZoom()
@@ -335,35 +334,30 @@ export default function GoogleMapContainer({
         return
       }
       
-      // Only update if values are actually different
+      // Only update if values are actually different and the map is idle
       const centerChanged = 
         Math.abs(currentCenter.lat() - mapCenter.lat) > 0.0001 || 
         Math.abs(currentCenter.lng() - mapCenter.lng) > 0.0001
       
       const zoomChanged = Math.abs(currentZoom - mapZoom) > 0.1
       
-      if (centerChanged || zoomChanged) {
+      if ((centerChanged || zoomChanged) && isIdleRef.current) {
         // Set flag to prevent feedback loop
         isUpdatingMapRef.current = true
+        isIdleRef.current = false
         
         try {
-          if (centerChanged) {
-            mapInstance.setCenter(mapCenter)
-          }
-          if (zoomChanged) {
-            mapInstance.setZoom(mapZoom)
-          }
+          mapInstance.setCenter(mapCenter)
+          mapInstance.setZoom(mapZoom)
         } catch (error) {
           console.warn('Error updating map:', error)
-        }
-        
-        // Reset flag after map events have fired
-        setTimeout(() => {
+          // Even if it fails, reset the flag
           isUpdatingMapRef.current = false
-        }, 50)
+          isIdleRef.current = true
+        }
       }
     }
-  }, [mapCenter.lat, mapCenter.lng, mapZoom, mapInstance])
+  }, [mapCenter, mapZoom, mapInstance])
 
   const handleRetry = () => {
     setError(null)
