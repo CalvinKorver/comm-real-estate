@@ -41,7 +41,7 @@ export default function PropertyList() {
           >
             <h3 className="text-lg font-semibold">{property.street_address}</h3>
             <p className="text-gray-600">{property.city}, {property.zip_code}</p>
-            <p className="text-gray-600 mt-2">${property.price.toLocaleString()}</p>
+            {/* <p className="text-gray-600 mt-2">${property.price.toLocaleString()}</p> */}
           </Link>
         ))}
       </div>

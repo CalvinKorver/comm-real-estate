@@ -79,9 +79,6 @@ export default function PropertiesMapPage() {
             <h1 className="text-2xl font-bold text-foreground mb-1">
               Properties Map
             </h1>
-            <p className="text-muted-foreground">
-              View all properties on an interactive map
-            </p>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -111,11 +108,9 @@ export default function PropertiesMapPage() {
       <div className="bg-white border-b shrink-0">
         <div className="w-full px-4 py-4">
           <h1 className="text-2xl font-bold text-foreground mb-1">
-            Properties Map
+            Map
           </h1>
-          <p className="text-muted-foreground">
-            View all properties on an interactive map
-          </p>
+
           {properties.length > 0 && (
             <p className="text-sm text-muted-foreground mt-1">
               Showing {properties.length} properties
