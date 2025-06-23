@@ -106,7 +106,7 @@ export default function PropertiesMapPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[calc(100vh-var(--header-height))]">
       {/* Header */}
       <div className="bg-white border-b flex-shrink-0">
         <div className="w-full px-4 py-4">

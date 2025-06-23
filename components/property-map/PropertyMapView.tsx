@@ -4,10 +4,12 @@ import { useState } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyMapViewProps, Coordinates, MapStyle } from '@/types/map'
 import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
+import { MapProvider, useMapActions, useMapState } from '@/contexts/MapContext'
 import PropertyMapPanel from './PropertyMapPanel'
 import PropertyListPanel from './PropertyListPanel'
 
-export default function PropertyMapView({ 
+// Inner component that uses the MapContext
+function PropertyMapViewContent({ 
   properties,
   className = "",
   layout = 'split',
@@ -16,43 +18,62 @@ export default function PropertyMapView({
   mapStyle = MAP_STYLES.LIGHT
 }: PropertyMapViewProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
-  const [mapCenter, setMapCenter] = useState<Coordinates>(defaultCenter)
-  const [mapZoom, setMapZoom] = useState<number>(defaultZoom)
   const [highlightedMarkerId, setHighlightedMarkerId] = useState<string | null>(null)
+  
+  // Use centralized state management
+  const { setCenter, setZoom, selectProperty, highlightProperty } = useMapActions()
+  const { center: currentCenter, zoom: currentZoom } = useMapState()
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
+    setHighlightedMarkerId(property.id)
     
-    // If property has coordinates, center the map on it
+    // Use centralized state management for map interactions
+    selectProperty(property.id)
+    highlightProperty(property.id)
+    
+    // Only center map on the selected property if it has coordinates AND is not already visible
     if (property.coordinates) {
-      setMapCenter({
+      const propertyCenter = {
         lat: property.coordinates.latitude,
         lng: property.coordinates.longitude
-      })
-      setMapZoom(ZOOM_LEVELS.STREET) // Closer zoom for individual property
-      setHighlightedMarkerId(property.id)
+      }
+      
+      // Simple check: if property is within a reasonable distance of current center, don't move
+      const latDiff = Math.abs(propertyCenter.lat - currentCenter.lat)
+      const lngDiff = Math.abs(propertyCenter.lng - currentCenter.lng)
+      
+      // If property is more than ~0.01 degrees away (roughly 1km), then center on it
+      if (latDiff > 0.01 || lngDiff > 0.01) {
+        setCenter(propertyCenter)
+      }
+      // Otherwise, just select the property without moving the map
     }
   }
 
   const handlePropertyDeselect = () => {
     setSelectedProperty(null)
     setHighlightedMarkerId(null)
+    
+    // Use centralized state management
+    selectProperty(null)
+    highlightProperty(null)
+    
     // Optionally reset map to show all properties
-    // setMapCenter(defaultCenter)
-    // setMapZoom(defaultZoom)
+    // setCenter(defaultCenter)
+    // setZoom(defaultZoom)
   }
 
   const handleMarkerClick = (property: Property) => {
     setSelectedProperty(property)
     setHighlightedMarkerId(property.id)
-  }
-
-  const handleMapCenterChange = (center: Coordinates) => {
-    setMapCenter(center)
-  }
-
-  const handleMapZoomChange = (zoom: number) => {
-    setMapZoom(zoom)
+    
+    // Use centralized state management for map interactions
+    selectProperty(property.id)
+    highlightProperty(property.id)
+    
+    // Don't center map when clicking markers - just select the property
+    // This prevents the jumping effect when the marker moves as the map centers
   }
 
   return (
@@ -60,18 +81,14 @@ export default function PropertyMapView({
       {/* Mobile Layout - Stacked */}
       <div className="block lg:hidden flex-1 min-h-0">
         {/* Map Panel - Full Width on Mobile */}
-        <div className="h-96 bg-white border-b">
+        <div className="h-80 bg-white border-b">
           <PropertyMapPanel
             properties={properties}
             selectedProperty={selectedProperty}
             highlightedPropertyId={highlightedMarkerId}
-            center={mapCenter}
-            zoom={mapZoom}
             onPropertySelect={handlePropertySelect}
             onPropertyDeselect={handlePropertyDeselect}
             onMarkerClick={handleMarkerClick}
-            onMapCenterChange={handleMapCenterChange}
-            onMapZoomChange={handleMapZoomChange}
             className="h-full"
           />
         </div>
@@ -104,13 +121,9 @@ export default function PropertyMapView({
           properties={properties}
           selectedProperty={selectedProperty}
           highlightedPropertyId={highlightedMarkerId}
-          center={mapCenter}
-          zoom={mapZoom}
           onPropertySelect={handlePropertySelect}
           onPropertyDeselect={handlePropertyDeselect}
           onMarkerClick={handleMarkerClick}
-          onMapCenterChange={handleMapCenterChange}
-          onMapZoomChange={handleMapZoomChange}
           className="flex-1 h-full min-h-0"
         />
       </div>
@@ -166,5 +179,17 @@ export default function PropertyMapView({
         </div>
       )}
     </div>
+  )
+}
+
+// Main component that provides the MapContext
+export default function PropertyMapView(props: PropertyMapViewProps) {
+  return (
+    <MapProvider 
+      initialCenter={props.defaultCenter || MAP_CENTERS.NEW_YORK}
+      initialZoom={props.defaultZoom || ZOOM_LEVELS.CITY}
+    >
+      <PropertyMapViewContent {...props} />
+    </MapProvider>
   )
 } 

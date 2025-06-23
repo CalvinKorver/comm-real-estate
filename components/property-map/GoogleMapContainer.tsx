@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { 
   MapInitializer, 
   GoogleMapsErrorHandler, 
@@ -9,6 +9,7 @@ import {
   ZOOM_LEVELS,
   MAP_STYLES
 } from '@/lib/google-maps'
+import { useMapActions, useMapState } from '@/contexts/MapContext'
 import type { 
   GoogleMapContainerProps,
   Coordinates,
@@ -41,11 +42,31 @@ export default function GoogleMapContainer({
   onMapZoomChange
 }: GoogleMapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<google.maps.Marker[]>([])
   const markersMapRef = useRef<Map<string, google.maps.Marker>>(new Map())
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const isUpdatingMapRef = useRef(false) // Flag to prevent feedback loops
+  
+  // Use centralized state management
+  const { 
+    setMapInstance, 
+    setLoading, 
+    setError, 
+    setCenter, 
+    setZoom, 
+    highlightProperty 
+  } = useMapActions()
+  
+  const { 
+    center: mapCenter, 
+    zoom: mapZoom, 
+    isLoading, 
+    error, 
+    mapInstance,
+    highlightedPropertyId: contextHighlightedPropertyId
+  } = useMapState()
+
+  // Use context highlighted property ID if available, otherwise fall back to prop
+  const effectiveHighlightedPropertyId = contextHighlightedPropertyId || highlightedPropertyId
 
   // Helper function to create marker icon
   const createMarkerIcon = (isSelected: boolean) => {
@@ -81,7 +102,7 @@ export default function GoogleMapContainer({
     // Create markers for each property
     propertiesWithCoordinates.forEach(property => {
       if (property.coordinates) {
-        const isSelected = highlightedPropertyId === property.id
+        const isSelected = effectiveHighlightedPropertyId === property.id
         const marker = new google.maps.Marker({
           position: {
             lat: property.coordinates.latitude,
@@ -89,8 +110,7 @@ export default function GoogleMapContainer({
           },
           map: map,
           title: `${property.street_address}, ${property.city}`,
-          icon: createMarkerIcon(isSelected),
-          animation: isSelected ? google.maps.Animation.BOUNCE : undefined
+          icon: createMarkerIcon(isSelected)
         })
 
         // Add click listener to marker
@@ -116,29 +136,24 @@ export default function GoogleMapContainer({
   // Helper function to update marker highlighting
   const updateMarkerHighlighting = () => {
     markersMapRef.current.forEach((marker, propertyId) => {
-      const isSelected = highlightedPropertyId === propertyId
+      const isSelected = effectiveHighlightedPropertyId === propertyId
       marker.setIcon(createMarkerIcon(isSelected))
-      
-      if (isSelected) {
-        marker.setAnimation(google.maps.Animation.BOUNCE)
-      } else {
-        marker.setAnimation(null)
-      }
     })
   }
 
+  // Initialize map
   useEffect(() => {
     const initializeMap = async () => {
       if (!mapRef.current) {
         const errorMsg = 'Map container not found'
         setError(errorMsg)
-        setIsLoading(false)
+        setLoading(false)
         onMapError?.(errorMsg)
         return
       }
 
       try {
-        setIsLoading(true)
+        setLoading(true)
         setError(null)
 
         // Validate coordinates
@@ -154,16 +169,33 @@ export default function GoogleMapContainer({
           {
             center,
             zoom,
+            zoomControl: false,
             ...options
           }
         )
 
-        mapInstanceRef.current = map
+        // Set the map instance first
+        setMapInstance(map)
+        
+        // Wait for the map to be fully ready
+        await new Promise(resolve => {
+          const checkReady = () => {
+            if (map.getCenter() && map.getZoom() !== undefined) {
+              resolve(true)
+            } else {
+              setTimeout(checkReady, 50)
+            }
+          }
+          checkReady()
+        })
+
+        // Additional check to ensure map is fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100))
 
         // Create markers for properties
         createMarkers(map, properties)
 
-        // Set up map event listeners
+        // Set up map event listeners AFTER map is ready
         if (onMapReady) {
           onMapReady(map)
         }
@@ -203,31 +235,64 @@ export default function GoogleMapContainer({
         }
 
         // Add center and zoom change listeners
-        if (onMapCenterChange || onMapZoomChange) {
-          map.addListener('center_changed', () => {
+        map.addListener('center_changed', () => {
+          // Only update context if we're not programmatically updating the map
+          if (!isUpdatingMapRef.current) {
             const center = map.getCenter()
-            if (center && onMapCenterChange) {
-              onMapCenterChange({
+            if (center) {
+              const newCenter = {
                 lat: center.lat(),
                 lng: center.lng()
-              })
+              }
+              setCenter(newCenter)
+              onMapCenterChange?.(newCenter)
             }
-          })
+          }
+        })
 
-          map.addListener('zoom_changed', () => {
+        map.addListener('zoom_changed', () => {
+          // Only update context if we're not programmatically updating the map
+          if (!isUpdatingMapRef.current) {
             const zoom = map.getZoom()
-            if (zoom !== undefined && onMapZoomChange) {
-              onMapZoomChange(zoom)
+            if (zoom !== undefined) {
+              setZoom(zoom)
+              onMapZoomChange?.(zoom)
             }
+          }
+        })
+
+        // Initialize context state with actual map values
+        const actualCenter = map.getCenter()
+        const actualZoom = map.getZoom()
+        
+        if (actualCenter && actualZoom !== undefined) {
+          // Set flag to prevent initial feedback
+          isUpdatingMapRef.current = true
+          
+          console.log('Initializing map state:', {
+            center: { lat: actualCenter.lat(), lng: actualCenter.lng() },
+            zoom: actualZoom
           })
+          
+          setCenter({
+            lat: actualCenter.lat(),
+            lng: actualCenter.lng()
+          })
+          setZoom(actualZoom)
+          
+          // Reset flag after initial sync
+          setTimeout(() => {
+            isUpdatingMapRef.current = false
+            console.log('Map initialization complete')
+          }, 100)
         }
 
-        setIsLoading(false)
+        setLoading(false)
       } catch (err) {
         console.error('Error initializing map:', err)
         const errorMessage = GoogleMapsErrorHandler.handleAPIError(err)
         setError(errorMessage)
-        setIsLoading(false)
+        setLoading(false)
         onMapError?.(errorMessage)
       }
     }
@@ -241,38 +306,68 @@ export default function GoogleMapContainer({
       markersRef.current = []
       markersMapRef.current.clear()
       
-      if (mapInstanceRef.current) {
-        // Clean up map instance if needed
-        mapInstanceRef.current = null
-      }
+      setMapInstance(null)
     }
-  }, [center.lat, center.lng, zoom, style, options, onMapReady, onMapError, onMapClick, onMapBoundsChanged, onMapCenterChange, onMapZoomChange])
+  }, [])
 
   // Update markers when properties change
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      createMarkers(mapInstanceRef.current, properties)
+    if (mapInstance) {
+      createMarkers(mapInstance, properties)
     }
-  }, [properties])
+  }, [properties, mapInstance])
 
   // Update marker highlighting when highlightedPropertyId changes
   useEffect(() => {
-    if (mapInstanceRef.current) {
+    if (mapInstance) {
       updateMarkerHighlighting()
     }
-  }, [highlightedPropertyId])
+  }, [effectiveHighlightedPropertyId, mapInstance])
 
-  // Update map center and zoom when props change
+  // Update map center and zoom when context state changes
   useEffect(() => {
-    if (mapInstanceRef.current && mapUtils.isValidCoordinate(center)) {
-      mapInstanceRef.current.setCenter(center)
-      mapInstanceRef.current.setZoom(zoom)
+    if (mapInstance && mapUtils.isValidCoordinate(mapCenter)) {
+      const currentCenter = mapInstance.getCenter()
+      const currentZoom = mapInstance.getZoom()
+      
+      // Only proceed if map is fully initialized
+      if (!currentCenter || currentZoom === undefined) {
+        return
+      }
+      
+      // Only update if values are actually different
+      const centerChanged = 
+        Math.abs(currentCenter.lat() - mapCenter.lat) > 0.0001 || 
+        Math.abs(currentCenter.lng() - mapCenter.lng) > 0.0001
+      
+      const zoomChanged = Math.abs(currentZoom - mapZoom) > 0.1
+      
+      if (centerChanged || zoomChanged) {
+        // Set flag to prevent feedback loop
+        isUpdatingMapRef.current = true
+        
+        try {
+          if (centerChanged) {
+            mapInstance.setCenter(mapCenter)
+          }
+          if (zoomChanged) {
+            mapInstance.setZoom(mapZoom)
+          }
+        } catch (error) {
+          console.warn('Error updating map:', error)
+        }
+        
+        // Reset flag after map events have fired
+        setTimeout(() => {
+          isUpdatingMapRef.current = false
+        }, 50)
+      }
     }
-  }, [center.lat, center.lng, zoom])
+  }, [mapCenter.lat, mapCenter.lng, mapZoom, mapInstance])
 
   const handleRetry = () => {
     setError(null)
-    setIsLoading(true)
+    setLoading(true)
     // The useEffect will re-run and attempt to initialize the map again
   }
 

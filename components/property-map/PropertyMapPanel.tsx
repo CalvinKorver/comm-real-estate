@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import GoogleMapContainer from './GoogleMapContainer'
+import MapZoomControls from './MapZoomControls'
+import MapStateDebugger from './MapStateDebugger'
 import type { PropertyMapPanelProps } from '@/types/map'
 import { PANEL_WIDTHS } from '@/lib/map-constants'
 
@@ -45,7 +47,7 @@ export default function PropertyMapPanel({
         </div>
       )}
       {/* Map Container */}
-      <div className="flex-1">
+      <div className="flex-1 relative">
         <GoogleMapContainer 
           properties={properties}
           center={center}
@@ -57,6 +59,19 @@ export default function PropertyMapPanel({
           onMapCenterChange={onMapCenterChange}
           onMapZoomChange={onMapZoomChange}
         />
+        
+        {/* Zoom Controls */}
+        <MapZoomControls 
+          position="top-right"
+          showResetButton={true}
+          showFitAllButton={true}
+          properties={properties}
+        />
+
+        {/* State Debugger - Bottom Left */}
+        <div className="absolute bottom-4 left-4 z-10">
+          <MapStateDebugger />
+        </div>
       </div>
     </section>
   )
