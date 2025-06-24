@@ -52,8 +52,8 @@ export const DEFAULT_MAP_CONFIG = {
 export const PANEL_WIDTHS = {
   LIST_PANEL: {
     DEFAULT: 'w-80',
-    MIN: 'min-w-[18rem]',
-    MAX: 'max-w-xs',
+    MIN: 'min-w-[20rem]',
+    MAX: 'max-w-md',
     RESIZABLE: true
   },
   MAP_PANEL: {
