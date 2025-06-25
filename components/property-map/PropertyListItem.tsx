@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import type { Property } from '@/types/property'
 
 interface PropertyListItemProps {
@@ -7,13 +7,14 @@ interface PropertyListItemProps {
   onClick?: () => void
 }
 
-const PropertyListItem: React.FC<PropertyListItemProps> = ({ property, selected, onClick }) => {
+const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ property, selected, onClick }, ref) => {
   return (
     <div
+      ref={ref}
       onClick={onClick}
       className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
         selected
-          ? 'border-emerald-500 bg-emerald-50 shadow-md'
+          ? 'border-emerald-500 bg-emerald-50 shadow-md min-h-[360px]'
           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
       }`}
     >
@@ -36,6 +37,8 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({ property, selected,
       </div>
     </div>
   )
-}
+})
+
+PropertyListItem.displayName = 'PropertyListItem'
 
 export default PropertyListItem 

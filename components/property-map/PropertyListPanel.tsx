@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyListPanelProps } from '@/types/map'
 import { PANEL_WIDTHS } from '@/lib/map-constants'
@@ -12,6 +12,15 @@ export default function PropertyListPanel({
   className = "",
   resizable = true
 }: PropertyListPanelProps) {
+  // Create refs for each property
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  useEffect(() => {
+    if (selectedProperty && itemRefs.current[selectedProperty.id]) {
+      itemRefs.current[selectedProperty.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [selectedProperty])
+
   return (
     <aside
       className={`${PANEL_WIDTHS.LIST_PANEL.DEFAULT} ${PANEL_WIDTHS.LIST_PANEL.MIN} ${PANEL_WIDTHS.LIST_PANEL.MAX} h-full border-r bg-white shadow-lg flex flex-col overflow-y-auto ${className}`}
@@ -43,6 +52,7 @@ export default function PropertyListPanel({
               property={property}
               selected={selectedProperty?.id === property.id}
               onClick={() => onPropertySelect?.(property)}
+              ref={el => (itemRefs.current[property.id] = el)}
             />
           ))}
         </div>
