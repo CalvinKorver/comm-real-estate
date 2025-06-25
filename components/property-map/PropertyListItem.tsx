@@ -121,6 +121,19 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
               </tbody>
             </table>
           </div>
+          <p className="text-s font-semibold mb-1">Notes</p>
+          {property.notes && property.notes.length > 0 && (
+            <div className="mt-3 p-3 bg-gray-50 rounded">
+              <div className="text-xs text-muted-foreground mb-1">Latest Note</div>
+              <div className="text-sm mb-1">{property.notes[0].content}</div>
+              <div className="text-xs text-gray-400">
+                {property.notes[0].createdAt ? new Date(property.notes[0].createdAt).toLocaleString() : ''}
+              </div>
+            </div>
+          )}
+          {property.notes && property.notes.length === 0 && (
+              <div className="text-xs text-muted-foreground mb-1">None</div>
+          )}
         </div>
       )}
     </div>
