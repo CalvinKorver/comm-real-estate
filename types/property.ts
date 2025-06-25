@@ -22,6 +22,7 @@ export interface Property {
     confidence: string
     placeId?: string
   }
+  notes?: Note[]
 }
 
 export interface PropertyWithImages extends Property {
@@ -67,4 +68,11 @@ export interface Contact {
   ownerId: string
   createdAt: Date
   updatedAt: Date
+}
+
+export interface Note {
+  id: string
+  content: string
+  createdAt: string | Date
+  updatedAt: string | Date
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { PropertyService } from '@/lib/services/property-service'
 
+// Property-specific subresource endpoints (e.g., notes) should be placed under app/api/properties/[id]/
+
 // GET /api/properties - Get all properties or a single property by ID
 export async function GET(request: Request) {
   try {

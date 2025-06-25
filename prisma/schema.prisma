@@ -29,6 +29,7 @@ model Property {
   images                PropertyImage[]
   owners                Owner[]   @relation("PropertyToOwner")
   coordinates           Coordinate?
+  notes                 Note[]
 
   @@map("properties")
 }
@@ -144,4 +145,15 @@ model PropertyImage {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   
   @@map("property_images")
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
 }

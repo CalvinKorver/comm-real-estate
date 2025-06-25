@@ -103,7 +103,11 @@ export class PropertyService {
             contacts: true
           }
         },
-        coordinates: true
+        coordinates: true,
+        notes: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       },
       skip,
       take: limit
@@ -166,5 +170,46 @@ export class PropertyService {
     })
 
     return property
+  }
+
+  /**
+   * Get notes for a property
+   */
+  static async getNotesForProperty(propertyId: string) {
+    return prisma.note.findMany({
+      where: { propertyId },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  /**
+   * Add a note to a property
+   */
+  static async addNoteToProperty(propertyId: string, content: string) {
+    return prisma.note.create({
+      data: {
+        propertyId,
+        content,
+      },
+    })
+  }
+
+  /**
+   * Update a note
+   */
+  static async updateNote(noteId: string, content: string) {
+    return prisma.note.update({
+      where: { id: noteId },
+      data: { content },
+    })
+  }
+
+  /**
+   * Delete a note
+   */
+  static async deleteNote(noteId: string) {
+    return prisma.note.delete({
+      where: { id: noteId },
+    })
   }
 } 
