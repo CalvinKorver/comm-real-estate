@@ -9,6 +9,7 @@ export default function PropertyListPanel({
   selectedProperty,
   onPropertySelect,
   onPropertyDeselect,
+  onPropertyUpdated,
   className = "",
   resizable = true
 }: PropertyListPanelProps) {
@@ -52,6 +53,7 @@ export default function PropertyListPanel({
               property={property}
               selected={selectedProperty?.id === property.id}
               onClick={() => onPropertySelect?.(property)}
+              onPropertyUpdated={onPropertyUpdated}
               ref={el => (itemRefs.current[property.id] = el)}
             />
           ))}

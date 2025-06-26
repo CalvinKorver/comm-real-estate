@@ -4,43 +4,17 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Building2, Square, TrendingUp, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-
-interface Property {
-  id: string
-  street_address: string
-  city: string
-  zip_code: number
-  net_operating_income: number
-  price: number
-  return_on_investment: number
-  owner: string
-  number_of_units: number
-  square_feet: number
-  createdAt: Date
-  updatedAt: Date
-  owners: {
-    id: string
-    firstName: string
-    lastName: string
-    streetAddress: string
-    city: string
-    zipCode: string
-    phoneNumber: string
-  }[]
-  images: {
-    id: string
-    url: string
-    alt: string | null
-    order: number
-  }[]
-}
+import { PropertyEditModal } from './PropertyEditModal'
+import { useState } from 'react'
+import type { Property } from '@/types/property'
 
 interface PropertyDetailsProps {
   property: Property
 }
 
-export function PropertyDetails({ property }: PropertyDetailsProps) {
+export function PropertyDetails({ property: initialProperty }: PropertyDetailsProps) {
+  const [property, setProperty] = useState(initialProperty)
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -54,6 +28,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
   }
 
   const monthlyEstimate = Math.round(property.price * 0.06771 / 12) // Based on your image showing Est. $6,771/mo
+
+  const handlePropertyUpdated = (updatedProperty: Property) => {
+    setProperty(updatedProperty)
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -159,7 +137,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
           <h2 className="text-xl font-semibold mb-4">Owners</h2>
           <div className="flex items-center gap-3 grid grid-cols-1">
             
-            {property.owners &&  property.owners.length > 0 ? (
+            {property.owners && property.owners.length > 0 ? (
                 property.owners.map((owner) => (
                     <Link 
                         key={owner.id}
@@ -196,6 +174,14 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
           <Button variant="outline" className="w-full mb-6">
             Start your offer
           </Button>
+          
+          {/* Edit Property Button */}
+          <div className="mb-6">
+            <PropertyEditModal 
+              property={property} 
+              onPropertyUpdated={handlePropertyUpdated}
+            />
+          </div>
           
           {/* <p className="text-xs text-muted-foreground text-center">
             A local agent will help you prepare and negotiate.

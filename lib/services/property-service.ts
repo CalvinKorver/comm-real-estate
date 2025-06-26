@@ -19,6 +19,18 @@ export interface PropertyCreateInput {
   ownerIds?: string[] // Array of owner IDs to connect
 }
 
+export interface PropertyUpdateInput {
+  street_address?: string
+  city?: string
+  zip_code?: number
+  net_operating_income?: number
+  price?: number
+  return_on_investment?: number
+  number_of_units?: number
+  square_feet?: number
+  ownerIds?: string[] // Array of owner IDs to connect
+}
+
 export interface PaginationResult {
   currentPage: number
   totalPages: number
@@ -158,6 +170,63 @@ export class PropertyService {
 
     // Create the property
     const property = await prisma.property.create({
+      data: propertyData,
+      include: {
+        owners: {
+          include: {
+            contacts: true
+          }
+        },
+        coordinates: true
+      }
+    })
+
+    return property
+  }
+
+  /**
+   * Update an existing property
+   */
+  static async updateProperty(id: string, data: PropertyUpdateInput) {
+    // Check if property exists
+    const existingProperty = await prisma.property.findUnique({
+      where: { id }
+    })
+
+    if (!existingProperty) {
+      throw new Error('Property not found')
+    }
+
+    // Prepare the data for Prisma
+    const propertyData: any = {}
+
+    // Only include fields that are provided
+    if (data.street_address !== undefined) propertyData.street_address = data.street_address
+    if (data.city !== undefined) propertyData.city = data.city
+    if (data.zip_code !== undefined) propertyData.zip_code = data.zip_code
+    if (data.net_operating_income !== undefined) propertyData.net_operating_income = data.net_operating_income
+    if (data.price !== undefined) propertyData.price = data.price
+    if (data.return_on_investment !== undefined) propertyData.return_on_investment = data.return_on_investment
+    if (data.number_of_units !== undefined) propertyData.number_of_units = data.number_of_units
+    if (data.square_feet !== undefined) propertyData.square_feet = data.square_feet
+
+    // Handle owners connection if provided
+    if (data.ownerIds !== undefined) {
+      if (data.ownerIds.length > 0) {
+        propertyData.owners = {
+          set: [], // Clear existing connections
+          connect: data.ownerIds.map(id => ({ id }))
+        }
+      } else {
+        propertyData.owners = {
+          set: [] // Clear all connections
+        }
+      }
+    }
+
+    // Update the property
+    const property = await prisma.property.update({
+      where: { id },
       data: propertyData,
       include: {
         owners: {
