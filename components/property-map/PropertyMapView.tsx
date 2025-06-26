@@ -15,7 +15,8 @@ function PropertyMapViewContent({
   layout = 'split',
   defaultCenter = MAP_CENTERS.NEW_YORK,
   defaultZoom = ZOOM_LEVELS.CITY,
-  mapStyle = MAP_STYLES.LIGHT
+  mapStyle = MAP_STYLES.LIGHT,
+  onPropertyUpdated
 }: PropertyMapViewProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [highlightedMarkerId, setHighlightedMarkerId] = useState<string | null>(null)
@@ -76,6 +77,16 @@ function PropertyMapViewContent({
     // This prevents the jumping effect when the marker moves as the map centers
   }
 
+  const handlePropertyUpdated = (updatedProperty: Property) => {
+    // Update the selected property if it's the one being updated
+    if (selectedProperty?.id === updatedProperty.id) {
+      setSelectedProperty(updatedProperty)
+    }
+    
+    // Call the parent callback if provided
+    onPropertyUpdated?.(updatedProperty)
+  }
+
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
       {/* Mobile Layout - Stacked */}
@@ -100,6 +111,7 @@ function PropertyMapViewContent({
             selectedProperty={selectedProperty}
             onPropertySelect={handlePropertySelect}
             onPropertyDeselect={handlePropertyDeselect}
+            onPropertyUpdated={handlePropertyUpdated}
             className="h-full"
           />
         </div>
@@ -113,6 +125,7 @@ function PropertyMapViewContent({
           selectedProperty={selectedProperty}
           onPropertySelect={handlePropertySelect}
           onPropertyDeselect={handlePropertyDeselect}
+          onPropertyUpdated={handlePropertyUpdated}
           className="w-[750px] max-w-[750px] border-r h-full min-h-0"
         />
 

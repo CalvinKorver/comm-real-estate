@@ -84,4 +84,50 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+}
+
+// PUT /api/properties - Update a property
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Property ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Transform the request body to match the service interface
+    const propertyData = {
+      street_address: updateData.street_address,
+      city: updateData.city,
+      zip_code: updateData.zip_code,
+      net_operating_income: updateData.net_operating_income,
+      price: updateData.price,
+      return_on_investment: updateData.return_on_investment,
+      number_of_units: updateData.number_of_units,
+      square_feet: updateData.square_feet,
+      ownerIds: updateData.owners // Assuming owners is an array of owner IDs
+    }
+
+    const property = await PropertyService.updateProperty(id, propertyData)
+    return NextResponse.json(property)
+  } catch (error) {
+    console.error('API: Error updating property:', error)
+    
+    // Handle validation errors
+    if (error instanceof Error && error.message === 'Property not found') {
+      return NextResponse.json(
+        { error: 'Property not found' },
+        { status: 404 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to update property', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
 } 

@@ -2,11 +2,13 @@ import React, { forwardRef, useState, useEffect, useRef } from 'react'
 import type { Property } from '@/types/property'
 import { Ellipsis, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PropertyEditModal } from '../PropertyEditModal'
 
 interface PropertyListItemProps {
   property: Property
   selected: boolean
   onClick?: () => void
+  onPropertyUpdated?: (updatedProperty: Property) => void
 }
 
 const mockPhones = [
@@ -24,7 +26,7 @@ const statusIcon = (status: string) => {
   return <span title="Unknown" className="text-yellow-500">❓</span>
 }
 
-const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ property, selected, onClick }, ref) => {
+const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ property, selected, onClick, onPropertyUpdated }, ref) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
@@ -72,9 +74,10 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
           ref={menuRef}
           className="absolute right-4 top-10 bg-white border rounded-md shadow-lg z-20 min-w-[40px] flex flex-col items-center"
           onClick={e => e.stopPropagation()}>
-          <button className="flex items-center gap-2 px-3 py-1 hover:bg-gray-100 w-full h-full text-sm" type="button">
-            <Pencil size={16} /> Edit
-          </button>
+          <PropertyEditModal 
+            property={property} 
+            onPropertyUpdated={onPropertyUpdated}
+          />
         </div>
       )}
       
