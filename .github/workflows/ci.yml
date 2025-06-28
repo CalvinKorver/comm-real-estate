@@ -13,18 +13,6 @@ on:
       - '**/README.md'
   release:
     types: [published]
-  schedule:
-    # First Sunday of every month
-    # See: https://crontab.guru/#0_0_1-7_*_*/7
-    - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
-    # # Every Monday
-    # - cron: 0 0 * * 1
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages on called workflows
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 jobs:
   lint:
@@ -51,7 +39,18 @@ jobs:
 
   build:
     name: Build
-    uses: ./.github/workflows/build.yml
-    with:
-      base_url: './'
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          base_url: './'
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ./dist
