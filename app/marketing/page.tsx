@@ -67,7 +67,7 @@ export default function MarketingPage() {
               A new real estate lead platform.
             </h2>
             <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-semibold text-gray-400 mb-4 sm:mb-6 lg:mb-8 leading-tight">
-              Built for <span className="text-emerald-700 font-bold">today's market.</span>
+              Built for <span className="text-emerald-700 font-bold">today&apos;s market.</span>
             </h3>
           </div>
         </div>
