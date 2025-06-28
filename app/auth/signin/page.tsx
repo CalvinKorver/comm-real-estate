@@ -5,43 +5,58 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Icons } from '@/components/icons';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+
+type SignInFormValues = z.infer<typeof formSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
+  const form = useForm<SignInFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+  const isLoading = form.formState.isSubmitting;
 
+  async function onSubmit(values: SignInFormValues) {
+    setServerError('');
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
-
       if (result?.error) {
-        setError('Invalid email or password');
-        setIsLoading(false);
+        setServerError('Invalid email or password');
         return;
       }
-
-      // If successful, redirect to dashboard or home
       router.push('/properties/map');
       router.refresh();
     } catch (error) {
-      setError('An unexpected error occurred');
-      console.error('Sign in error:', error);
-    } finally {
-      setIsLoading(false);
+      setServerError('An unexpected error occurred');
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -49,99 +64,85 @@ export default function SignInPage() {
         <div className="text-center">
           <Icons.logo className="mx-auto h-12 w-12" />
           <h1 className="mt-6 text-3xl font-bold">Welcome back</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Sign in to your account to continue
           </p>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            {error}
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-400 sm:text-sm"
-                placeholder="Email address"
-              />
+        <Form {...form}>
+          <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input type="email" autoComplete="email" placeholder="Email address" {...field} disabled={isLoading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="current-password" placeholder="Password" {...field} disabled={isLoading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember_me"
+                  name="remember_me"
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-input text-emerald-700 focus:ring-emerald-700 bg-background"
+                  disabled={isLoading}
+                />
+                <label htmlFor="remember_me" className="ml-2 block text-sm text-foreground">
+                  Remember me
+                </label>
+              </div>
+              <div className="text-sm">
+                <a href="#" className="font-medium text-emerald-700 hover:text-emerald-600">
+                  Forgot your password?
+                </a>
+              </div>
             </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-400 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember_me"
-                name="remember_me"
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:focus:ring-red-400"
-              />
-              <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
-                Forgot your password?
-              </a>
-            </div>
-          </div>
-
-          <div>
+            {serverError && (
+              <FormMessage className="text-destructive text-sm text-center">{serverError}</FormMessage>
+            )}
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
 
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500 dark:bg-gray-900 dark:text-gray-400">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
-
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Button
               onClick={() => signIn('github', { callbackUrl: '/workouts' })}
-              className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
+              className="flex w-full items-center justify-center space-x-2"
               disabled={isLoading}
             >
               <Icons.gitHub className="h-5 w-5" />
@@ -149,8 +150,8 @@ export default function SignInPage() {
             </Button>
             <Button
               onClick={() => signIn('google', { callbackUrl: '/workouts' })}
-              className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
+              className="flex w-full items-center justify-center space-x-2"
               disabled={isLoading}
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -176,10 +177,9 @@ export default function SignInPage() {
             </Button>
           </div>
         </div>
-
-        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="font-medium text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
+          <Link href="/auth/signup" className="font-medium text-emerald-700 hover:text-emerald-600">
             Sign up
           </Link>
         </div>
