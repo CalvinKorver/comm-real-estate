@@ -6,12 +6,20 @@ import { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
+  // Block access to signup page for early release
+  if (path === '/auth/signup') {
+    console.log(`[Middleware] Blocking access to signup page: ${path}`);
+    return NextResponse.redirect(new URL('/auth/signin', request.url));
+  }
+  
   // Define paths that are public (don't require authentication)
   const isPublicPath = 
     path === '/' || 
+    path === '/marketing' ||
     path === '/privacy' || 
     path === '/contact' || 
-    path.startsWith('/auth/') ||
+    path === '/auth/signin' ||
+    path === '/auth/signout' ||
     path.startsWith('/api/auth/');
 
   // Check if there is a valid session token
@@ -28,7 +36,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
-  // Redirect logic for auth pages
+  // Redirect logic for auth pages (except signup which is blocked above)
   if (path.startsWith('/auth/') && token) {
     console.log(`[Middleware] User already logged in, redirecting to workouts`);
     return NextResponse.redirect(new URL('/workouts', request.url));
@@ -47,6 +55,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/marketing',
     '/workouts',
     '/workouts/:path*',
     '/auth/:path*',

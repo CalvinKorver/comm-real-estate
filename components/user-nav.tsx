@@ -35,13 +35,6 @@ export function UserNav() {
         >
           Sign in
         </Button>
-        <Button
-          size="sm"
-          onClick={() => window.location.href = '/auth/signup'}
-          className="bg-red-600 hover:bg-red-700 text-white"
-        >
-          Sign up
-        </Button>
       </div>
     );
   }
