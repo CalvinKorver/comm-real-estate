@@ -55,24 +55,3 @@ jobs:
     with:
       base_url: './'
     secrets: inherit
-
-  build-storybook:
-    name: "Build Storybook"
-    uses: ./.github/workflows/build-storybook.yml
-    secrets: inherit
-
-
-  deploy-gh-pages:
-    name: Deploy to GitHub Pages
-    needs:
-      - typecheck
-      - test
-      - build
-      - build-storybook
-      - test-storybook
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    uses: ./.github/workflows/deploy-gh-pages.yml
-    with:
-      get_built_app_from_artifact: true
-      get_built_storybook_from_artifact: true
-    secrets: inherit
