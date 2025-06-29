@@ -179,7 +179,7 @@ export function PropertyEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-background max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Property</DialogTitle>
           <DialogDescription>
@@ -189,7 +189,7 @@ export function PropertyEditDialog({
         
         <div className="space-y-6 py-4">
           {/* Property Address and Owners Section */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4 p-4 bg-muted rounded-lg">
             <div>
               <h3 className="font-bold text-foreground text-lg">
                 {property.street_address}
@@ -236,7 +236,7 @@ export function PropertyEditDialog({
             {/* Phone Numbers Table */}
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-muted">
                   <tr>
                     <th className="text-left p-3 text-sm font-medium">Phone</th>
                     <th className="text-left p-3 text-sm font-medium">Owner</th>

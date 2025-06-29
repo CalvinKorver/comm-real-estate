@@ -158,7 +158,7 @@ function PropertyMapViewContent({
 
       {/* Selected Property Details Modal - Mobile Only */}
       {selectedProperty && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full max-h-2/3 rounded-t-lg overflow-y-auto">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">

@@ -13,6 +13,12 @@ export interface BaseBlockProps {
   onMetricTypeChange?: (metricType: MetricType) => void
 }
 
+export interface BaseBlockComponentProps {
+  type: BlockType;
+  children: React.ReactNode;
+  className?: string;
+}
+
 export function getBlockColor(type: BlockType) {
   switch (type) {
     case BlockType.WARMUP:
@@ -22,7 +28,7 @@ export function getBlockColor(type: BlockType) {
     case BlockType.COOLDOWN:
       return 'bg-sky-800'
     default:
-      return 'bg-zinc-800'
+      return 'bg-card'
   }
 }
 
@@ -37,7 +43,7 @@ export function renderMetricInput(
   return (
     <div className="flex items-end space-x-4">
       <div className="flex-1">
-        <label htmlFor={`${type}-metric`} className="block text-sm text-white/70 mb-1">
+        <label htmlFor={`${type}-metric`} className="block text-sm text-muted-foreground mb-1">
           {effectiveMetricType === MetricType.DISTANCE ? "Distance" : "Duration"}
         </label>
         {effectiveMetricType === MetricType.DISTANCE ? (
@@ -46,7 +52,7 @@ export function renderMetricInput(
             id={`${type}-distance`}
             value={distance ?? 0}
             onChange={(e) => onDistanceChange && onDistanceChange(parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 bg-black/20 rounded-lg text-white border border-white/20 focus:border-white/40 focus:outline-none"
+            className="w-full px-3 py-2 bg-background/20 rounded-lg text-foreground border border-border focus:border-ring focus:outline-none"
             min="0"
             step="0.1"
           />
@@ -54,9 +60,19 @@ export function renderMetricInput(
           null
         )}
       </div>
-      <div className="text-2xl text-white/70">
+      <div className="text-2xl text-muted-foreground">
         {effectiveMetricType === MetricType.DISTANCE ? "miles" : ""}
       </div>
     </div>
   )
+}
+
+export function BaseBlockComponent({ type, children, className = '' }: BaseBlockComponentProps) {
+  const blockColor = getBlockColor(type);
+  
+  return (
+    <div className={`rounded-xl p-6 mb-6 ${blockColor} ${className}`}>
+      {children}
+    </div>
+  );
 } 

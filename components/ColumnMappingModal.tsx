@@ -37,7 +37,7 @@ export const ColumnMappingModal: React.FC<ColumnMappingModalProps> = ({
   };
 
   return (
-    <div className="p-4 border rounded bg-white max-w-2xl mx-auto">
+    <div className="p-4 border rounded bg-card max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-2">
         <h2 className="font-bold text-lg">Map Your File Fields</h2>
         <Button variant="outline" size="sm" onClick={clearMapping} className="text-red-500">Clear Mapping</Button>
