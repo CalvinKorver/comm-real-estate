@@ -6,6 +6,7 @@ export interface ContactUpdateInput {
   email?: string
   type?: string
   priority?: number
+  notes?: string
 }
 
 export class ContactService {
@@ -19,6 +20,7 @@ export class ContactService {
         email: data.email,
         type: data.type,
         priority: data.priority,
+        notes: data.notes,
         ownerId: data.ownerId
       }
     })
@@ -26,7 +28,8 @@ export class ContactService {
     return {
       ...contact,
       phone: contact.phone || undefined,
-      email: contact.email || undefined
+      email: contact.email || undefined,
+      notes: contact.notes || undefined
     }
   }
 
@@ -40,14 +43,16 @@ export class ContactService {
         phone: data.phone,
         email: data.email,
         type: data.type,
-        priority: data.priority
+        priority: data.priority,
+        notes: data.notes
       }
     })
 
     return {
       ...contact,
       phone: contact.phone || undefined,
-      email: contact.email || undefined
+      email: contact.email || undefined,
+      notes: contact.notes || undefined
     }
   }
 
@@ -72,7 +77,8 @@ export class ContactService {
     return contacts.map(contact => ({
       ...contact,
       phone: contact.phone || undefined,
-      email: contact.email || undefined
+      email: contact.email || undefined,
+      notes: contact.notes || undefined
     }))
   }
 
@@ -85,6 +91,7 @@ export class ContactService {
     email?: string
     type: string
     priority: number
+    notes?: string
     action: 'create' | 'update' | 'delete'
   }>): Promise<Contact[]> {
     // Use a transaction to ensure all operations succeed or fail together
@@ -102,13 +109,15 @@ export class ContactService {
                   email: contact.email,
                   type: contact.type,
                   priority: contact.priority,
+                  notes: contact.notes,
                   ownerId
                 }
               })
               results.push({
                 ...newContact,
                 phone: newContact.phone || undefined,
-                email: newContact.email || undefined
+                email: newContact.email || undefined,
+                notes: newContact.notes || undefined
               })
             }
             break
@@ -122,13 +131,15 @@ export class ContactService {
                   phone: contact.phone,
                   email: contact.email,
                   type: contact.type,
-                  priority: contact.priority
+                  priority: contact.priority,
+                  notes: contact.notes
                 }
               })
               results.push({
                 ...updatedContact,
                 phone: updatedContact.phone || undefined,
-                email: updatedContact.email || undefined
+                email: updatedContact.email || undefined,
+                notes: updatedContact.notes || undefined
               })
             }
             break

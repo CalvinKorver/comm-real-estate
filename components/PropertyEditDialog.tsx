@@ -15,6 +15,14 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, X } from 'lucide-react'
 import type { Property, Note as PropertyNote, Contact } from '@/types/property'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
 
 interface PropertyEditDialogProps {
   property: Property
@@ -27,6 +35,7 @@ interface PhoneNumber {
   id?: string
   phone: string
   type: string
+  notes?: string
   ownerId?: string
   priority?: number
   createdAt?: Date
@@ -53,6 +62,7 @@ export function PropertyEditDialog({
         id: contact.id,
         phone: contact.phone || '',
         type: contact.type,
+        notes: contact.notes,
         ownerId: owner.id,
         priority: contact.priority,
         createdAt: contact.createdAt,
@@ -70,7 +80,7 @@ export function PropertyEditDialog({
     })) || []
   )
   
-  const [newPhone, setNewPhone] = useState({ phone: '', type: 'Mobile' })
+  const [newPhone, setNewPhone] = useState({ phone: '', type: 'Mobile', notes: '' })
   const [newNote, setNewNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -87,7 +97,7 @@ export function PropertyEditDialog({
         updatedAt: new Date(),
         action: 'create'
       }])
-      setNewPhone({ phone: '', type: 'Mobile' })
+      setNewPhone({ phone: '', type: 'Mobile', notes: '' })
     }
   }
 
@@ -133,6 +143,7 @@ export function PropertyEditDialog({
             phone: phone.phone,
             email: undefined,
             type: phone.type,
+            notes: phone.notes,
             priority: phone.priority || 1,
             action: phone.action || (phone.id?.startsWith('temp-') ? 'create' : 'update')
           }))
@@ -181,30 +192,23 @@ export function PropertyEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-background max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Property</DialogTitle>
+          <DialogTitle>{property.street_address}</DialogTitle>
           <DialogDescription>
-            Update phone numbers and notes for this property
+          {property.city}, {property.zip_code}
+          
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
           {/* Property Address and Owners Section */}
-          <div className="space-y-4 p-4 bg-muted rounded-lg">
-            <div>
-              <h3 className="font-bold text-foreground text-lg">
-                {property.street_address}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {property.city}, {property.zip_code}
-              </p>
-            </div>
-            
+          <div>
+          <Label className="text-base font-semibold">Owners</Label>
             {/* Enhanced Owner Display */}
             <div>
               {property.owners && property.owners.length > 0 ? (
                 <div className="space-y-1">
                   {property.owners.length === 1 ? (
-                    <p className="text-sm text-foreground font-semibold">
+                    <p className="text-sm text-foreground">
                       {property.owners[0].firstName} {property.owners[0].lastName}
                     </p>
                   ) : (
@@ -212,7 +216,8 @@ export function PropertyEditDialog({
                       <p className="text-sm text-foreground font-semibold">
                         {property.owners.length} Owners
                       </p>
-                      <div className="text-xs text-muted-foreground">
+
+                      <div className="text-xs text-muted-foreground font-regular">
                         {property.owners.slice(0, 2).map((owner, idx) => (
                           <div key={owner.id}>
                             {owner.firstName} {owner.lastName}
@@ -235,22 +240,22 @@ export function PropertyEditDialog({
             
             {/* Phone Numbers Table */}
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="text-left p-3 text-sm font-medium">Phone</th>
-                    <th className="text-left p-3 text-sm font-medium">Owner</th>
-                    <th className="text-left p-3 text-sm font-medium">Type</th>
-                    <th className="text-left p-3 text-sm font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader className="">
+                  <TableRow>
+                    <TableHead className="">Phone</TableHead>
+                    <TableHead className="">Type</TableHead>
+                    <TableHead className="">Notes</TableHead>
+                    <TableHead className="">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {phoneNumbers.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="text-center py-4 text-muted-foreground">
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
                         No phone numbers
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     phoneNumbers.map((phone, index) => {
                       // Find the owner for this contact
@@ -258,27 +263,11 @@ export function PropertyEditDialog({
                       const isMarkedForDeletion = phone.action === 'delete';
                       
                       return (
-                        <tr key={phone.id || index} className={`border-t ${isMarkedForDeletion ? 'bg-red-50' : ''}`}>
-                          <td className="p-3">
-                            <Input
-                              value={phone.phone}
-                              onChange={(e) => {
-                                const updated = [...phoneNumbers]
-                                updated[index].phone = e.target.value
-                                if (!updated[index].action && !updated[index].id?.startsWith('temp-')) {
-                                  updated[index].action = 'update'
-                                }
-                                setPhoneNumbers(updated)
-                              }}
-                              placeholder="Phone number"
-                              className="border-0 p-0 bg-transparent"
-                              disabled={isMarkedForDeletion}
-                            />
-                          </td>
-                          <td className="p-3 text-sm text-muted-foreground">
-                            {owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'}
-                          </td>
-                          <td className="p-3">
+                        <TableRow key={phone.id || index} className={isMarkedForDeletion ? 'bg-red-50' : ''}>
+                          <TableCell className="p-3">
+                            {phone.phone}
+                          </TableCell>
+                          <TableCell className="p-3">
                             <Input
                               value={phone.type}
                               onChange={(e) => {
@@ -293,8 +282,24 @@ export function PropertyEditDialog({
                               className="border-0 p-0 bg-transparent w-24"
                               disabled={isMarkedForDeletion}
                             />
-                          </td>
-                          <td className="p-3">
+                          </TableCell>
+                          <TableCell className="p-3">
+                            <Input
+                              value={phone.notes || ''}
+                              onChange={(e) => {
+                                const updated = [...phoneNumbers]
+                                updated[index].notes = e.target.value
+                                if (!updated[index].action && !updated[index].id?.startsWith('temp-')) {
+                                  updated[index].action = 'update'
+                                }
+                                setPhoneNumbers(updated)
+                              }}
+                              placeholder="Notes"
+                              className="border-0 p-0 bg-transparent"
+                              disabled={isMarkedForDeletion}
+                            />
+                          </TableCell>
+                          <TableCell className="p-3">
                             <Button
                               type="button"
                               variant="ghost"
@@ -304,13 +309,13 @@ export function PropertyEditDialog({
                             >
                               <X className="h-4 w-4" />
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
             
             {/* Add New Phone Number */}
@@ -326,6 +331,12 @@ export function PropertyEditDialog({
                 onChange={(e) => setNewPhone({ ...newPhone, type: e.target.value })}
                 placeholder="Type"
                 className="w-24"
+              />
+              <Input
+                value={newPhone.notes}
+                onChange={(e) => setNewPhone({ ...newPhone, notes: e.target.value })}
+                placeholder="Notes"
+                className="flex-1"
               />
               <Button type="button" onClick={handleAddPhone} size="sm">
                 <Plus className="h-4 w-4 mr-2" />

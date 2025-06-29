@@ -4,6 +4,7 @@ export interface Contact {
   email?: string;
   type: string;
   priority: number;
+  notes?: string;
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -14,6 +15,7 @@ export interface CreateContactInput {
   email?: string;
   type: string;
   priority: number;
+  notes?: string;
   ownerId: string;
 }
 
