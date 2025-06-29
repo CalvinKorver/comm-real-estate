@@ -135,27 +135,45 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
         {/* Property Owner */}
         <div className="bg-card p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4">Owners</h2>
-          <div className="flex items-center gap-3 grid grid-cols-1">
-            
+          <div className="space-y-4">
             {property.owners && property.owners.length > 0 ? (
-                property.owners.map((owner) => (
-                    <Link 
-                        key={owner.id}
-                            href={`/owners/${owner.id}`}
-                            className="">
-                    <div className="flex items-center gap-3">
-                        <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-muted-foreground" />
+              property.owners.map((owner, index) => (
+                <Link 
+                  key={owner.id}
+                  href={`/owners/${owner.id}`}
+                  className="block hover:bg-muted/50 rounded-lg p-3 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-muted-foreground" />
                     </span>
-                    <span key={owner.id}>
-                        <p className="font-semibold">{owner.firstName} {owner.lastName}</p>
+                    <div className="flex-1">
+                      <p className="font-semibold">
+                        {owner.firstName} {owner.lastName}
+                        {property.owners && property.owners.length > 1 && (
+                          <span className="text-sm text-muted-foreground ml-2">
+                            (Owner {index + 1} of {property.owners.length})
+                          </span>
+                        )}
+                      </p>
+                      {owner.phoneNumber && (
                         <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
-                    </span>
+                      )}
+                      {owner.llcContact && (
+                        <p className="text-sm text-muted-foreground">LLC: {owner.llcContact}</p>
+                      )}
+                      {owner.streetAddress && (
+                        <p className="text-sm text-muted-foreground">
+                          {owner.streetAddress}, {owner.city}, {owner.state} {owner.zipCode}
+                        </p>
+                      )}
                     </div>
+                  </div>
                 </Link>
-                
-                ))
-            ) : (<div>No owners found</div>)}
+              ))
+            ) : (
+              <div className="text-muted-foreground text-center py-4">No owners found</div>
+            )}
           </div>
         </div>
       </div>

@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Pencil } from 'lucide-react'
+import { Pencil, User, Plus, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import type { Property } from '@/types/property'
+import type { Property, Owner } from '@/types/property'
 import {
   Table,
   TableBody,
@@ -19,6 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface PropertyEditModalProps {
   property: Property
@@ -41,6 +48,8 @@ type PropertyFormData = z.infer<typeof propertySchema>
 export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditModalProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [availableOwners, setAvailableOwners] = useState<Owner[]>([])
+  const [selectedOwnerIds, setSelectedOwnerIds] = useState<string[]>(property.owners?.map(owner => owner.id) || [])
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -56,6 +65,26 @@ export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditM
     },
   })
 
+  // Load available owners and set current owners
+  useEffect(() => {
+    if (open) {
+      loadAvailableOwners()
+      setSelectedOwnerIds(property.owners?.map(owner => owner.id) || [])
+    }
+  }, [open, property.owners])
+
+  const loadAvailableOwners = async () => {
+    try {
+      const response = await fetch('/api/owners')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableOwners(data.owners || data)
+      }
+    } catch (error) {
+      console.error('Error loading owners:', error)
+    }
+  }
+
   const onSubmit = async (data: PropertyFormData) => {
     setIsLoading(true)
     try {
@@ -67,6 +96,7 @@ export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditM
         body: JSON.stringify({
           id: property.id,
           ...data,
+          owners: selectedOwnerIds, // Send selected owner IDs
         }),
       })
 
@@ -86,18 +116,44 @@ export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditM
     }
   }
 
+  const addOwner = (ownerId: string) => {
+    if (!selectedOwnerIds.includes(ownerId)) {
+      setSelectedOwnerIds([...selectedOwnerIds, ownerId])
+    }
+  }
+
+  const removeOwner = (ownerId: string) => {
+    setSelectedOwnerIds(selectedOwnerIds.filter(id => id !== ownerId))
+  }
+
+  const getCurrentOwners = () => {
+    return availableOwners.filter(owner => selectedOwnerIds.includes(owner.id))
+  }
+
+  const getAvailableOwnersForSelection = () => {
+    return availableOwners.filter(owner => !selectedOwnerIds.includes(owner.id))
+  }
+
+  // Only allow closing via X button
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) return // ignore all attempts to close except via X
+    setOpen(true)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Pencil className="h-4 w-4 mr-2" />
           Edit
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white" hideClose={false}>
         <DialogHeader>
           <DialogTitle>Edit Property</DialogTitle>
         </DialogHeader>
+        
+        {/* Property Info Display */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="text-sm text-muted-foreground">Street Address</div>
@@ -112,6 +168,74 @@ export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditM
             <div className="font-medium">{property.zip_code}</div>
           </div>
         </div>
+
+        {/* Owners Management Section */}
+        <div className="mb-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Property Owners
+          </h3>
+          
+          {/* Current Owners */}
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Current Owners</Label>
+            <div className="mt-2 space-y-2">
+              {property.owners && property.owners.length > 0 ? (
+                property.owners.map((owner) => (
+                  <div key={owner.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{owner.firstName} {owner.lastName}</p>
+                      {owner.phoneNumber && (
+                        <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeOwner(owner.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-muted-foreground text-center py-4">No owners assigned</div>
+              )}
+            </div>
+          </div>
+
+          {/* Add Owner */}
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Add Owner</Label>
+            <div className="mt-2 flex gap-2">
+              <Select onValueChange={addOwner}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select an owner to add" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableOwnersForSelection().map((owner) => (
+                    <SelectItem key={owner.id} value={owner.id}>
+                      {owner.firstName} {owner.lastName}
+                      {owner.phoneNumber && ` (${owner.phoneNumber})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('/owners', '_blank')}
+                className="whitespace-nowrap"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Owner
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Property Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -142,6 +266,7 @@ export function PropertyEditModal({ property, onPropertyUpdated }: PropertyEditM
             </div>
           </form>
         </Form>
+
         {/* Notes Section */}
         <div className="mt-8">
           <h3 className="font-semibold mb-2">Notes</h3>
