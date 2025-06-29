@@ -182,14 +182,13 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                 <TableHeader>
                   <TableRow>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {phoneContacts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-muted-foreground text-center py-4">
+                      <TableCell colSpan={2} className="text-muted-foreground text-center py-4">
                         No phone numbers
                       </TableCell>
                     </TableRow>
@@ -203,9 +202,8 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                         <TableRow key={contact.id}>
                           <TableCell className="font-medium">{contact.phone}</TableCell>
                           <TableCell className="text-muted-foreground">
-                            {owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'}
+                            {contact.notes || 'No notes'}
                           </TableCell>
-                          <TableCell>{contact.type}</TableCell>
                         </TableRow>
                       );
                     })
