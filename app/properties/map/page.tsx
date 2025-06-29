@@ -44,6 +44,18 @@ export default function PropertiesMapPage() {
     }
   }
 
+  // Handle property updates from the PropertyEditDialog
+  const handlePropertyUpdated = (updatedProperty: Property) => {
+    console.log("Map: Property updated:", updatedProperty.id)
+    
+    // Update the property in the local state
+    setProperties(prevProperties => 
+      prevProperties.map(property => 
+        property.id === updatedProperty.id ? updatedProperty : property
+      )
+    )
+  }
+
   useEffect(() => {
     fetchProperties()
   }, [])
@@ -121,7 +133,10 @@ export default function PropertiesMapPage() {
 
       {/* Map View Component - Takes remaining height */}
       <div className="flex-1 min-h-0">
-        <PropertyMapView properties={properties} />
+        <PropertyMapView 
+          properties={properties} 
+          onPropertyUpdated={handlePropertyUpdated}
+        />
       </div>
     </div>
   )

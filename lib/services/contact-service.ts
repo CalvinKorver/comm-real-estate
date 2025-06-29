@@ -1,0 +1,150 @@
+import { prisma } from '@/lib/shared/prisma'
+import type { CreateContactInput, Contact } from '@/types/contact'
+
+export interface ContactUpdateInput {
+  phone?: string
+  email?: string
+  type?: string
+  priority?: number
+}
+
+export class ContactService {
+  /**
+   * Create a new contact
+   */
+  static async createContact(data: CreateContactInput): Promise<Contact> {
+    const contact = await prisma.contact.create({
+      data: {
+        phone: data.phone,
+        email: data.email,
+        type: data.type,
+        priority: data.priority,
+        ownerId: data.ownerId
+      }
+    })
+
+    return {
+      ...contact,
+      phone: contact.phone || undefined,
+      email: contact.email || undefined
+    }
+  }
+
+  /**
+   * Update an existing contact
+   */
+  static async updateContact(id: string, data: ContactUpdateInput): Promise<Contact> {
+    const contact = await prisma.contact.update({
+      where: { id },
+      data: {
+        phone: data.phone,
+        email: data.email,
+        type: data.type,
+        priority: data.priority
+      }
+    })
+
+    return {
+      ...contact,
+      phone: contact.phone || undefined,
+      email: contact.email || undefined
+    }
+  }
+
+  /**
+   * Delete a contact
+   */
+  static async deleteContact(id: string): Promise<void> {
+    await prisma.contact.delete({
+      where: { id }
+    })
+  }
+
+  /**
+   * Get contacts for an owner
+   */
+  static async getContactsByOwner(ownerId: string): Promise<Contact[]> {
+    const contacts = await prisma.contact.findMany({
+      where: { ownerId },
+      orderBy: { priority: 'asc' }
+    })
+
+    return contacts.map(contact => ({
+      ...contact,
+      phone: contact.phone || undefined,
+      email: contact.email || undefined
+    }))
+  }
+
+  /**
+   * Update multiple contacts for an owner
+   */
+  static async updateOwnerContacts(ownerId: string, contacts: Array<{
+    id?: string
+    phone?: string
+    email?: string
+    type: string
+    priority: number
+    action: 'create' | 'update' | 'delete'
+  }>): Promise<Contact[]> {
+    // Use a transaction to ensure all operations succeed or fail together
+    return await prisma.$transaction(async (tx) => {
+      const results: Contact[] = []
+
+      for (const contact of contacts) {
+        switch (contact.action) {
+          case 'create':
+            if (contact.id?.startsWith('temp-')) {
+              // This is a new contact
+              const newContact = await tx.contact.create({
+                data: {
+                  phone: contact.phone,
+                  email: contact.email,
+                  type: contact.type,
+                  priority: contact.priority,
+                  ownerId
+                }
+              })
+              results.push({
+                ...newContact,
+                phone: newContact.phone || undefined,
+                email: newContact.email || undefined
+              })
+            }
+            break
+
+          case 'update':
+            if (contact.id && !contact.id.startsWith('temp-')) {
+              // This is an existing contact
+              const updatedContact = await tx.contact.update({
+                where: { id: contact.id },
+                data: {
+                  phone: contact.phone,
+                  email: contact.email,
+                  type: contact.type,
+                  priority: contact.priority
+                }
+              })
+              results.push({
+                ...updatedContact,
+                phone: updatedContact.phone || undefined,
+                email: updatedContact.email || undefined
+              })
+            }
+            break
+
+          case 'delete':
+            if (contact.id && !contact.id.startsWith('temp-')) {
+              // Delete existing contact
+              await tx.contact.delete({
+                where: { id: contact.id }
+              })
+            }
+            break
+        }
+      }
+
+      return results
+    })
+  }
+} 

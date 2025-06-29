@@ -3,11 +3,12 @@ import { OwnerService } from '@/lib/services/owner-service'
 
 // GET /api/owners/[id] - Get a specific owner
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const owner = await OwnerService.getOwnerById(params.id)
+    const { id } = await params
+    const owner = await OwnerService.getOwnerById(id)
     return NextResponse.json(owner)
   } catch (error) {
     console.error('API: Error fetching owner:', error)
@@ -28,13 +29,14 @@ export async function GET(
 
 // PUT /api/owners/[id] - Update an owner
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     
-    const owner = await OwnerService.updateOwner(params.id, body)
+    const owner = await OwnerService.updateOwner(id, body)
     return NextResponse.json(owner)
   } catch (error) {
     console.error('API: Error updating owner:', error)
@@ -55,11 +57,12 @@ export async function PUT(
 
 // DELETE /api/owners/[id] - Delete an owner
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await OwnerService.deleteOwner(params.id)
+    const { id } = await params
+    await OwnerService.deleteOwner(id)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('API: Error deleting owner:', error)

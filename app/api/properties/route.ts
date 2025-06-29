@@ -90,13 +90,18 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, ...updateData } = body
+    const { id, note, ...updateData } = body
 
     if (!id) {
       return NextResponse.json(
         { error: 'Property ID is required' },
         { status: 400 }
       )
+    }
+
+    // If a note is provided, add it to the property
+    if (note) {
+      await PropertyService.addNoteToProperty(id, note)
     }
 
     // Transform the request body to match the service interface

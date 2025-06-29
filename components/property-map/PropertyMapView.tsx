@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyMapViewProps, Coordinates, MapStyle } from '@/types/map'
 import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
@@ -10,7 +10,7 @@ import PropertyListPanel from './PropertyListPanel'
 
 // Inner component that uses the MapContext
 function PropertyMapViewContent({ 
-  properties,
+  properties: initialProperties,
   className = "",
   layout = 'split',
   defaultCenter = MAP_CENTERS.NEW_YORK,
@@ -18,12 +18,18 @@ function PropertyMapViewContent({
   mapStyle = MAP_STYLES.LIGHT,
   onPropertyUpdated
 }: PropertyMapViewProps) {
+  const [properties, setProperties] = useState<Property[]>(initialProperties)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [highlightedMarkerId, setHighlightedMarkerId] = useState<string | null>(null)
   
   // Use centralized state management
   const { setCenter, setZoom, selectProperty, highlightProperty } = useMapActions()
   const { center: currentCenter, zoom: currentZoom } = useMapState()
+
+  // Update local properties when initialProperties changes
+  useEffect(() => {
+    setProperties(initialProperties)
+  }, [initialProperties])
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
@@ -78,6 +84,15 @@ function PropertyMapViewContent({
   }
 
   const handlePropertyUpdated = (updatedProperty: Property) => {
+    console.log("PropertyMapView: Property updated:", updatedProperty.id)
+    
+    // Update the properties array
+    setProperties(prevProperties => 
+      prevProperties.map(property => 
+        property.id === updatedProperty.id ? updatedProperty : property
+      )
+    )
+    
     // Update the selected property if it's the one being updated
     if (selectedProperty?.id === updatedProperty.id) {
       setSelectedProperty(updatedProperty)

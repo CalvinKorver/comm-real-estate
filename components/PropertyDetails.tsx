@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Building2, Square, TrendingUp, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { PropertyEditModal } from './PropertyEditModal'
+// import { PropertyEditModal } from './PropertyEditModal'
 import { useState } from 'react'
 import type { Property } from '@/types/property'
 
@@ -195,10 +195,13 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
           
           {/* Edit Property Button */}
           <div className="mb-6">
-            <PropertyEditModal 
+            {/* <PropertyEditModal 
               property={property} 
               onPropertyUpdated={handlePropertyUpdated}
-            />
+            /> */}
+            <Button variant="outline" className="w-full">
+              Edit Property (Coming Soon)
+            </Button>
           </div>
           
           {/* <p className="text-xs text-muted-foreground text-center">
