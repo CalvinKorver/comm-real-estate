@@ -31,8 +31,10 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
   const menuRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
-  // Get up to 2 phone contacts from the first owner
-  const phoneContacts = property.owners?.[0]?.contacts?.filter(c => c.phone).slice(0, 2) || [];
+  // Get up to 2 phone contacts from all owners
+  const phoneContacts = property.owners?.flatMap(owner => 
+    owner.contacts?.filter(c => c.phone).slice(0, 2) || []
+  ).slice(0, 4) || [];
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -89,9 +91,35 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
           <p className="text-sm text-muted-foreground mt-[-6px] mb-1">
             {property.city}, {property.zip_code}
           </p>
-          <p className="text-sm text-foreground font-semibold">
-            {property.owners?.[0]?.firstName} {property.owners?.[0]?.lastName}
-          </p>
+          
+          {/* Enhanced Owner Display */}
+          <div className="mt-2">
+            {property.owners && property.owners.length > 0 ? (
+              <div className="space-y-1">
+                {property.owners.length === 1 ? (
+                  <p className="text-sm text-foreground font-semibold">
+                    {property.owners[0].firstName} {property.owners[0].lastName}
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-sm text-foreground font-semibold">
+                      {property.owners.length} Owners
+                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      {property.owners.slice(0, 2).map((owner, idx) => (
+                        <div key={owner.id}>
+                          {owner.firstName} {owner.lastName}
+                          {idx === 0 && property.owners && property.owners.length > 2 && ' + more...'}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No owners</p>
+            )}
+          </div>
         </div>
       </div>
       {selected && (
@@ -105,21 +133,29 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
               <thead>
                 <tr className="border-b">
                   <th className="text-left pb-1">Phone</th>
-                  <th className="text-left pb-1"> </th>
-                  <th className="text-left pb-1">Notes</th>
+                  <th className="text-left pb-1">Owner</th>
+                  <th className="text-left pb-1">Type</th>
                 </tr>
               </thead>
               <tbody>
                 {phoneContacts.length === 0 ? (
                   <tr><td colSpan={3} className="text-muted-foreground py-2">No phone numbers</td></tr>
                 ) : (
-                  phoneContacts.map((contact, idx) => (
-                    <tr key={contact.id} className="border-b last:border-b-0">
-                      <td className="py-1">{contact.phone}</td>
-                      <td className="px-2">{statusIcon('unknown')}</td>
-                      <td>{contact.type}</td>
-                    </tr>
-                  ))
+                  phoneContacts.map((contact, idx) => {
+                    // Find the owner for this contact
+                    const owner = property.owners?.find(o => 
+                      o.contacts?.some(c => c.id === contact.id)
+                    );
+                    return (
+                      <tr key={contact.id} className="border-b last:border-b-0">
+                        <td className="py-1">{contact.phone}</td>
+                        <td className="py-1 text-xs text-muted-foreground">
+                          {owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'}
+                        </td>
+                        <td className="py-1 text-xs">{contact.type}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
