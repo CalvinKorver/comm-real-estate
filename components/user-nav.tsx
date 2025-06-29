@@ -54,7 +54,7 @@ export function UserNav() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-50">
+        <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 z-50">
           <div className="px-4 py-3">
             <p className="text-sm font-medium text-gray-900 dark:text-white">
               {session.user?.name || 'User'}

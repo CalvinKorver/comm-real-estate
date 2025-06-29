@@ -238,7 +238,7 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                                   {formatNoteDate(note.createdAt)}
                                 </span>
                               </TooltipTrigger>
-                              <TooltipContent className="bg-white text-black">
+                              <TooltipContent className="">
                                 <p>{formatFullDateTime(note.createdAt)}</p>
                               </TooltipContent>
                             </Tooltip>

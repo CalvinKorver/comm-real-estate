@@ -15,7 +15,7 @@ export const CSVPreviewTable: React.FC<CSVPreviewTableProps> = ({ csvRows, mappi
   const dbFieldHeaders = mappedFields;
 
   return (
-    <div className="overflow-x-auto border rounded bg-white mt-4">
+    <div className="overflow-x-auto border rounded bg-card mt-4">
       <table className="min-w-full text-sm">
         <thead>
           <tr>
