@@ -58,7 +58,10 @@ export class PropertyService {
             contacts: true
           }
         },
-        coordinates: true
+        coordinates: true,
+        notes: {
+          orderBy: { createdAt: 'desc' }
+        }
       }
     })
 
@@ -234,7 +237,10 @@ export class PropertyService {
             contacts: true
           }
         },
-        coordinates: true
+        coordinates: true,
+        notes: {
+          orderBy: { createdAt: 'desc' }
+        }
       }
     })
 

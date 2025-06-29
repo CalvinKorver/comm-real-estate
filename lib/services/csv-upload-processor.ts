@@ -402,4 +402,31 @@ export async function saveProcessedData(data: ProcessedData): Promise<UploadResu
     geocodedProperties: 0,
     geocodingErrors: [],
   };
+}
+
+/**
+ * Extracts the header row (column names) from a CSV file.
+ */
+export async function extractCSVHeaders(file: File): Promise<string[]> {
+  const text = await file.text();
+  const [headerLine] = text.split('\n');
+  return parseCSVLine(headerLine);
+}
+
+/**
+ * Suggests a mapping from CSV headers to database fields by name similarity.
+ */
+export function suggestColumnMapping(
+  csvHeaders: string[],
+  dbFields: string[]
+): Record<string, string | null> {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const mapping: Record<string, string | null> = {};
+  for (const header of csvHeaders) {
+    const match = dbFields.find(
+      field => normalize(field) === normalize(header)
+    );
+    mapping[header] = match || null;
+  }
+  return mapping;
 } 

@@ -136,4 +136,10 @@
   border: 1px solid rgb(229, 231, 235);
   color: rgb(55, 65, 81);
   height: 50px;
-} 
+}
+
+[data-slot='tooltip-content'] [data-slot='tooltip-arrow'] {
+  background: #fff !important;
+  fill: #fff !important;
+  border: 1px solid #e5e7eb !important; /* Optional: match your border */
+}

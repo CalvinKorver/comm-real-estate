@@ -6,6 +6,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SiteHeader } from '@/components/site-header';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ColumnMappingModal } from '@/components/ColumnMappingModal';
+import { extractCSVHeaders, suggestColumnMapping } from '@/lib/services/csv-upload-processor';
+import { AlertCircle } from 'lucide-react';
+import { CSVPreviewTable } from '@/components/CSVPreviewTable';
 
 interface UploadResult {
   success: boolean;
@@ -30,20 +34,83 @@ interface UploadResult {
   }>;
 }
 
+const DB_FIELDS = [
+  // Property fields
+  'street_address', 'city', 'zip_code', 'state', 'parcel_id', 'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet',
+  // Owner fields
+  'firstName', 'lastName', 'fullName', 'llcContact', 'streetAddress', 'ownerCity', 'ownerState', 'ownerZip',
+  // Contact fields
+  'phone', 'email', 'type', 'priority',
+];
+
+const REQUIRED_FIELDS = ['street_address', 'city', 'zip_code', 'firstName', 'lastName'];
+
+function hasUnmappedRequiredFields(mapping: Record<string, string | null>) {
+  const mappedFields = Object.values(mapping).filter(Boolean);
+  return REQUIRED_FIELDS.some(field => !mappedFields.includes(field));
+}
+
+// Helper to find duplicate property addresses in preview rows
+function getDuplicateRowIndices(rows: string[][], mapping: Record<string, string | null>, csvHeaders: string[]) {
+  const addressIdx = csvHeaders.findIndex(h => mapping[h] === 'street_address');
+  const cityIdx = csvHeaders.findIndex(h => mapping[h] === 'city');
+  const zipIdx = csvHeaders.findIndex(h => mapping[h] === 'zip_code');
+  const seen = new Set<string>();
+  const duplicates: number[] = [];
+  rows.forEach((row, i) => {
+    const key = [row[addressIdx], row[cityIdx], row[zipIdx]].join('|').toLowerCase();
+    if (seen.has(key)) {
+      duplicates.push(i);
+    } else {
+      seen.add(key);
+    }
+  });
+  return duplicates;
+}
+
 export default function CSVUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string | null>>({});
+  const [mappingConfirmed, setMappingConfirmed] = useState(false);
+  const [csvRows, setCsvRows] = useState<string[][]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setError(null);
       setResult(null);
+      setMappingConfirmed(false);
+      // Extract headers
+      const headers = await extractCSVHeaders(selectedFile);
+      setCsvHeaders(headers);
+      // Suggest mapping
+      const suggested = suggestColumnMapping(headers, DB_FIELDS);
+      setColumnMapping(suggested);
     }
+  };
+
+  const handleConfirmMapping = async () => {
+    setMappingConfirmed(true);
+    // Parse the CSV file rows for preview
+    if (file) {
+      const text = await file.text();
+      const lines = text.split('\n').filter(l => l.trim());
+      const rows = lines.slice(1).map(line => line.split(','));
+      setCsvRows(rows);
+      setShowPreview(true);
+    }
+  };
+
+  const handleBackToMapping = () => {
+    setMappingConfirmed(false);
+    setShowPreview(false);
   };
 
   const handleUpload = async () => {
@@ -104,14 +171,71 @@ export default function CSVUploadPage() {
             )}
           </div>
 
-          {/* Upload Button */}
-          <Button
-            onClick={handleUpload}
-            disabled={!file || isUploading}
-            className="w-full"
-          >
-            {isUploading ? 'Processing...' : 'Upload & Process'}
-          </Button>
+          {/* Column Mapping Modal */}
+          {file && csvHeaders.length > 0 && !mappingConfirmed && (
+            <div>
+              <ColumnMappingModal
+                csvHeaders={csvHeaders}
+                dbFields={DB_FIELDS}
+                initialMapping={columnMapping}
+                onMappingChange={setColumnMapping}
+              />
+              {hasUnmappedRequiredFields(columnMapping) && (
+                <div className="text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2 mt-2 text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Please map all required fields: {REQUIRED_FIELDS.join(', ')}
+                </div>
+              )}
+              <Button className="mt-4 w-full" onClick={handleConfirmMapping} disabled={hasUnmappedRequiredFields(columnMapping)}>
+                Confirm Mapping
+              </Button>
+            </div>
+          )}
+
+          {/* Preview */}
+          {mappingConfirmed && showPreview && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="font-bold text-lg">Preview Mapped Data</h2>
+                <Button variant="outline" size="sm" onClick={handleBackToMapping}>Back to Mapping</Button>
+              </div>
+              {/* Conflict detection */}
+              {(() => {
+                const duplicateRows = getDuplicateRowIndices(csvRows, columnMapping, csvHeaders);
+                const hasMissingRequired = csvRows.slice(0, 10).some(row =>
+                  csvHeaders.some((h, colIdx) => {
+                    const dbField = columnMapping[h];
+                    return dbField && REQUIRED_FIELDS.includes(dbField) && (!row[colIdx] || row[colIdx].trim() === '');
+                  })
+                );
+                return (
+                  <>
+                    {(duplicateRows.length > 0 || hasMissingRequired) && (
+                      <div className="text-red-700 bg-red-50 border border-red-200 rounded p-2 mb-2 text-sm">
+                        {duplicateRows.length > 0 && <div>{duplicateRows.length} duplicate property rows detected (highlighted in red).</div>}
+                        {hasMissingRequired && <div>Some required fields are missing (highlighted in orange).</div>}
+                      </div>
+                    )}
+                    <CSVPreviewTable
+                      csvRows={csvRows}
+                      mapping={columnMapping}
+                      csvHeaders={csvHeaders}
+                      maxRows={10}
+                      conflictRows={duplicateRows}
+                      requiredFields={REQUIRED_FIELDS}
+                    />
+                  </>
+                );
+              })()}
+              <Button
+                onClick={handleUpload}
+                disabled={!file || isUploading}
+                className="w-full mt-4"
+              >
+                {isUploading ? 'Processing...' : 'Upload & Process'}
+              </Button>
+            </div>
+          )}
 
           {/* Error Display */}
           {error && (
