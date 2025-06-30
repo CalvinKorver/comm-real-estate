@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/shared/prisma'
-import type { CreateContactInput, Contact } from '@/types/contact'
+import type { CreateContactInput } from '@/types/contact'
 
 export interface ContactUpdateInput {
   phone?: string
@@ -7,6 +7,18 @@ export interface ContactUpdateInput {
   type?: string
   priority?: number
   notes?: string
+}
+
+export interface Contact {
+  id: string;
+  phone?: string;
+  email?: string;
+  type: string;
+  priority: number;
+  notes?: string;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class ContactService {
@@ -21,7 +33,7 @@ export class ContactService {
         type: data.type,
         priority: data.priority,
         notes: data.notes,
-        ownerId: data.ownerId
+        owner_id: (data as any).ownerId
       }
     })
 
@@ -68,9 +80,9 @@ export class ContactService {
   /**
    * Get contacts for an owner
    */
-  static async getContactsByOwner(ownerId: string): Promise<Contact[]> {
+  static async getContactsByOwner(owner_id: string): Promise<Contact[]> {
     const contacts = await prisma.contact.findMany({
-      where: { ownerId },
+      where: { owner_id },
       orderBy: { priority: 'asc' }
     })
 
@@ -85,7 +97,7 @@ export class ContactService {
   /**
    * Update multiple contacts for an owner
    */
-  static async updateOwnerContacts(ownerId: string, contacts: Array<{
+  static async updateOwnerContacts(owner_id: string, contacts: Array<{
     id?: string
     phone?: string
     email?: string
@@ -110,7 +122,7 @@ export class ContactService {
                   type: contact.type,
                   priority: contact.priority,
                   notes: contact.notes,
-                  ownerId
+                  owner_id
                 }
               })
               results.push({

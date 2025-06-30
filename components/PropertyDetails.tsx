@@ -137,43 +137,45 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
           <h2 className="text-xl font-semibold mb-4">Owners</h2>
           <div className="space-y-4">
             {property.owners && property.owners.length > 0 ? (
-              property.owners.map((owner, index) => (
-                <Link 
-                  key={owner.id}
-                  href={`/owners/${owner.id}`}
-                  className="block hover:bg-muted/50 rounded-lg p-3 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </span>
-                    <div className="flex-1">
-                      <p className="font-semibold">
-                        {owner.firstName} {owner.lastName}
-                        {property.owners && property.owners.length > 1 && (
-                          <span className="text-sm text-muted-foreground ml-2">
-                            (Owner {index + 1} of {property.owners.length})
-                          </span>
-                        )}
+              property.owners.map((owner) => (
+                <div key={owner.id} className="space-y-2">
+                  <h3 className="font-semibold">
+                    {owner.first_name} {owner.last_name}
+                  </h3>
+                  {owner.phone_number && (
+                    <p className="text-sm text-muted-foreground">{owner.phone_number}</p>
+                  )}
+                  {owner.street_address && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>
+                        {owner.street_address}, {owner.city}, {owner.state} {owner.zip_code}
                       </p>
-                      {owner.phoneNumber && (
-                        <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
-                      )}
-                      {owner.llcContact && (
-                        <p className="text-sm text-muted-foreground">LLC: {owner.llcContact}</p>
-                      )}
-                      {owner.streetAddress && (
-                        <p className="text-sm text-muted-foreground">
-                          {owner.streetAddress}, {owner.city}, {owner.state} {owner.zipCode}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </Link>
+                  )}
+                </div>
               ))
             ) : (
               <div className="text-muted-foreground text-center py-4">No owners found</div>
             )}
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <h3 className="font-semibold">Quick Stats</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Listed</span>
+              <span>{new Date(property.created_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Property Type</span>
+              <span>Multifamily</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Building Units</span>
+              <span>{property.number_of_units}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -214,7 +216,7 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Listed</span>
-                <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(property.created_at).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Property Type</span>

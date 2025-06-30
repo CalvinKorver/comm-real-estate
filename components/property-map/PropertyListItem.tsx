@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react'
 import type { Property } from '@/types/property'
-import { Ellipsis, Edit } from 'lucide-react'
+import { Ellipsis, Edit, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { PropertyEditDialog } from '@/components/PropertyEditDialog'
+import { PropertyEditDialog } from '@/components/property-edit/PropertyEditDialog'
 
 interface PropertyListItemProps {
   property: Property
@@ -144,9 +144,12 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
               {property.owners && property.owners.length > 0 ? (
                 <div className="space-y-1">
                   {property.owners.length === 1 ? (
-                    <p className="text-sm text-foreground font-semibold">
-                      {property.owners[0].firstName} {property.owners[0].lastName}
-                    </p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span>
+                        {property.owners[0].first_name} {property.owners[0].last_name}
+                      </span>
+                    </div>
                   ) : (
                     <div>
                       <p className="text-sm text-foreground font-semibold">
@@ -155,7 +158,12 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                       <div className="text-xs text-muted-foreground">
                         {property.owners.slice(0, 2).map((owner, idx) => (
                           <div key={owner.id}>
-                            {owner.firstName} {owner.lastName}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="h-4 w-4" />
+                              <span>
+                                {owner.first_name} {owner.last_name}
+                              </span>
+                            </div>
                             {idx === 0 && property.owners && property.owners.length > 2 && ' + more...'}
                           </div>
                         ))}
@@ -240,15 +248,15 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                           {note.content}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {note.createdAt ? (
+                          {note.created_at ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="cursor-help">
-                                  {formatNoteDate(note.createdAt)}
+                                  {new Date(note.created_at).toLocaleDateString()}
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent className="">
-                                <p>{formatFullDateTime(note.createdAt)}</p>
+                                <p>{formatFullDateTime(note.created_at)}</p>
                               </TooltipContent>
                             </Tooltip>
                           ) : ''}
@@ -258,9 +266,9 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                   )}
                 </TableBody>
               </Table>
-              {property.notes && property.notes.length > 2 && (
+              {property.notes && property.notes.length > 3 && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  ({property.notes.length - 2} more)
+                  +{property.notes.length - 3} more notes
                 </p>
               )}
             </div>

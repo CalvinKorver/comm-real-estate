@@ -8,27 +8,27 @@ export interface OwnerSearchParams {
 }
 
 export interface OwnerCreateInput {
-  firstName: string
-  lastName: string
-  fullName?: string
-  llcContact?: string
-  streetAddress?: string
+  first_name: string
+  last_name: string
+  full_name?: string
+  llc_contact?: string
+  street_address?: string
   city?: string
   state?: string
-  zipCode?: string
-  phoneNumber?: string
+  zip_code?: string
+  phone_number?: string
 }
 
 export interface OwnerUpdateInput {
-  firstName?: string
-  lastName?: string
-  fullName?: string
-  llcContact?: string
-  streetAddress?: string
+  first_name?: string
+  last_name?: string
+  full_name?: string
+  llc_contact?: string
+  street_address?: string
   city?: string
   state?: string
-  zipCode?: string
-  phoneNumber?: string
+  zip_code?: string
+  phone_number?: string
 }
 
 export interface PaginationResult {
@@ -84,10 +84,10 @@ export class OwnerService {
     if (search) {
       whereClause = {
         OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { fullName: { contains: search, mode: 'insensitive' } },
-          { llcContact: { contains: search, mode: 'insensitive' } },
+          { first_name: { contains: search, mode: 'insensitive' } },
+          { last_name: { contains: search, mode: 'insensitive' } },
+          { full_name: { contains: search, mode: 'insensitive' } },
+          { llc_contact: { contains: search, mode: 'insensitive' } },
         ]
       }
     }
@@ -101,7 +101,7 @@ export class OwnerService {
     const owners = await prisma.owner.findMany({
       where: whereClause,
       orderBy: {
-        firstName: 'asc'
+        first_name: 'asc'
       },
       include: {
         properties: {
@@ -136,7 +136,7 @@ export class OwnerService {
   static async getAllOwners() {
     return prisma.owner.findMany({
       orderBy: {
-        firstName: 'asc'
+        first_name: 'asc'
       },
       include: {
         contacts: true
@@ -149,21 +149,21 @@ export class OwnerService {
    */
   static async createOwner(data: OwnerCreateInput) {
     // Validate required fields
-    if (!data.firstName || !data.lastName) {
+    if (!data.first_name || !data.last_name) {
       throw new Error('First name and last name are required')
     }
 
     const owner = await prisma.owner.create({
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        fullName: data.fullName,
-        llcContact: data.llcContact,
-        streetAddress: data.streetAddress,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        full_name: data.full_name,
+        llc_contact: data.llc_contact,
+        street_address: data.street_address,
         city: data.city,
         state: data.state,
-        zipCode: data.zipCode,
-        phoneNumber: data.phoneNumber
+        zip_code: data.zip_code,
+        phone_number: data.phone_number
       },
       include: {
         properties: {
@@ -194,15 +194,15 @@ export class OwnerService {
     const owner = await prisma.owner.update({
       where: { id },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        fullName: data.fullName,
-        llcContact: data.llcContact,
-        streetAddress: data.streetAddress,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        full_name: data.full_name,
+        llc_contact: data.llc_contact,
+        street_address: data.street_address,
         city: data.city,
         state: data.state,
-        zipCode: data.zipCode,
-        phoneNumber: data.phoneNumber
+        zip_code: data.zip_code,
+        phone_number: data.phone_number
       },
       include: {
         properties: {
@@ -248,7 +248,7 @@ export class OwnerService {
           include: {
             coordinates: true,
             notes: {
-              orderBy: { createdAt: 'desc' },
+              orderBy: { created_at: 'desc' },
               take: 1
             }
           }

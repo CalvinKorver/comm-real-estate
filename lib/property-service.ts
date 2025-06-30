@@ -95,7 +95,7 @@ export class PropertyService {
     const properties = await prisma.property.findMany({
       where: whereClause,
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       },
       include: {
         owners: {
@@ -187,7 +187,7 @@ export class PropertyService {
         },
       },
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       }
     })
   }

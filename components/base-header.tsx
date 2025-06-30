@@ -1,3 +1,5 @@
+"use client"
+
 import { siteConfig } from "@/config/site"
 import { Icons } from "@/components/icons"
 import { useSession } from 'next-auth/react'

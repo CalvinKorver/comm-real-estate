@@ -26,10 +26,10 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     owner: property.owners?.[0]?.id || '', // fallback for required 'owner' field
     owners: (property.owners || []).map(owner => ({
       ...owner,
-      streetAddress: owner.streetAddress || '',
+      street_address: owner.street_address || '',
       city: owner.city || '',
-      zipCode: owner.zipCode || '',
-      phoneNumber: owner.phoneNumber || '', // Ensure phoneNumber is always a string
+      zip_code: owner.zip_code || '',
+      phone_number: owner.phone_number || '', // Ensure phone_number is always a string
     })),
     images: property.images || [],
   }

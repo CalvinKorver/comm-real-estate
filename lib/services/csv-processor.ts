@@ -25,14 +25,14 @@ export interface CSVRow {
 }
 
 export interface ProcessedOwner {
-  firstName: string;
-  lastName: string;
-  fullName?: string;
-  llcContact?: string;
-  streetAddress?: string;
+  first_name: string;
+  last_name: string;
+  full_name?: string;
+  llc_contact?: string;
+  street_address?: string;
   city?: string;
   state?: string;
-  zipCode?: string;
+  zip_code?: string;
   contacts: Array<{
     phone?: string;
     email?: string;
@@ -61,14 +61,14 @@ export function processCSVRow(row: CSVRow): {
 
   // Process owner data
   const owner: ProcessedOwner = {
-    firstName,
-    lastName,
-    fullName: ownerName || undefined,
-    llcContact: row['LLC Contact'] || undefined,
-    streetAddress: row.OwnerAddress || undefined,
+    first_name: firstName,
+    last_name: lastName,
+    full_name: ownerName || undefined,
+    llc_contact: row['LLC Contact'] || undefined,
+    street_address: row.OwnerAddress || undefined,
     city: row.OwnerCity || undefined,
     state: row.OwnerState || undefined,
-    zipCode: row.OwnerZip || undefined,
+    zip_code: row.OwnerZip || undefined,
     contacts: [], // Will be populated below
   };
 
