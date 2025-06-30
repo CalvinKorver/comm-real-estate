@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
     // Check if the request has a file
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const columnMappingJson = formData.get('columnMapping') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -31,10 +32,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`Processing CSV file: ${file.name} (${file.size} bytes)`);
+    // Parse column mapping
+    let columnMapping: Record<string, string | null> = {};
+    if (columnMappingJson) {
+      try {
+        columnMapping = JSON.parse(columnMappingJson);
+      } catch (error) {
+        return NextResponse.json(
+          { error: 'Invalid column mapping format' },
+          { status: 400 }
+        );
+      }
+    }
 
-    // Process the CSV file
-    const result = await processCSVUpload(file);
+    console.log(`Processing CSV file: ${file.name} (${file.size} bytes)`);
+    console.log('Column mapping:', columnMapping);
+
+    // Process the CSV file with column mapping
+    const result = await processCSVUpload(file, columnMapping);
 
     if (!result.success) {
       return NextResponse.json(
@@ -56,6 +71,9 @@ export async function POST(request: NextRequest) {
         createdContacts: result.createdContacts,
         geocodedProperties: result.geocodedProperties,
         geocodingErrors: result.geocodingErrors.length,
+        mergedProperties: result.mergedProperties,
+        mergedOwners: result.mergedOwners,
+        reconciliationSummary: result.reconciliationSummary,
       },
       errors: result.errors,
       duplicates: result.duplicates,

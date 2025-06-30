@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Property } from '@/types/property'
 import PropertyMapView from '@/components/property-map/PropertyMapView'
+import { useSearch } from '@/contexts/SearchContext'
 
 interface PaginationData {
   currentPage: number
@@ -18,14 +19,25 @@ export default function PropertiesMapPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState<PaginationData | null>(null)
+  
+  const { search, setSearch, onSearchChange, setIsSearchEnabled, setOnSearchSubmit } = useSearch()
 
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async (searchQuery: string = "") => {
     try {
       setIsLoading(true)
       setError(null)
       
-      // Fetch all properties for the map (no pagination needed for map view)
-      const response = await fetch('/api/properties?limit=10')
+      // Build query parameters
+      const params = new URLSearchParams({
+        limit: '20' // Get 20 properties for map view
+      })
+      
+      if (searchQuery) {
+        params.append('search', searchQuery)
+      }
+      
+      // Fetch properties for the map view
+      const response = await fetch(`/api/properties?${params}`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch properties')
@@ -42,10 +54,16 @@ export default function PropertiesMapPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  // Handle search form submission
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    fetchProperties(search)
+  }, [fetchProperties, search])
 
   // Handle property updates from the PropertyEditDialog
-  const handlePropertyUpdated = (updatedProperty: Property) => {
+  const handlePropertyUpdated = useCallback((updatedProperty: Property) => {
     console.log("Map: Property updated:", updatedProperty.id)
     
     // Update the property in the local state
@@ -54,11 +72,24 @@ export default function PropertiesMapPage() {
         property.id === updatedProperty.id ? updatedProperty : property
       )
     )
-  }
+  }, [])
+
+  useEffect(() => {
+    // Enable search when component mounts
+    setIsSearchEnabled(true)
+    
+    // Set the search submit handler
+    setOnSearchSubmit(handleSearch)
+    
+    // Cleanup: disable search when component unmounts
+    return () => {
+      setIsSearchEnabled(false)
+    }
+  }, [setIsSearchEnabled, setOnSearchSubmit, handleSearch])
 
   useEffect(() => {
     fetchProperties()
-  }, [])
+  }, [fetchProperties])
 
   if (isLoading) {
     return (
@@ -103,7 +134,7 @@ export default function PropertiesMapPage() {
             <p className="text-red-500 font-medium mb-2">Error loading properties</p>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
-              onClick={fetchProperties}
+              onClick={() => fetchProperties()}
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
             >
               Try Again
@@ -119,15 +150,6 @@ export default function PropertiesMapPage() {
       {/* Header */}
       <div className="bg-white border-b shrink-0">
         <div className="w-full px-4 py-4">
-          <h1 className="text-2xl font-bold text-foreground mb-1">
-            Map
-          </h1>
-
-          {properties.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Showing {properties.length} properties
-            </p>
-          )}
         </div>
       </div>
 

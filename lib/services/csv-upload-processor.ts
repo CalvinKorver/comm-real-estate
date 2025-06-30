@@ -3,6 +3,8 @@ import { CSVRow, processCSVRow, validateCSVRow, createContactsForOwner } from '.
 import { prisma } from '@/lib/shared/prisma';
 import { createContactsFromCSV } from '@/types/contact';
 import { CoordinateService } from './coordinate-service';
+import { PropertyReconciliationService } from './property-reconciliation';
+import { OwnerDeduplicationService } from './owner-deduplication';
 
 export interface UploadResult {
   success: boolean;
@@ -23,6 +25,14 @@ export interface UploadResult {
   createdContacts: number;
   geocodedProperties: number;
   geocodingErrors: string[];
+  mergedProperties: number;
+  mergedOwners: number;
+  reconciliationSummary: {
+    propertiesCreated: number;
+    propertiesMerged: number;
+    ownersCreated: number;
+    ownersMerged: number;
+  };
 }
 
 export interface ProcessedData {
@@ -184,7 +194,10 @@ function parseOwnerName(fullName: string): {
   };
 }
 
-export async function processCSVUpload(file: File): Promise<UploadResult> {
+export async function processCSVUpload(
+  file: File, 
+  columnMapping: Record<string, string | null> = {}
+): Promise<UploadResult> {
   try {
     // Read the file content
     const text = await file.text();
@@ -205,28 +218,58 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
       createdContacts: 0,
       geocodedProperties: 0,
       geocodingErrors: [],
+      mergedProperties: 0,
+      mergedOwners: 0,
+      reconciliationSummary: {
+        propertiesCreated: 0,
+        propertiesMerged: 0,
+        ownersCreated: 0,
+        ownersMerged: 0,
+      },
     };
 
-    // Initialize coordinate service
+    // Initialize services
     const coordinateService = new CoordinateService();
+    const propertyReconciliationService = new PropertyReconciliationService();
+    const ownerDeduplicationService = new OwnerDeduplicationService();
 
     // Track addresses to detect duplicates
     const processedAddresses = new Set<string>();
     const validRows: Array<{ row: number; csvRow: CSVRow; address: string }> = [];
+
+    // Helper function to get mapped value
+    const getMappedValue = (csvRow: string[], header: string, targetField: string): string => {
+      const mappedHeader = Object.keys(columnMapping).find(h => columnMapping[h] === targetField);
+      if (mappedHeader) {
+        const headerIndex = headers.indexOf(mappedHeader);
+        return headerIndex >= 0 ? csvRow[headerIndex] || '' : '';
+      }
+      // Fallback to direct field name if no mapping
+      const headerIndex = headers.indexOf(targetField);
+      return headerIndex >= 0 ? csvRow[headerIndex] || '' : '';
+    };
 
     // First pass: validate all rows and collect valid ones
     for (let i = 0; i < dataLines.length; i++) {
       const line = dataLines[i];
       const values = parseCSVLine(line);
       
-      // Create CSV row object
+      // Create CSV row object using mapping
       const csvRow: CSVRow = {};
       headers.forEach((header, index) => {
-        csvRow[header as keyof CSVRow] = values[index] || '';
+        const mappedField = columnMapping[header];
+        if (mappedField) {
+          csvRow[mappedField as keyof CSVRow] = values[index] || '';
+        } else {
+          // Fallback to original header name
+          csvRow[header as keyof CSVRow] = values[index] || '';
+        }
       });
 
-      // Get the address for error reporting
-      const address = csvRow.Address || 'Unknown Address';
+      // Get the address for error reporting using mapping
+      const address = getMappedValue(values, '', 'street_address') || 
+                     getMappedValue(values, '', 'Address') || 
+                     'Unknown Address';
       const normalizedAddress = address.toLowerCase().trim();
 
       // Check for duplicates
@@ -258,7 +301,7 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
     // Second pass: process valid rows and save to database
     for (const { row, csvRow, address } of validRows) {
       try {
-        // Process the row
+        // Process the row to get owner and property data
         const { owner, property } = processCSVRow(csvRow);
         
         // Handle unknown zip and city values
@@ -272,49 +315,62 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
         // Parse the owner name intelligently
         const parsedName = parseOwnerName(owner.fullName || '');
         
-        // Create owner with parsed name
-        const createdOwner = await prisma.owner.create({
-          data: {
-            firstName: parsedName.firstName,
-            lastName: parsedName.lastName,
-            fullName: parsedName.fullName,
-            llcContact: owner.llcContact,
-            streetAddress: owner.streetAddress,
-            city: owner.city,
-            state: owner.state,
-            zipCode: owner.zipCode,
-          },
-        });
+        // Process owner with deduplication
+        const ownerData = {
+          firstName: parsedName.firstName,
+          lastName: parsedName.lastName,
+          fullName: parsedName.fullName,
+          llcContact: owner.llcContact,
+          streetAddress: owner.streetAddress,
+          city: owner.city,
+          state: owner.state,
+          zipCode: owner.zipCode,
+          phone: csvRow['Wireless 1'] || csvRow['Landline 1'],
+          email: csvRow['Email 1'],
+        };
 
-        // Create property and link to owner
-        const createdProperty = await prisma.property.create({
-          data: {
-            street_address: property.street_address,
-            city: property.city,
-            zip_code: property.zip_code,
-            state: property.state,
-            parcel_id: property.parcel_id,
-            net_operating_income: 0, // Default values for now
-            price: 0,
-            return_on_investment: 0,
-            number_of_units: 0,
-            square_feet: 0,
-            owners: {
-              connect: { id: createdOwner.id }
-            }
-          },
-        });
+        const ownerResult = await ownerDeduplicationService.processOwner(ownerData);
+        
+        // Process property with reconciliation
+        const propertyData = {
+          street_address: property.street_address,
+          city: property.city,
+          zip_code: property.zip_code,
+          state: property.state,
+          parcel_id: property.parcel_id,
+          net_operating_income: 0, // Default values for now
+          price: 0,
+          return_on_investment: 0,
+          number_of_units: 0,
+          square_feet: 0,
+        };
 
-        // Create contacts for the owner
-        const contactInputs = createContactsFromCSV(createdOwner.id, csvRow);
-        const createdContacts = await prisma.contact.createMany({
-          data: contactInputs,
-        });
+        const propertyResult = await propertyReconciliationService.processProperty(
+          propertyData, 
+          ownerResult.owner.id
+        );
+
+        // Update counters based on actions
+        if (ownerResult.action === 'created') {
+          result.createdOwners++;
+          result.reconciliationSummary.ownersCreated++;
+        } else if (ownerResult.action === 'merged') {
+          result.mergedOwners++;
+          result.reconciliationSummary.ownersMerged++;
+        }
+
+        if (propertyResult.action === 'created') {
+          result.createdProperties++;
+          result.reconciliationSummary.propertiesCreated++;
+        } else if (propertyResult.action === 'merged') {
+          result.mergedProperties++;
+          result.reconciliationSummary.propertiesMerged++;
+        }
 
         // Geocode the property
         try {
           const coordinates = await coordinateService.getOrCreateCoordinates(
-            createdProperty.id,
+            propertyResult.property.id,
             property.street_address,
             property.city,
             property.state,
@@ -330,9 +386,6 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
           result.geocodingErrors.push(`Geocoding error for ${property.street_address}: ${geocodingError}`);
         }
 
-        result.createdOwners++;
-        result.createdProperties++;
-        result.createdContacts += createdContacts.count;
         result.processedRows++;
 
       } catch (error) {
@@ -359,6 +412,14 @@ export async function processCSVUpload(file: File): Promise<UploadResult> {
       createdContacts: 0,
       geocodedProperties: 0,
       geocodingErrors: [],
+      mergedProperties: 0,
+      mergedOwners: 0,
+      reconciliationSummary: {
+        propertiesCreated: 0,
+        propertiesMerged: 0,
+        ownersCreated: 0,
+        ownersMerged: 0,
+      },
     };
   }
 }
@@ -401,6 +462,14 @@ export async function saveProcessedData(data: ProcessedData): Promise<UploadResu
     createdContacts: data.contacts.length,
     geocodedProperties: 0,
     geocodingErrors: [],
+    mergedProperties: 0,
+    mergedOwners: 0,
+    reconciliationSummary: {
+      propertiesCreated: 0,
+      propertiesMerged: 0,
+      ownersCreated: 0,
+      ownersMerged: 0,
+    },
   };
 }
 

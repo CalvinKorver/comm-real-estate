@@ -190,7 +190,7 @@ export function PropertyEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-background max-h-[90vh] overflow-y-auto md:min-w-4xl">
         <DialogHeader>
           <DialogTitle>{property.street_address}</DialogTitle>
           <DialogDescription>

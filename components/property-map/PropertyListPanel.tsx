@@ -28,7 +28,7 @@ export default function PropertyListPanel({
       style={resizable ? { resize: 'horizontal', overflow: 'auto' } : undefined}
     >
       {/* Header */}
-      <div className="p-4 border-b bg-white sticky top-0 z-10">
+      <div className="p-4 pb-0 border-t bg-white sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold text-foreground">
             Properties ({properties.length})

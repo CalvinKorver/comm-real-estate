@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { SiteHeader } from '@/components/site-header';
+import { BaseHeader } from '@/components/base-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,7 +75,7 @@ export default function ProfilePage() {
   if (status === 'loading') {
     return (
       <>
-        <SiteHeader />
+        <BaseHeader />
         <div className="container mx-auto px-4 py-12">
           <div className="mx-auto max-w-lg">
             <div className="text-center">
@@ -90,7 +90,7 @@ export default function ProfilePage() {
   if (status === 'unauthenticated') {
     return (
       <>
-        <SiteHeader />
+        <BaseHeader />
         <div className="container mx-auto px-4 py-12">
           <div className="mx-auto max-w-lg">
             <div className="text-center">
@@ -104,7 +104,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <SiteHeader />
+      <BaseHeader />
       <div className="container mx-auto px-4 py-12">
         <div className="mx-auto max-w-lg">
           <div className="mb-8 text-center">

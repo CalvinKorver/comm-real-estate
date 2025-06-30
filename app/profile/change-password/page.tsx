@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { BaseHeader } from '@/components/base-header';
 import { Button } from '@/components/ui/button';
-import { SiteHeader } from '@/components/site-header';
-import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -80,7 +79,7 @@ export default function ChangePasswordPage() {
   if (status === 'loading') {
     return (
       <>
-        <SiteHeader />
+        <BaseHeader />
         <div className="container mx-auto px-4 py-12">
           <div className="mx-auto max-w-md">
             <div className="text-center">
@@ -95,7 +94,7 @@ export default function ChangePasswordPage() {
   if (status === 'unauthenticated') {
     return (
       <>
-        <SiteHeader />
+        <BaseHeader />
         <div className="container mx-auto px-4 py-12">
           <div className="mx-auto max-w-md">
             <div className="text-center">
@@ -109,7 +108,7 @@ export default function ChangePasswordPage() {
 
   return (
     <>
-      <SiteHeader />
+      <BaseHeader />
       <div className="container mx-auto px-4 py-12">
         <div className="mx-auto max-w-md">
           <div className="mb-8 text-center">
