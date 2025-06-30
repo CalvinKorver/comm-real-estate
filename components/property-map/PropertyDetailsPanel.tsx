@@ -110,6 +110,62 @@ export default function PropertyDetailsPanel({
                 </div>
               </div>
 
+              {/* Notes Section */}
+              {property.notes && property.notes.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Notes</h4>
+                  <div className="space-y-2">
+                    {property.notes.slice(0, 2).map((note) => (
+                      <div key={note.id} className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm">{note.content}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                    {property.notes.length > 2 && (
+                      <p className="text-xs text-muted-foreground">
+                        ({property.notes.length - 2} more)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Contacts Section */}
+              {property.owners && property.owners.some(owner => owner.contacts && owner.contacts.length > 0) && (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Contacts</h4>
+                  <div className="space-y-2">
+                    {property.owners
+                      .flatMap(owner => owner.contacts || [])
+                      .slice(0, 3)
+                      .map((contact) => (
+                        <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
+                          {contact.phone && (
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Phone:</span> {contact.phone}
+                            </p>
+                          )}
+                          {contact.email && (
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Email:</span> {contact.email}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {contact.type} • Priority: {contact.priority}
+                          </p>
+                        </div>
+                      ))}
+                    {property.owners.flatMap(owner => owner.contacts || []).length > 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        ({property.owners.flatMap(owner => owner.contacts || []).length - 3} more)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {property.parcel_id && (
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Legal Information</h4>

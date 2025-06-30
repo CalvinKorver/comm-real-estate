@@ -120,8 +120,7 @@ export class PropertyService {
         },
         coordinates: true,
         notes: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
+          orderBy: { createdAt: 'desc' }
         }
       },
       skip,

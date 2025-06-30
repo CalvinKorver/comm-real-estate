@@ -75,10 +75,13 @@ const formatFullDateTime = (dateString: string | Date) => {
 const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ property, selected, onClick, onPropertyUpdated }, ref) => {
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  // Get up to 2 phone contacts from all owners
+  // Get up to 3 phone contacts from all owners
   const phoneContacts = property.owners?.flatMap(owner => 
-    owner.contacts?.filter(c => c.phone).slice(0, 2) || []
-  ).slice(0, 4) || [];
+    owner.contacts?.filter(c => c.phone) || []
+  ).slice(0, 3) || [];
+
+  // Get up to 2 notes
+  const displayNotes = property.notes?.slice(0, 2) || [];
 
   return (
     <TooltipProvider>
@@ -101,19 +104,16 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              className="absolute top-4 right-4 z-10 p-1 rounded cursor-pointer"
+            <Ellipsis
+              className="absolute top-2 right-2 z-10 p-1 rounded cursor-pointer hover:scale-110 transition-all duration-200"
               type="button"
               onClick={e => e.stopPropagation()}
               aria-label="Show actions"
             >
-              <Ellipsis size={16} />
-            </Button>
+              
+            </Ellipsis>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-white" align="end" >
-            <DropdownMenuLabel>Property Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-         
+          <DropdownMenuContent className="w-56 bg-white" align="end" >         
             <DropdownMenuItem onClick={() => setDialogOpen(true)}>
               <Edit className="mr-2 h-4 w-4" />
               <span>Edit Property</span>
@@ -210,6 +210,11 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                   )}
                 </TableBody>
               </Table>
+              {property.owners && property.owners.flatMap(owner => owner.contacts?.filter(c => c.phone) || []).length > 3 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ({property.owners.flatMap(owner => owner.contacts?.filter(c => c.phone) || []).length - 3} more)
+                </p>
+              )}
             </div>
 
             {/* Notes Table */}
@@ -222,10 +227,16 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {property.notes && property.notes.length > 0 ? (
-                    property.notes.map((note, idx) => (
+                  {displayNotes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-muted-foreground text-center py-4">
+                        No notes
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    displayNotes.map((note, idx) => (
                       <TableRow key={note.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="">
                           {note.content}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
@@ -244,15 +255,14 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                         </TableCell>
                       </TableRow>
                     ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-muted-foreground text-center py-4">
-                        No notes
-                      </TableCell>
-                    </TableRow>
                   )}
                 </TableBody>
               </Table>
+              {property.notes && property.notes.length > 2 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ({property.notes.length - 2} more)
+                </p>
+              )}
             </div>
           </div>
         )}

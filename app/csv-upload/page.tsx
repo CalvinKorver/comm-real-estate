@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { SiteHeader } from '@/components/site-header';
+import { BaseHeader } from '@/components/base-header';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ColumnMappingModal } from '@/components/ColumnMappingModal';
@@ -21,6 +21,14 @@ interface UploadResult {
     createdProperties: number;
     createdContacts: number;
     duplicates: number;
+    mergedOwners: number;
+    mergedProperties: number;
+    reconciliationSummary: {
+      propertiesCreated: number;
+      propertiesMerged: number;
+      ownersCreated: number;
+      ownersMerged: number;
+    } | null;
   };
   errors: Array<{
     row: number;
@@ -126,6 +134,7 @@ export default function CSVUploadPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('columnMapping', JSON.stringify(columnMapping));
 
       const response = await fetch('/api/csv-upload', {
         method: 'POST',
@@ -148,7 +157,7 @@ export default function CSVUploadPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      <BaseHeader />
       <div className="container mx-auto py-8 max-w-2xl">
         
         <h1 className="text-3xl font-bold mb-8">Data Upload</h1>
@@ -161,11 +170,11 @@ export default function CSVUploadPage() {
               type="file"
               accept=".csv"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
             
             {file && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
               </p>
             )}
@@ -261,16 +270,34 @@ export default function CSVUploadPage() {
                       <span className="font-medium">Duplicates:</span> {result.summary.duplicates}
                     </div>
                     <div>
-                      <span className="font-medium">Owners:</span> {result.summary.createdOwners}
+                      <span className="font-medium">Owners Created:</span> {result.summary.createdOwners}
                     </div>
                     <div>
-                      <span className="font-medium">Properties:</span> {result.summary.createdProperties}
+                      <span className="font-medium">Properties Created:</span> {result.summary.createdProperties}
                     </div>
                     <div>
                       <span className="font-medium">Contacts:</span> {result.summary.createdContacts}
                     </div>
+                    <div>
+                      <span className="font-medium">Owners Merged:</span> {result.summary.mergedOwners || 0}
+                    </div>
+                    <div>
+                      <span className="font-medium">Properties Merged:</span> {result.summary.mergedProperties || 0}
+                    </div>
                   </div>
                   
+                  {result.summary.reconciliationSummary && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                      <p className="font-medium text-blue-800 mb-2">Reconciliation Summary:</p>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
+                        <div>Properties Created: {result.summary.reconciliationSummary.propertiesCreated}</div>
+                        <div>Properties Merged: {result.summary.reconciliationSummary.propertiesMerged}</div>
+                        <div>Owners Created: {result.summary.reconciliationSummary.ownersCreated}</div>
+                        <div>Owners Merged: {result.summary.reconciliationSummary.ownersMerged}</div>
+                      </div>
+                    </div>
+                  )}
+
                   {result.errors.length > 0 && (
                     <div className="mt-4">
                       <p className="font-medium text-red-600">Validation Errors:</p>
