@@ -56,8 +56,8 @@ export async function PUT(request: Request) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        firstName,
-        lastName,
+        first_name: firstName,
+        last_name: lastName,
         email: email || undefined, // Only update if provided
       },
     });

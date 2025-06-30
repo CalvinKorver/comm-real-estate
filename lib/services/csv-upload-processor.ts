@@ -37,14 +37,14 @@ export interface UploadResult {
 
 export interface ProcessedData {
   owners: Array<{
-    firstName: string;
-    lastName: string;
-    fullName?: string;
-    llcContact?: string;
-    streetAddress?: string;
+    first_name: string;
+    last_name: string;
+    full_name?: string;
+    llc_contact?: string;
+    street_address?: string;
     city?: string;
     state?: string;
-    zipCode?: string;
+    zip_code?: string;
   }>;
   properties: Array<{
     street_address: string;
@@ -54,7 +54,7 @@ export interface ProcessedData {
     parcel_id?: string;
   }>;
   contacts: Array<{
-    ownerId: string;
+    owner_id: string;
     phone?: string;
     email?: string;
     type: string;
@@ -313,18 +313,18 @@ export async function processCSVUpload(
         }
 
         // Parse the owner name intelligently
-        const parsedName = parseOwnerName(owner.fullName || '');
+        const parsedName = parseOwnerName(owner.full_name || '');
         
         // Process owner with deduplication
         const ownerData = {
-          firstName: parsedName.firstName,
-          lastName: parsedName.lastName,
-          fullName: parsedName.fullName,
-          llcContact: owner.llcContact,
-          streetAddress: owner.streetAddress,
+          first_name: parsedName.firstName,
+          last_name: parsedName.lastName,
+          full_name: parsedName.fullName,
+          llc_contact: owner.llc_contact,
+          street_address: owner.street_address,
           city: owner.city,
           state: owner.state,
-          zipCode: owner.zipCode,
+          zip_code: owner.zip_code,
           phone: csvRow['Wireless 1'] || csvRow['Landline 1'],
           email: csvRow['Email 1'],
         };
@@ -373,7 +373,7 @@ export async function processCSVUpload(
             propertyResult.property.id,
             property.street_address,
             property.city,
-            property.state,
+            property.state || '',
             property.zip_code.toString()
           );
 
@@ -490,12 +490,99 @@ export function suggestColumnMapping(
   dbFields: string[]
 ): Record<string, string | null> {
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  // Define common field mappings for CSV columns
+  const fieldMappings: Record<string, string[]> = {
+    'phone': ['phone', 'wireless', 'landline', 'mobile', 'cell', 'telephone'],
+    'email': ['email', 'e-mail', 'mail'],
+    'street_address': ['address', 'street', 'streetaddress', 'propertyaddress', 'location'],
+    'city': ['city', 'town', 'municipality'],
+    'state': ['state', 'province', 'region'],
+    'zip_code': ['zip', 'zipcode', 'postal', 'postalcode', 'zip_code'],
+    'parcel_id': ['parcel', 'parcelid', 'parcel_id', 'propertyid', 'property_id', 'apn'],
+    'full_name': ['name', 'fullname', 'ownername', 'owner', 'contactname', 'contact'],
+    'llc_contact': ['llc', 'llccontact', 'company', 'business'],
+  };
+
   const mapping: Record<string, string | null> = {};
+  
   for (const header of csvHeaders) {
-    const match = dbFields.find(
-      field => normalize(field) === normalize(header)
-    );
-    mapping[header] = match || null;
+    const normalizedHeader = normalize(header);
+    let bestMatch: string | null = null;
+    let bestScore = 0;
+
+    // First, try exact matches
+    const exactMatch = dbFields.find(field => normalize(field) === normalizedHeader);
+    if (exactMatch) {
+      bestMatch = exactMatch;
+      bestScore = 1;
+    }
+
+    // Then try pattern-based matching
+    for (const [dbField, patterns] of Object.entries(fieldMappings)) {
+      for (const pattern of patterns) {
+        const normalizedPattern = normalize(pattern);
+        
+        // Check if header contains the pattern
+        if (normalizedHeader.includes(normalizedPattern) || 
+            normalizedPattern.includes(normalizedHeader)) {
+          
+          // Calculate a score based on how well it matches
+          let score = 0;
+          
+          // Exact pattern match gets highest score
+          if (normalizedHeader === normalizedPattern) {
+            score = 0.9;
+          }
+          // Header starts with pattern
+          else if (normalizedHeader.startsWith(normalizedPattern)) {
+            score = 0.8;
+          }
+          // Header ends with pattern
+          else if (normalizedHeader.endsWith(normalizedPattern)) {
+            score = 0.7;
+          }
+          // Header contains pattern
+          else if (normalizedHeader.includes(normalizedPattern)) {
+            score = 0.6;
+          }
+          
+          // Bonus for common variations
+          if (normalizedHeader.includes('wireless') || normalizedHeader.includes('landline')) {
+            score += 0.1;
+          }
+          if (normalizedHeader.includes('email') || normalizedHeader.includes('mail')) {
+            score += 0.1;
+          }
+          
+          if (score > bestScore) {
+            bestMatch = dbField;
+            bestScore = score;
+          }
+        }
+      }
+    }
+
+    // Special handling for numbered fields (e.g., "Wireless 1", "Email 2")
+    if (!bestMatch || bestScore < 0.5) {
+      const numberMatch = normalizedHeader.match(/^(.+?)\s*\d+$/);
+      if (numberMatch) {
+        const baseField = numberMatch[1];
+        
+        // Map common numbered field patterns
+        if (baseField.includes('wireless') || baseField.includes('landline') || baseField.includes('phone')) {
+          bestMatch = 'phone';
+          bestScore = 0.8;
+        } else if (baseField.includes('email') || baseField.includes('mail')) {
+          bestMatch = 'email';
+          bestScore = 0.8;
+        }
+      }
+    }
+
+    // Only use the match if it has a reasonable score
+    mapping[header] = bestScore >= 0.5 ? bestMatch : null;
   }
+  
   return mapping;
 } 

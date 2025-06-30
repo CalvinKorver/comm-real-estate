@@ -42,16 +42,13 @@ interface UploadResult {
   }>;
 }
 
-const DB_FIELDS = [
-  // Property fields
-  'street_address', 'city', 'zip_code', 'state', 'parcel_id', 'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet',
-  // Owner fields
-  'firstName', 'lastName', 'fullName', 'llcContact', 'streetAddress', 'ownerCity', 'ownerState', 'ownerZip',
-  // Contact fields
-  'phone', 'email', 'type', 'priority',
+const DATABASE_FIELDS = [
+  'street_address', 'city', 'zip_code', 'state', 'parcel_id',
+  'first_name', 'last_name', 'full_name', 'llc_contact', 'street_address', 'city', 'state', 'zip_code',
+  'phone', 'email'
 ];
 
-const REQUIRED_FIELDS = ['street_address', 'city', 'zip_code', 'firstName', 'lastName'];
+const REQUIRED_FIELDS = ['street_address', 'city', 'zip_code', 'fullName', 'ownerName', 'ownerAddress'];
 
 function hasUnmappedRequiredFields(mapping: Record<string, string | null>) {
   const mappedFields = Object.values(mapping).filter(Boolean);
@@ -99,7 +96,7 @@ export default function CSVUploadPage() {
       const headers = await extractCSVHeaders(selectedFile);
       setCsvHeaders(headers);
       // Suggest mapping
-      const suggested = suggestColumnMapping(headers, DB_FIELDS);
+      const suggested = suggestColumnMapping(headers, DATABASE_FIELDS);
       setColumnMapping(suggested);
     }
   };
@@ -158,7 +155,7 @@ export default function CSVUploadPage() {
   return (
     <div className="min-h-screen bg-background">
       <BaseHeader />
-      <div className="container mx-auto py-8 max-w-2xl">
+      <div className="container mx-auto py-8 max-w-5xl">
         
         <h1 className="text-3xl font-bold mb-8">Data Upload</h1>
         {/* <p className="text-sm text-grey-600">*.csv</p> */}
@@ -185,7 +182,7 @@ export default function CSVUploadPage() {
             <div>
               <ColumnMappingModal
                 csvHeaders={csvHeaders}
-                dbFields={DB_FIELDS}
+                dbFields={DATABASE_FIELDS}
                 initialMapping={columnMapping}
                 onMappingChange={setColumnMapping}
               />

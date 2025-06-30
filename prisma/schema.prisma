@@ -24,8 +24,8 @@ model Property {
   return_on_investment  Int
   number_of_units       Int
   square_feet           Int
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
   images                PropertyImage[]
   owners                Owner[]   @relation("PropertyToOwner")
   coordinates           Coordinate?
@@ -36,34 +36,34 @@ model Property {
 
 model Coordinate {
   id          String   @id @default(uuid())
-  propertyId  String   @unique
+  property_id String   @unique
   latitude    Float
   longitude   Float
   confidence  String   // 'high', 'medium', 'low'
-  placeId     String?  // Google Place ID for future reference
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  place_id    String?  // Google Place ID for future reference
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
   
-  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
   
   @@map("coordinates")
 }
 
 model Owner {
-  id            String     @id @default(uuid())
-  firstName     String
-  lastName      String
-  fullName      String?    // For cases where we have a single name field
-  llcContact    String?    // LLC Contact information
-  streetAddress String?
-  city          String?
-  state         String?
-  zipCode       String?
-  phoneNumber   String?    // Keep existing for backward compatibility
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  properties    Property[] @relation("PropertyToOwner")
-  contacts      Contact[]
+  id              String     @id @default(uuid())
+  first_name      String
+  last_name       String
+  full_name       String?    // For cases where we have a single name field
+  llc_contact     String?    // LLC Contact information
+  street_address  String?
+  city            String?
+  state           String?
+  zip_code        String?
+  phone_number    String?    // Keep existing for backward compatibility
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  properties      Property[] @relation("PropertyToOwner")
+  contacts        Contact[]
 }
 
 model Contact {
@@ -73,58 +73,58 @@ model Contact {
   type      String   // Required type: Email, Cell, Home, Work, etc.
   priority  Int      // Priority for ordering (lower number = higher priority)
   notes     String?  // Optional notes field
-  ownerId   String   // Foreign key to Owner
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  owner_id  String   // Foreign key to Owner
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
   
-  owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner Owner @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   
-  @@unique([ownerId, type, priority]) // Ensure unique priority per type per owner
+  @@unique([owner_id, type, priority]) // Ensure unique priority per type per owner
   @@map("contacts")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  firstName     String?
-  lastName      String?
-  email         String    @unique
-  password      String?
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  first_name      String?
+  last_name       String?
+  email           String    @unique
+  password        String?
+  email_verified  DateTime?
+  image           String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
   
-  accounts      Account[]
-  sessions      Session[]
+  accounts        Account[]
+  sessions        Session[]
 
   @@map("users")
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                   String  @id @default(cuid())
+  user_id              String
+  type                 String
+  provider             String
+  provider_account_id  String
+  refresh_token        String?
+  access_token         String?
+  expires_at           Int?
+  token_type           String?
+  scope                String?
+  id_token             String?
+  session_state        String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, provider_account_id])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  session_token String   @unique
+  user_id       String
+  expires       DateTime
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -136,25 +136,25 @@ model VerificationToken {
 }
 
 model PropertyImage {
-  id         String   @id @default(uuid())
-  propertyId String
-  url        String
-  alt        String?
-  order      Int      @default(0)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  property_id String
+  url         String
+  alt         String?
+  order       Int      @default(0)
+  created_at  DateTime @default(now())
   
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
   
   @@map("property_images")
 }
 
 model Note {
-  id         String   @id @default(uuid())
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  propertyId String
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  content     String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  property_id String
+  property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
 
   @@map("notes")
 }

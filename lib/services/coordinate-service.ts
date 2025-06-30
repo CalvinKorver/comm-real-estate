@@ -16,25 +16,25 @@ export class CoordinateService {
     propertyId: string,
     streetAddress: string,
     city: string,
-    state?: string,
+    state: string,
     zipCode?: string
   ): Promise<CoordinateData | null> {
     try {
-      // First, try to get existing coordinates
-      const existingCoordinates = await prisma.coordinate.findUnique({
-        where: { propertyId },
+      // Check if coordinates already exist for this property
+      const existing = await prisma.coordinate.findUnique({
+        where: { property_id: propertyId }
       });
 
-      if (existingCoordinates) {
+      if (existing) {
         return {
-          latitude: existingCoordinates.latitude,
-          longitude: existingCoordinates.longitude,
-          confidence: existingCoordinates.confidence as 'high' | 'medium' | 'low',
-          placeId: existingCoordinates.placeId || undefined,
+          latitude: existing.latitude,
+          longitude: existing.longitude,
+          confidence: existing.confidence as 'high' | 'medium' | 'low',
+          placeId: existing.place_id || undefined,
         };
       }
 
-      // If no coordinates exist, geocode the address
+      // Geocode the address
       const geocodingService = getGeocodingService();
       const geocodingResult = await geocodingService.geocodeProperty(
         streetAddress,
@@ -48,22 +48,22 @@ export class CoordinateService {
         return null;
       }
 
-      // Save the coordinates to the database
+      // Save coordinates to database
       const savedCoordinates = await prisma.coordinate.create({
         data: {
-          propertyId,
+          property_id: propertyId,
           latitude: geocodingResult.coordinates.lat,
           longitude: geocodingResult.coordinates.lng,
           confidence: geocodingResult.confidence,
-          placeId: geocodingResult.placeId,
-        },
+          place_id: geocodingResult.placeId,
+        }
       });
 
       return {
         latitude: savedCoordinates.latitude,
         longitude: savedCoordinates.longitude,
         confidence: savedCoordinates.confidence as 'high' | 'medium' | 'low',
-        placeId: savedCoordinates.placeId || undefined,
+        placeId: savedCoordinates.place_id || undefined,
       };
     } catch (error) {
       console.error('Error getting or creating coordinates:', error);
@@ -76,32 +76,35 @@ export class CoordinateService {
    */
   async updateCoordinates(
     propertyId: string,
-    coordinates: CoordinateData
+    latitude: number,
+    longitude: number,
+    confidence: string = 'manual',
+    placeId?: string
   ): Promise<CoordinateData | null> {
     try {
-      const updatedCoordinates = await prisma.coordinate.upsert({
-        where: { propertyId },
+      const coordinates = await prisma.coordinate.upsert({
+        where: { property_id: propertyId },
         update: {
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-          confidence: coordinates.confidence,
-          placeId: coordinates.placeId,
-          updatedAt: new Date(),
+          latitude,
+          longitude,
+          confidence,
+          place_id: placeId,
+          updated_at: new Date(),
         },
         create: {
-          propertyId,
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-          confidence: coordinates.confidence,
-          placeId: coordinates.placeId,
-        },
+          property_id: propertyId,
+          latitude,
+          longitude,
+          confidence,
+          place_id: placeId,
+        }
       });
 
       return {
-        latitude: updatedCoordinates.latitude,
-        longitude: updatedCoordinates.longitude,
-        confidence: updatedCoordinates.confidence as 'high' | 'medium' | 'low',
-        placeId: updatedCoordinates.placeId || undefined,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        confidence: coordinates.confidence as 'high' | 'medium' | 'low',
+        placeId: coordinates.place_id || undefined,
       };
     } catch (error) {
       console.error('Error updating coordinates:', error);
@@ -116,18 +119,18 @@ export class CoordinateService {
     try {
       const coordinates = await prisma.coordinate.findMany({
         where: {
-          propertyId: { in: propertyIds },
+          property_id: { in: propertyIds },
         },
       });
 
       const coordinatesMap = new Map<string, CoordinateData>();
       
       for (const coord of coordinates) {
-        coordinatesMap.set(coord.propertyId, {
+        coordinatesMap.set(coord.property_id, {
           latitude: coord.latitude,
           longitude: coord.longitude,
           confidence: coord.confidence as 'high' | 'medium' | 'low',
-          placeId: coord.placeId || undefined,
+          placeId: coord.place_id || undefined,
         });
       }
 
@@ -144,7 +147,7 @@ export class CoordinateService {
   async deleteCoordinates(propertyId: string): Promise<boolean> {
     try {
       await prisma.coordinate.delete({
-        where: { propertyId },
+        where: { property_id: propertyId },
       });
       return true;
     } catch (error) {
@@ -175,7 +178,7 @@ export class CoordinateService {
       try {
         // Check if coordinates already exist
         const existingCoordinates = await prisma.coordinate.findUnique({
-          where: { propertyId: property.id },
+          where: { property_id: property.id },
         });
 
         if (existingCoordinates) {
@@ -194,11 +197,11 @@ export class CoordinateService {
           // Save coordinates
           await prisma.coordinate.create({
             data: {
-              propertyId: property.id,
+              property_id: property.id,
               latitude: geocodingResult.coordinates.lat,
               longitude: geocodingResult.coordinates.lng,
               confidence: geocodingResult.confidence,
-              placeId: geocodingResult.placeId,
+              place_id: geocodingResult.placeId,
             },
           });
           results.success++;

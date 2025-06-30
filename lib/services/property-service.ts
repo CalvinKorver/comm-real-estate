@@ -60,7 +60,7 @@ export class PropertyService {
         },
         coordinates: true,
         notes: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { created_at: 'desc' }
         }
       }
     })
@@ -87,10 +87,11 @@ export class PropertyService {
     if (search) {
       whereClause = {
         OR: [
+          { owners: { some: { first_name: { contains: search, mode: 'insensitive' } } } },
+          { owners: { some: { last_name: { contains: search, mode: 'insensitive' } } } },
           { street_address: { contains: search, mode: 'insensitive' } },
           { city: { contains: search, mode: 'insensitive' } },
-          { owners: { some: { firstName: { contains: search, mode: 'insensitive' } } } },
-          { owners: { some: { lastName: { contains: search, mode: 'insensitive' } } } },
+          { parcel_id: { contains: search, mode: 'insensitive' } }
         ]
       }
       
@@ -109,9 +110,7 @@ export class PropertyService {
     // Get paginated properties
     const properties = await prisma.property.findMany({
       where: whereClause,
-      orderBy: {
-        createdAt: 'desc'
-      },
+      orderBy: { created_at: 'desc' },
       include: {
         owners: {
           include: {
@@ -120,7 +119,7 @@ export class PropertyService {
         },
         coordinates: true,
         notes: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { created_at: 'desc' }
         }
       },
       skip,
@@ -238,7 +237,7 @@ export class PropertyService {
         },
         coordinates: true,
         notes: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { created_at: 'desc' }
         }
       }
     })
@@ -251,8 +250,8 @@ export class PropertyService {
    */
   static async getNotesForProperty(propertyId: string) {
     return prisma.note.findMany({
-      where: { propertyId },
-      orderBy: { createdAt: 'desc' },
+      where: { property_id: propertyId },
+      orderBy: { created_at: 'desc' },
     })
   }
 
@@ -262,9 +261,9 @@ export class PropertyService {
   static async addNoteToProperty(propertyId: string, content: string) {
     return prisma.note.create({
       data: {
-        propertyId,
-        content,
-      },
+        content: content,
+        property_id: propertyId,
+      }
     })
   }
 

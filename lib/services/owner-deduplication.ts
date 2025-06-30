@@ -2,14 +2,14 @@ import { prisma } from '@/lib/shared/prisma'
 import type { Owner, Contact } from '@/generated/prisma'
 
 export interface OwnerData {
-  firstName: string
-  lastName: string
-  fullName?: string
-  llcContact?: string
-  streetAddress?: string
+  first_name: string
+  last_name: string
+  full_name?: string
+  llc_contact?: string
+  street_address?: string
   city?: string
   state?: string
-  zipCode?: string
+  zip_code?: string
   phone?: string
   email?: string
 }
@@ -79,15 +79,15 @@ export class OwnerDeduplicationService {
     const matches: OwnerMatch[] = []
 
     // Search by full name first
-    if (ownerData.fullName) {
+    if (ownerData.full_name) {
       const nameMatches = await prisma.owner.findMany({
         where: {
           OR: [
-            { fullName: ownerData.fullName },
+            { full_name: ownerData.full_name },
             { 
               AND: [
-                { firstName: ownerData.firstName },
-                { lastName: ownerData.lastName }
+                { first_name: ownerData.first_name },
+                { last_name: ownerData.last_name }
               ]
             }
           ]
@@ -99,8 +99,8 @@ export class OwnerDeduplicationService {
 
       for (const match of nameMatches) {
         const nameSimilarity = this.calculateNameSimilarity(
-          ownerData.fullName || `${ownerData.firstName} ${ownerData.lastName}`,
-          match.fullName || `${match.firstName} ${match.lastName}`
+          ownerData.full_name || `${ownerData.first_name} ${ownerData.last_name}`,
+          match.full_name || `${match.first_name} ${match.last_name}`
         )
 
         if (nameSimilarity >= 0.8) {
@@ -215,12 +215,12 @@ export class OwnerDeduplicationService {
     const updateData: Partial<Owner> = {}
 
     // Only update fields that have meaningful new data
-    if (newData.llcContact && !existing.llcContact) {
-      updateData.llcContact = newData.llcContact
+    if (newData.llc_contact && !existing.llc_contact) {
+      updateData.llc_contact = newData.llc_contact
     }
 
-    if (newData.streetAddress && !existing.streetAddress) {
-      updateData.streetAddress = newData.streetAddress
+    if (newData.street_address && !existing.street_address) {
+      updateData.street_address = newData.street_address
     }
 
     if (newData.city && !existing.city) {
@@ -231,8 +231,8 @@ export class OwnerDeduplicationService {
       updateData.state = newData.state
     }
 
-    if (newData.zipCode && !existing.zipCode) {
-      updateData.zipCode = newData.zipCode
+    if (newData.zip_code && !existing.zip_code) {
+      updateData.zip_code = newData.zip_code
     }
 
     // Only update if there are changes
@@ -252,14 +252,14 @@ export class OwnerDeduplicationService {
   async createNewOwner(ownerData: OwnerData): Promise<Owner> {
     return await prisma.owner.create({
       data: {
-        firstName: ownerData.firstName,
-        lastName: ownerData.lastName,
-        fullName: ownerData.fullName,
-        llcContact: ownerData.llcContact,
-        streetAddress: ownerData.streetAddress,
+        first_name: ownerData.first_name,
+        last_name: ownerData.last_name,
+        full_name: ownerData.full_name,
+        llc_contact: ownerData.llc_contact,
+        street_address: ownerData.street_address,
         city: ownerData.city,
         state: ownerData.state,
-        zipCode: ownerData.zipCode,
+        zip_code: ownerData.zip_code,
       }
     })
   }
@@ -272,18 +272,18 @@ export class OwnerDeduplicationService {
 
     if (phone) {
       contactsToCreate.push({
-        ownerId,
+        owner_id: ownerId,
         phone,
-        type: 'Cell',
+        type: 'phone',
         priority: 1
       })
     }
 
     if (email) {
       contactsToCreate.push({
-        ownerId,
+        owner_id: ownerId,
         email,
-        type: 'Email',
+        type: 'email',
         priority: 1
       })
     }

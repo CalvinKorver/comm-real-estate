@@ -12,8 +12,8 @@ async function main() {
   const hashedPassword = await hash('password123', 10);
   const testUser = await prisma.user.create({
     data: {
-      firstName: 'Test',
-      lastName: 'User',
+      first_name: 'Test',
+      last_name: 'User',
       email: 'test@example.com',
       password: hashedPassword,
     },
@@ -23,34 +23,34 @@ async function main() {
 
   const owner1 = await prisma.owner.create({
     data: {
-      firstName: 'Owen',
-      lastName: 'Twoprops',
-      streetAddress: '123 Main St',
+      first_name: 'Owen',
+      last_name: 'Twoprops',
+      street_address: '123 Main St',
       city: 'San Francisco',
-      zipCode: '94105',
-      phoneNumber: '415-555-0123',
+      zip_code: '94105',
+      phone_number: '415-555-0123',
     },
   });
 
   const owner2 = await prisma.owner.create({
     data: {
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      streetAddress: '456 Market St',
+      first_name: 'Sarah',
+      last_name: 'Johnson',
+      street_address: '456 Market St',
       city: 'San Francisco',
-      zipCode: '94103',
-      phoneNumber: '415-555-0124',
+      zip_code: '94103',
+      phone_number: '415-555-0124',
     },
   });
 
   const owner3 = await prisma.owner.create({
     data: {
-      firstName: 'Michael',
-      lastName: 'Brown',
-      streetAddress: '789 Mission St',
+      first_name: 'Michael',
+      last_name: 'Brown',
+      street_address: '789 Mission St',
       city: 'San Francisco',
-      zipCode: '94107',
-      phoneNumber: '415-555-0125',
+      zip_code: '94107',
+      phone_number: '415-555-0125',
     },
   });
 
@@ -77,7 +77,7 @@ async function main() {
           latitude: 47.6062,
           longitude: -122.3321,
           confidence: 'high',
-          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+          place_id: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
         }
       },
       images: {
@@ -113,7 +113,7 @@ async function main() {
           latitude: 47.8107,
           longitude: -122.3774,
           confidence: 'high',
-          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+          place_id: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
         }
       },
       images: {
@@ -149,7 +149,7 @@ async function main() {
           latitude: 47.4750,
           longitude: -122.2889,
           confidence: 'high',
-          placeId: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
+          place_id: 'ChIJKxjxuxlqkFQR3CK6O1HNNqY'
         }
       },
       images: {
