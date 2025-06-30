@@ -22,16 +22,10 @@ export async function middleware(request: NextRequest) {
 
   console.log(`[Middleware] Path: ${path}, isPublicPath: ${isPublicPath}, hasToken: ${!!token}`);
 
-  // Workout routes should be protected
-  if (path.startsWith('/workouts') && !token) {
-    console.log(`[Middleware] Redirecting to login: ${path}`);
-    return NextResponse.redirect(new URL('/auth/signin', request.url));
-  }
-
   // Redirect logic for auth pages
   if (path.startsWith('/auth/') && token) {
-    console.log(`[Middleware] User already logged in, redirecting to workouts`);
-    return NextResponse.redirect(new URL('/workouts', request.url));
+    console.log(`[Middleware] User already logged in, redirecting to properties`);
+    return NextResponse.redirect(new URL('/properties/map', request.url));
   }
 
   // For all other protected routes
@@ -47,11 +41,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/workouts',
-    '/workouts/:path*',
     '/auth/:path*',
     '/privacy',
     '/contact',
     '/profile/:path*',
+    '/properties',
+    '/properties/:path*',
   ],
 };
