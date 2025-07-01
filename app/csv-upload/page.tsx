@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { BaseHeader } from '@/components/base-header';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload, Settings, Eye, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ColumnMappingModal } from '@/components/ColumnMappingModal';
-import { extractCSVHeaders, suggestColumnMapping } from '@/lib/services/csv-upload-processor';
-import { AlertCircle } from 'lucide-react';
-import { CSVPreviewTable } from '@/components/CSVPreviewTable';
+import { CSVUploadStage } from '@/components/CSVUploadStage';
+import { CSVColumnMappingStage } from '@/components/CSVColumnMappingStage';
+import { CSVPreviewStage } from '@/components/CSVPreviewStage';
+import { CSVProcessResults } from '@/components/CSVProcessResults';
 
 interface UploadResult {
   success: boolean;
@@ -42,98 +42,30 @@ interface UploadResult {
   }>;
 }
 
-const DATABASE_FIELDS = [
-  // Property fields
-  'street_address', 'city', 'zip_code', 'state', 'parcel_id',
-  // Owner fields
-  'first_name', 'last_name', 'full_name', 'llc_contact',
-  'owner_street_address', 'owner_city', 'owner_state', 'owner_zip_code',
-  // Contact fields
-  'phone', 'email', 'phone_type', 'contact_priority',
-  // Additional property fields (with default values)
-  'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet'
-];
-
-const REQUIRED_FIELDS = ['street_address', 'full_name'];
-
-function hasUnmappedRequiredFields(mapping: Record<string, string | null>) {
-  const mappedFields = Object.values(mapping).filter(Boolean);
-  return REQUIRED_FIELDS.some(field => !mappedFields.includes(field));
-}
-
-// Helper to find duplicate property addresses in preview rows
-function getDuplicateRowIndices(rows: string[][], mapping: Record<string, string | null>, csvHeaders: string[]) {
-  const addressIdx = csvHeaders.findIndex(h => mapping[h] === 'street_address');
-  const cityIdx = csvHeaders.findIndex(h => mapping[h] === 'city');
-  const zipIdx = csvHeaders.findIndex(h => mapping[h] === 'zip_code');
-  const seen = new Set<string>();
-  const duplicates: number[] = [];
-  rows.forEach((row, i) => {
-    const key = [row[addressIdx], row[cityIdx], row[zipIdx]].join('|').toLowerCase();
-    if (seen.has(key)) {
-      duplicates.push(i);
-    } else {
-      seen.add(key);
-    }
-  });
-  return duplicates;
-}
+type Stage = 'upload' | 'mapping' | 'preview' | 'results';
 
 export default function CSVUploadPage() {
+  const [currentStage, setCurrentStage] = useState<Stage>('upload');
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [result, setResult] = useState<UploadResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string | null>>({});
-  const [mappingConfirmed, setMappingConfirmed] = useState(false);
-  const [csvRows, setCsvRows] = useState<string[][]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-      setResult(null);
-      setMappingConfirmed(false);
-      // Extract headers
-      const headers = await extractCSVHeaders(selectedFile);
-      setCsvHeaders(headers);
-      // Suggest mapping
-      const suggested = suggestColumnMapping(headers, DATABASE_FIELDS);
-      setColumnMapping(suggested);
-    }
+  const handleFileSelected = (selectedFile: File) => {
+    setFile(selectedFile);
+    setCurrentStage('mapping');
   };
 
-  const handleConfirmMapping = async () => {
-    setMappingConfirmed(true);
-    // Parse the CSV file rows for preview
-    if (file) {
-      const text = await file.text();
-      const lines = text.split('\n').filter(l => l.trim());
-      const rows = lines.slice(1).map(line => line.split(','));
-      setCsvRows(rows);
-      setShowPreview(true);
-    }
+  const handleMappingComplete = (mapping: Record<string, string | null>) => {
+    setColumnMapping(mapping);
+    setCurrentStage('preview');
   };
 
-  const handleBackToMapping = () => {
-    setMappingConfirmed(false);
-    setShowPreview(false);
-  };
+  const handleProcess = async () => {
+    if (!file) return;
 
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file first');
-      return;
-    }
-
-    setIsUploading(true);
-    setError(null);
-    setResult(null);
-
+    setIsProcessing(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -150,187 +82,197 @@ export default function CSVUploadPage() {
         throw new Error(data.error || 'Upload failed');
       }
 
-      setResult(data);
+      setUploadResult(data);
+      setCurrentStage('results');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      console.error('Upload error:', err);
+      // You might want to show an error message here
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
+  };
+
+  const handleBackToUpload = () => {
+    setCurrentStage('upload');
+    setFile(null);
+    setColumnMapping({});
+    setUploadResult(null);
+  };
+
+  const handleBackToMapping = () => {
+    setCurrentStage('mapping');
+  };
+
+  const handleBackToPreview = () => {
+    setCurrentStage('preview');
+  };
+
+  const getProgressValue = () => {
+    switch (currentStage) {
+      case 'upload':
+        return 25;
+      case 'mapping':
+        return 50;
+      case 'preview':
+        return 75;
+      case 'results':
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
+  const getStageIcon = (stage: Stage) => {
+    switch (stage) {
+      case 'upload':
+        return <Upload className="h-5 w-5" />;
+      case 'mapping':
+        return <Settings className="h-5 w-5" />;
+      case 'preview':
+        return <Eye className="h-5 w-5" />;
+      case 'results':
+        return <CheckCircle className="h-5 w-5" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStageTitle = (stage: Stage) => {
+    switch (stage) {
+      case 'upload':
+        return 'Upload';
+      case 'mapping':
+        return 'Map Columns';
+      case 'preview':
+        return 'Preview';
+      case 'results':
+        return 'Results';
+      default:
+        return '';
+    }
+  };
+
+  const isStageActive = (stage: Stage) => {
+    const stageOrder: Stage[] = ['upload', 'mapping', 'preview', 'results'];
+    const currentIndex = stageOrder.indexOf(currentStage);
+    const stageIndex = stageOrder.indexOf(stage);
+    return stageIndex <= currentIndex;
+  };
+
+  const isStageCompleted = (stage: Stage) => {
+    const stageOrder: Stage[] = ['upload', 'mapping', 'preview', 'results'];
+    const currentIndex = stageOrder.indexOf(currentStage);
+    const stageIndex = stageOrder.indexOf(stage);
+    return stageIndex < currentIndex;
   };
 
   return (
     <div className="min-h-screen bg-background">
       <BaseHeader />
       <div className="container mx-auto py-8 max-w-5xl">
-        
-        <h1 className="text-3xl font-bold mb-8">Data Upload</h1>
-        {/* <p className="text-sm text-grey-600">*.csv</p> */}
-        <div className="space-y-6">
-          {/* File Input */}
-          <div className="space-y-2">
-            <input
-              id="csv-file"
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-            />
-            
-            {file && (
-              <p className="text-sm text-muted-foreground">
-                Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
-              </p>
-            )}
-          </div>
+        {/* Header with back button */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-3xl font-bold">Data Upload</h1>
+        </div>
 
-          {/* Column Mapping Modal */}
-          {file && csvHeaders.length > 0 && !mappingConfirmed && (
-            <div>
-              <ColumnMappingModal
-                csvHeaders={csvHeaders}
-                dbFields={DATABASE_FIELDS}
-                initialMapping={columnMapping}
-                onMappingChange={setColumnMapping}
-              />
-              {hasUnmappedRequiredFields(columnMapping) && (
-                <div className="text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2 mt-2 text-sm flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  Please map all required fields: {REQUIRED_FIELDS.join(', ')}
-                </div>
-              )}
-              <div className="flex items-center">
-              <Button className="mt-4 w-50 mx-auto items-center" onClick={handleConfirmMapping} disabled={hasUnmappedRequiredFields(columnMapping)}>
-                Confirm Mapping
-              </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Preview */}
-          {mappingConfirmed && showPreview && (
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="font-bold text-lg">Preview Mapped Data</h2>
-                <Button variant="outline" size="sm" onClick={handleBackToMapping}>Back to Mapping</Button>
-              </div>
-              {/* Conflict detection */}
-              {(() => {
-                const duplicateRows = getDuplicateRowIndices(csvRows, columnMapping, csvHeaders);
-                const hasMissingRequired = csvRows.slice(0, 10).some(row =>
-                  csvHeaders.some((h, colIdx) => {
-                    const dbField = columnMapping[h];
-                    return dbField && REQUIRED_FIELDS.includes(dbField) && (!row[colIdx] || row[colIdx].trim() === '');
-                  })
-                );
-                return (
-                  <>
-                    {(duplicateRows.length > 0 || hasMissingRequired) && (
-                      <div className="text-red-700 bg-red-50 border border-red-200 rounded p-2 mb-2 text-sm">
-                        {duplicateRows.length > 0 && <div>{duplicateRows.length} duplicate property rows detected (highlighted in red).</div>}
-                        {hasMissingRequired && <div>Some required fields are missing (highlighted in orange).</div>}
-                      </div>
+        {/* Progress Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              {(['upload', 'mapping', 'preview', 'results'] as Stage[]).map((stage) => (
+                <div key={stage} className="flex items-center gap-2">
+                  <div 
+                    className={`p-2 rounded-full ${
+                      isStageActive(stage) 
+                        ? 'bg-primary text-primary-foreground' 
+                        : isStageCompleted(stage)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    {isStageCompleted(stage) ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      getStageIcon(stage)
                     )}
-                    <CSVPreviewTable
-                      csvRows={csvRows}
-                      mapping={columnMapping}
-                      csvHeaders={csvHeaders}
-                      maxRows={10}
-                      conflictRows={duplicateRows}
-                      requiredFields={REQUIRED_FIELDS}
-                    />
-                  </>
-                );
-              })()}
-              <Button
-                onClick={handleUpload}
-                disabled={!file || isUploading}
-                className="w-full mt-4"
-              >
-                {isUploading ? 'Processing...' : 'Upload & Process'}
-              </Button>
+                  </div>
+                  <span 
+                    className={`font-medium ${
+                      isStageActive(stage) 
+                        ? 'text-primary' 
+                        : isStageCompleted(stage)
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {getStageTitle(stage)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Step {(['upload', 'mapping', 'preview', 'results'] as Stage[]).indexOf(currentStage) + 1} of 4
+            </div>
+          </div>
+          <Progress value={getProgressValue()} className="h-2" />
+        </div>
+
+        {/* Stage Content */}
+        <div className="bg-card rounded-lg border p-6">
+          {currentStage === 'upload' && (
+            <CSVUploadStage onFileSelected={handleFileSelected} />
+          )}
+
+          {currentStage === 'mapping' && file && (
+            <CSVColumnMappingStage 
+              file={file}
+              onMappingComplete={handleMappingComplete}
+              onBack={handleBackToUpload}
+            />
+          )}
+
+          {currentStage === 'preview' && file && (
+            <CSVPreviewStage 
+              file={file}
+              columnMapping={columnMapping}
+              onProcess={handleProcess}
+              onBack={handleBackToMapping}
+            />
+          )}
+
+          {currentStage === 'results' && uploadResult && (
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+                <h2 className="text-xl font-semibold">Processing Complete</h2>
+              </div>
+              <CSVProcessResults 
+                result={uploadResult} 
+                onBack={handleBackToUpload}
+              />
             </div>
           )}
 
-          {/* Error Display */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Success Result */}
-          {result && result.success && (
-            <Alert>
-              <AlertDescription>
-                <div className="space-y-2">
-                  <p className="font-semibold">{result.message}</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Processed Rows:</span> {result.summary.processedRows}
-                    </div>
-                    <div>
-                      <span className="font-medium">Errors:</span> {result.summary.errors}
-                    </div>
-                    <div>
-                      <span className="font-medium">Duplicates:</span> {result.summary.duplicates}
-                    </div>
-                    <div>
-                      <span className="font-medium">Owners Created:</span> {result.summary.createdOwners}
-                    </div>
-                    <div>
-                      <span className="font-medium">Properties Created:</span> {result.summary.createdProperties}
-                    </div>
-                    <div>
-                      <span className="font-medium">Contacts:</span> {result.summary.createdContacts}
-                    </div>
-                    <div>
-                      <span className="font-medium">Owners Merged:</span> {result.summary.mergedOwners || 0}
-                    </div>
-                    <div>
-                      <span className="font-medium">Properties Merged:</span> {result.summary.mergedProperties || 0}
-                    </div>
-                  </div>
-                  
-                  {result.summary.reconciliationSummary && (
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                      <p className="font-medium text-blue-800 mb-2">Reconciliation Summary:</p>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
-                        <div>Properties Created: {result.summary.reconciliationSummary.propertiesCreated}</div>
-                        <div>Properties Merged: {result.summary.reconciliationSummary.propertiesMerged}</div>
-                        <div>Owners Created: {result.summary.reconciliationSummary.ownersCreated}</div>
-                        <div>Owners Merged: {result.summary.reconciliationSummary.ownersMerged}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {result.errors.length > 0 && (
-                    <div className="mt-4">
-                      <p className="font-medium text-red-600">Validation Errors:</p>
-                      <div className="max-h-40 overflow-y-auto">
-                        {result.errors.map((error, index) => (
-                          <div key={index} className="text-sm text-red-600 mt-1">
-                            <span className="font-medium">Row {error.row} ({error.address}):</span> {error.errors.join(', ')}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {result.duplicates && result.duplicates.length > 0 && (
-                    <div className="mt-4">
-                      <p className="font-medium text-yellow-600">Duplicate Addresses (skipped):</p>
-                      <div className="max-h-40 overflow-y-auto">
-                        {result.duplicates.map((duplicate, index) => (
-                          <div key={index} className="text-sm text-yellow-600 mt-1">
-                            <span className="font-medium">Row {duplicate.row} ({duplicate.address}):</span> {duplicate.message}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </AlertDescription>
-            </Alert>
+          {/* Processing Overlay */}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-lg font-medium">Processing your data...</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  This may take a few moments
+                </p>
+              </div>
+            </div>
           )}
         </div>
       </div>
