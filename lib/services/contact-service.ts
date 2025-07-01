@@ -1,10 +1,12 @@
 import { prisma } from '@/lib/shared/prisma'
 import type { CreateContactInput } from '@/types/contact'
+import { PhoneLabel } from '@/types/property'
 
 export interface ContactUpdateInput {
   phone?: string
   email?: string
   type?: string
+  label?: PhoneLabel
   priority?: number
   notes?: string
 }
@@ -14,6 +16,7 @@ export interface Contact {
   phone?: string;
   email?: string;
   type: string;
+  label?: PhoneLabel;
   priority: number;
   notes?: string;
   owner_id: string;
@@ -31,6 +34,7 @@ export class ContactService {
         phone: data.phone,
         email: data.email,
         type: data.type,
+        label: (data as any).label,
         priority: data.priority,
         notes: data.notes,
         owner_id: (data as any).ownerId
@@ -41,6 +45,7 @@ export class ContactService {
       ...contact,
       phone: contact.phone || undefined,
       email: contact.email || undefined,
+      label: contact.label as PhoneLabel | undefined,
       notes: contact.notes || undefined
     }
   }
@@ -55,6 +60,7 @@ export class ContactService {
         phone: data.phone,
         email: data.email,
         type: data.type,
+        label: data.label,
         priority: data.priority,
         notes: data.notes
       }
@@ -64,6 +70,7 @@ export class ContactService {
       ...contact,
       phone: contact.phone || undefined,
       email: contact.email || undefined,
+      label: contact.label as PhoneLabel | undefined,
       notes: contact.notes || undefined
     }
   }
@@ -90,6 +97,7 @@ export class ContactService {
       ...contact,
       phone: contact.phone || undefined,
       email: contact.email || undefined,
+      label: contact.label as PhoneLabel | undefined,
       notes: contact.notes || undefined
     }))
   }
@@ -102,6 +110,7 @@ export class ContactService {
     phone?: string
     email?: string
     type: string
+    label?: PhoneLabel
     priority: number
     notes?: string
     action: 'create' | 'update' | 'delete'
@@ -120,6 +129,7 @@ export class ContactService {
                   phone: contact.phone,
                   email: contact.email,
                   type: contact.type,
+                  label: contact.label,
                   priority: contact.priority,
                   notes: contact.notes,
                   owner_id
@@ -129,6 +139,7 @@ export class ContactService {
                 ...newContact,
                 phone: newContact.phone || undefined,
                 email: newContact.email || undefined,
+                label: newContact.label as PhoneLabel | undefined,
                 notes: newContact.notes || undefined
               })
             }
@@ -143,6 +154,7 @@ export class ContactService {
                   phone: contact.phone,
                   email: contact.email,
                   type: contact.type,
+                  label: contact.label,
                   priority: contact.priority,
                   notes: contact.notes
                 }
@@ -151,6 +163,7 @@ export class ContactService {
                 ...updatedContact,
                 phone: updatedContact.phone || undefined,
                 email: updatedContact.email || undefined,
+                label: updatedContact.label as PhoneLabel | undefined,
                 notes: updatedContact.notes || undefined
               })
             }

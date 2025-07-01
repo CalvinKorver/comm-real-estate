@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, X } from 'lucide-react'
 import {
   Table,
@@ -12,7 +13,7 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import type { Property } from '@/types/property'
+import type { Property, PhoneLabel } from '@/types/property'
 
 interface PhoneNumber {
   id: string
@@ -20,6 +21,7 @@ interface PhoneNumber {
   phone: string
   email?: string
   type: string
+  label?: PhoneLabel
   priority: number
   notes?: string
   created_at: Date
@@ -37,7 +39,7 @@ export function PropertyEditPhoneTable({
   phoneNumbers, 
   onPhoneNumbersChange 
 }: PropertyEditPhoneTableProps) {
-  const [newPhone, setNewPhone] = useState({ phone: '', type: 'Mobile', notes: '' })
+  const [newPhone, setNewPhone] = useState({ phone: '', type: 'Mobile', label: undefined as PhoneLabel | undefined, notes: '' })
 
   const addPhoneNumber = () => {
     const firstOwner = property.owners?.[0];
@@ -48,13 +50,14 @@ export function PropertyEditPhoneTable({
       ownerId: firstOwner.id,
       phone: newPhone.phone,
       type: newPhone.type,
+      label: newPhone.label,
       notes: newPhone.notes,
       priority: phoneNumbers.length + 1,
       created_at: new Date(),
       updated_at: new Date(),
     }];
     onPhoneNumbersChange(updatedPhoneNumbers);
-    setNewPhone({ phone: '', type: 'Mobile', notes: '' });
+    setNewPhone({ phone: '', type: 'Mobile', label: undefined, notes: '' });
   };
 
   const removePhoneNumber = (index: number) => {
@@ -70,11 +73,26 @@ export function PropertyEditPhoneTable({
     }
   };
 
-  const updatePhoneNumber = (index: number, field: keyof PhoneNumber, value: string) => {
+  const updatePhoneNumber = (index: number, field: keyof PhoneNumber, value: string | PhoneLabel) => {
     const updated = [...phoneNumbers];
     updated[index] = { ...updated[index], [field]: value, updated_at: new Date() };
     onPhoneNumbersChange(updated);
   };
+
+  const phoneLabelOptions = [
+    { value: 'primary', label: 'Primary' },
+    { value: 'secondary', label: 'Secondary' },
+    { value: 'husband', label: 'Husband' },
+    { value: 'wife', label: 'Wife' },
+    { value: 'son', label: 'Son' },
+    { value: 'daughter', label: 'Daughter' },
+    { value: 'property_manager', label: 'Property Manager' },
+    { value: 'attorney', label: 'Attorney' },
+    { value: 'tenant', label: 'Tenant' },
+    { value: 'grandson', label: 'Grandson' },
+    { value: 'granddaughter', label: 'Granddaughter' },
+    { value: 'other', label: 'Other' },
+  ];
 
   return (
     <div className="space-y-4">
@@ -84,7 +102,7 @@ export function PropertyEditPhoneTable({
           <TableHeader className="">
             <TableRow>
               <TableHead className="">Phone</TableHead>
-              <TableHead className="">Type</TableHead>
+              <TableHead className="">Label</TableHead>
               <TableHead className="">Notes</TableHead>
               <TableHead className="">Actions</TableHead>
             </TableRow>
@@ -106,14 +124,22 @@ export function PropertyEditPhoneTable({
                       {phone.phone}
                     </TableCell>
                     <TableCell className="p-3">
-                      {phone.type}
-                      {/* <Input
-                        value={phone.type}
-                        onChange={(e) => updatePhoneNumber(index, 'type', e.target.value)}
-                        placeholder="Type"
-                        className="border-0 p-0 bg-transparent w-24"
+                      <Select
+                        value={phone.label || ''}
+                        onValueChange={(value) => updatePhoneNumber(index, 'label', value as PhoneLabel)}
                         disabled={isMarkedForDeletion}
-                      /> */}
+                      >
+                        <SelectTrigger className="w-full border-0 p-0 bg-transparent">
+                          <SelectValue placeholder="Select label" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {phoneLabelOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="p-3">
                       <Input
@@ -139,34 +165,54 @@ export function PropertyEditPhoneTable({
                 );
               })
             )}
+            {/* Add New Phone Row */}
+            <TableRow>
+              <TableCell className="p-3">
+                <Input
+                  value={newPhone.phone}
+                  onChange={(e) => setNewPhone({ ...newPhone, phone: e.target.value })}
+                  placeholder="New phone number"
+                  className="border-0 p-0 bg-transparent"
+                />
+              </TableCell>
+              <TableCell className="p-3">
+                <Select
+                  value={newPhone.label || ''}
+                  onValueChange={(value) => setNewPhone({ ...newPhone, label: value as PhoneLabel })}
+                >
+                  <SelectTrigger className="w-full border-0 p-0 bg-transparent">
+                    <SelectValue placeholder="Select label" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {phoneLabelOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell className="p-3">
+                <Input
+                  value={newPhone.notes}
+                  onChange={(e) => setNewPhone({ ...newPhone, notes: e.target.value })}
+                  placeholder="Notes"
+                  className="border-0 p-0 bg-transparent"
+                />
+              </TableCell>
+              <TableCell className="p-3">
+                <Button 
+                  type="button" 
+                  onClick={addPhoneNumber} 
+                  size="sm"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
-      </div>
-      
-      {/* Add New Phone Number */}
-      <div className="flex items-center gap-2">
-        <Input
-          value={newPhone.phone}
-          onChange={(e) => setNewPhone({ ...newPhone, phone: e.target.value })}
-          placeholder="New phone number"
-          className="flex-1"
-        />
-        <Input
-          value={newPhone.type}
-          onChange={(e) => setNewPhone({ ...newPhone, type: e.target.value })}
-          placeholder="Type"
-          className="w-24"
-        />
-        <Input
-          value={newPhone.notes}
-          onChange={(e) => setNewPhone({ ...newPhone, notes: e.target.value })}
-          placeholder="Notes"
-          className="flex-1"
-        />
-        <Button type="button" onClick={addPhoneNumber} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Row
-        </Button>
       </div>
     </div>
   )

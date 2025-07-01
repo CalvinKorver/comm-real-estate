@@ -1,5 +1,20 @@
 // types/property.ts
 
+export enum PhoneLabel {
+  primary = 'primary',
+  secondary = 'secondary',
+  husband = 'husband',
+  wife = 'wife',
+  son = 'son',
+  daughter = 'daughter',
+  property_manager = 'property_manager',
+  attorney = 'attorney',
+  tenant = 'tenant',
+  grandson = 'grandson',
+  granddaughter = 'granddaughter',
+  other = 'other'
+}
+
 export interface Property {
   id: string
   street_address: string
@@ -64,6 +79,7 @@ export interface Contact {
   phone?: string
   email?: string
   type: string
+  label?: PhoneLabel
   priority: number
   notes?: string
   owner_id: string

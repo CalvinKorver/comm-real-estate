@@ -24,8 +24,7 @@ export default function PropertyListPanel({
 
   return (
     <aside
-      className={`${PANEL_WIDTHS.LIST_PANEL.DEFAULT} ${PANEL_WIDTHS.LIST_PANEL.MIN} ${PANEL_WIDTHS.LIST_PANEL.MAX} h-full border-r bg-white shadow-lg flex flex-col overflow-y-auto ${className}`}
-      style={resizable ? { resize: 'horizontal', overflow: 'auto' } : undefined}
+      className={`h-full border-r bg-white shadow-lg flex flex-col overflow-y-auto ${className}`}
     >
       {/* Header */}
       <div className="p-4 pb-0 border-t bg-white sticky top-0 z-10">

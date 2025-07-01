@@ -7,6 +7,7 @@ import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
 import { MapProvider, useMapActions, useMapState } from '@/contexts/MapContext'
 import PropertyMapPanel from './PropertyMapPanel'
 import PropertyListPanel from './PropertyListPanel'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 
 // Inner component that uses the MapContext
 function PropertyMapViewContent({ 
@@ -134,26 +135,30 @@ function PropertyMapViewContent({
 
       {/* Desktop Layout - Side by Side */}
       <div className="hidden lg:flex flex-1 min-h-0">
-        {/* Properties List Panel - Left Side (max 750px) */}
-        <PropertyListPanel
-          properties={properties}
-          selectedProperty={selectedProperty}
-          onPropertySelect={handlePropertySelect}
-          onPropertyDeselect={handlePropertyDeselect}
-          onPropertyUpdated={handlePropertyUpdated}
-          className="w-[750px] max-w-[750px] border-r h-full min-h-0"
-        />
-
-        {/* Map Panel - Right Side (remaining space) */}
-        <PropertyMapPanel
-          properties={properties}
-          selectedProperty={selectedProperty}
-          highlightedPropertyId={highlightedMarkerId}
-          onPropertySelect={handlePropertySelect}
-          onPropertyDeselect={handlePropertyDeselect}
-          onMarkerClick={handleMarkerClick}
-          className="flex-1 h-full min-h-0"
-        />
+        <ResizablePanelGroup direction="horizontal" className="w-full h-full">
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+            <PropertyListPanel
+              properties={properties}
+              selectedProperty={selectedProperty}
+              onPropertySelect={handlePropertySelect}
+              onPropertyDeselect={handlePropertyDeselect}
+              onPropertyUpdated={handlePropertyUpdated}
+              className="h-full min-h-0"
+            />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={70} minSize={50}>
+            <PropertyMapPanel
+              properties={properties}
+              selectedProperty={selectedProperty}
+              highlightedPropertyId={highlightedMarkerId}
+              onPropertySelect={handlePropertySelect}
+              onPropertyDeselect={handlePropertyDeselect}
+              onMarkerClick={handleMarkerClick}
+              className="h-full min-h-0"
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       {/* Selected Property Details Modal - Mobile Only */}

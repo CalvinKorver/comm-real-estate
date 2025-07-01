@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { Property } from '@/types/property'
+import { toast } from 'sonner'
+import type { Property, PhoneLabel } from '@/types/property'
 import { PropertyEditPhoneTable } from './PropertyEditPhoneTable'
 import { PropertyEditNoteTable } from './PropertyEditNoteTable'
 
@@ -29,6 +30,7 @@ interface PhoneNumber {
   phone: string
   email?: string
   type: string
+  label?: PhoneLabel
   priority: number
   notes?: string
   created_at: Date
@@ -56,7 +58,9 @@ export function PropertyEditDialog({
         phone: contact.phone || '',
         email: contact.email || '',
         type: contact.type,
+        label: contact.label,
         priority: contact.priority,
+        notes: contact.notes,
         created_at: contact.created_at,
         updated_at: contact.updated_at,
       })) || []
@@ -73,62 +77,179 @@ export function PropertyEditDialog({
   )
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [originalProperty, setOriginalProperty] = useState<Property>(property)
+
+  // Update state when property changes
+  useEffect(() => {
+    if (property.id !== originalProperty.id) {
+      setOriginalProperty(property)
+      setPhoneNumbers(
+        property.owners?.flatMap(owner => 
+          owner.contacts?.map(contact => ({
+            id: contact.id,
+            ownerId: contact.owner_id,
+            phone: contact.phone || '',
+            email: contact.email || '',
+            type: contact.type,
+            label: contact.label,
+            priority: contact.priority,
+            notes: contact.notes,
+            created_at: contact.created_at,
+            updated_at: contact.updated_at,
+          })) || []
+        ) || []
+      )
+      setNotes(
+        property.notes?.map(note => ({
+          id: note.id,
+          content: note.content,
+          created_at: note.created_at,
+          updated_at: note.updated_at,
+        })) || []
+      )
+    }
+  }, [property, originalProperty.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const phoneData = phoneNumbers.map(phone => ({
-        id: phone.id,
-        ownerId: phone.ownerId,
-        phone: phone.phone,
-        type: phone.type,
-        priority: phone.priority,
-        notes: phone.notes,
-        created_at: phone.created_at,
-        updated_at: phone.updated_at
-      }));
-
-      // Update contacts for each owner
-      for (const owner of property.owners || []) {
-        const ownerPhones = phoneData.filter(p => p.ownerId === owner.id)
-        if (ownerPhones.length > 0) {
-          await fetch(`/api/owners/${owner.id}/contacts`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ contacts: ownerPhones })
-          })
+      // Prepare contacts data with actions
+      const contactsData = property.owners?.map(owner => {
+        const ownerPhones = phoneNumbers.filter(p => p.ownerId === owner.id)
+        return {
+          ownerId: owner.id,
+          contacts: ownerPhones.map(phone => {
+            const originalContact = owner.contacts?.find(c => c.id === phone.id)
+            if (!originalContact) {
+              // New contact
+              return {
+                id: phone.id,
+                phone: phone.phone,
+                type: phone.type,
+                label: phone.label,
+                priority: phone.priority,
+                notes: phone.notes,
+                action: 'create' as const
+              }
+            } else {
+              // Check if contact was modified
+              const isModified = 
+                phone.phone !== originalContact.phone ||
+                phone.type !== originalContact.type ||
+                phone.label !== originalContact.label ||
+                phone.priority !== originalContact.priority ||
+                phone.notes !== originalContact.notes
+              
+              if (isModified) {
+                return {
+                  id: phone.id,
+                  phone: phone.phone,
+                  type: phone.type,
+                  label: phone.label,
+                  priority: phone.priority,
+                  notes: phone.notes,
+                  action: 'update' as const
+                }
+              }
+              return null
+            }
+          }).filter(Boolean)
         }
+      }).filter(owner => owner.contacts.length > 0) || []
+
+      // Prepare notes data with actions
+      const originalNotes = property.notes || []
+      const notesData = notes.map(note => {
+        const originalNote = originalNotes.find(n => n.id === note.id)
+        if (!originalNote) {
+          // New note
+          return {
+            id: note.id,
+            content: note.content,
+            action: 'create' as const
+          }
+        } else {
+          // Check if note was modified
+          if (note.content !== originalNote.content) {
+            return {
+              id: note.id,
+              content: note.content,
+              action: 'update' as const
+            }
+          }
+          return null
+        }
+      }).filter(Boolean)
+
+      // Check if there are any changes
+      if (contactsData.length === 0 && notesData.length === 0) {
+        toast.info('No changes to save')
+        onOpenChange(false)
+        return
       }
 
-      // Update property notes if any
-      if (notes.length > 0) {
-        const newNotes = notes.filter(note => note.id.startsWith('temp-'))
-        for (const note of newNotes) {
-          await fetch(`/api/properties`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              id: property.id, 
-              note: note.content 
-            })
-          })
-        }
+      // Optimistic update - immediately update the UI
+      const optimisticProperty = {
+        ...property,
+        owners: property.owners?.map(owner => ({
+          ...owner,
+          contacts: phoneNumbers.filter(p => p.ownerId === owner.id).map(phone => ({
+            id: phone.id,
+            phone: phone.phone,
+            email: phone.email,
+            type: phone.type,
+            label: phone.label,
+            priority: phone.priority,
+            notes: phone.notes,
+            owner_id: phone.ownerId,
+            created_at: phone.created_at,
+            updated_at: new Date()
+          }))
+        })),
+        notes: notes.map(note => ({
+          id: note.id,
+          content: note.content,
+          property_id: property.id,
+          created_at: note.created_at,
+          updated_at: new Date()
+        }))
       }
 
-      // Fetch updated property
-      const response = await fetch(`/api/properties?id=${property.id}`)
+      // Call optimistic update callback immediately
+      onPropertyUpdated?.(optimisticProperty)
+
+      // Single API call to update everything
+      const response = await fetch(`/api/properties`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          id: property.id,
+          contacts: contactsData,
+          notes: notesData
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to update property: ${response.statusText}`)
+      }
+
       const updatedProperty = await response.json()
       
+      // Update with the actual server response
       onPropertyUpdated?.(updatedProperty)
+      toast.success('Property updated successfully')
       onOpenChange(false)
     } catch (error) {
       console.error('Error updating property:', error)
+      
+      // Revert optimistic update on error
+      onPropertyUpdated?.(originalProperty)
+      
+      toast.error('Failed to update property. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

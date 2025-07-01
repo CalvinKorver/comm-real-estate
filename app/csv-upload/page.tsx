@@ -43,12 +43,18 @@ interface UploadResult {
 }
 
 const DATABASE_FIELDS = [
+  // Property fields
   'street_address', 'city', 'zip_code', 'state', 'parcel_id',
-  'first_name', 'last_name', 'full_name', 'llc_contact', 'street_address', 'city', 'state', 'zip_code',
-  'phone', 'email'
+  // Owner fields
+  'first_name', 'last_name', 'full_name', 'llc_contact',
+  'owner_street_address', 'owner_city', 'owner_state', 'owner_zip_code',
+  // Contact fields
+  'phone', 'email', 'phone_type', 'contact_priority',
+  // Additional property fields (with default values)
+  'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet'
 ];
 
-const REQUIRED_FIELDS = ['street_address', 'city', 'zip_code', 'fullName', 'ownerName', 'ownerAddress'];
+const REQUIRED_FIELDS = ['street_address', 'full_name'];
 
 function hasUnmappedRequiredFields(mapping: Record<string, string | null>) {
   const mappedFields = Object.values(mapping).filter(Boolean);
@@ -192,9 +198,11 @@ export default function CSVUploadPage() {
                   Please map all required fields: {REQUIRED_FIELDS.join(', ')}
                 </div>
               )}
-              <Button className="mt-4 w-full" onClick={handleConfirmMapping} disabled={hasUnmappedRequiredFields(columnMapping)}>
+              <div className="flex items-center">
+              <Button className="mt-4 w-50 mx-auto items-center" onClick={handleConfirmMapping} disabled={hasUnmappedRequiredFields(columnMapping)}>
                 Confirm Mapping
               </Button>
+              </div>
             </div>
           )}
 

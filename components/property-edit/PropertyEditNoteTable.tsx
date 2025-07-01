@@ -126,22 +126,33 @@ export function PropertyEditNoteTable({
                 )
               })
             )}
+            {/* Add New Note Row */}
+            <TableRow>
+              <TableCell className="p-3">
+                <Textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add a new note..."
+                  className="border-0 p-0 bg-transparent resize-none"
+                  rows={3}
+                />
+              </TableCell>
+              <TableCell className="p-3">
+                {/* Empty cell for date column */}
+              </TableCell>
+              <TableCell className="p-3">
+                <Button 
+                  type="button" 
+                  onClick={handleAddNote} 
+                  size="sm"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
-      </div>
-      
-      {/* Add New Note */}
-      <div className="space-y-2">
-        <Textarea
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a new note..."
-          rows={3}
-        />
-        <Button type="button" onClick={handleAddNote} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Note
-        </Button>
       </div>
     </div>
   )

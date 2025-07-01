@@ -90,7 +90,13 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, note, ...updateData } = body
+    const { 
+      id, 
+      note, 
+      contacts, 
+      notes,
+      ...updateData 
+    } = body
 
     if (!id) {
       return NextResponse.json(
@@ -99,25 +105,14 @@ export async function PUT(request: Request) {
       )
     }
 
-    // If a note is provided, add it to the property
-    if (note) {
-      await PropertyService.addNoteToProperty(id, note)
-    }
+    // Handle comprehensive property update including contacts and notes
+    const property = await PropertyService.updatePropertyComprehensive(id, {
+      ...updateData,
+      contacts,
+      notes,
+      note // For backward compatibility
+    })
 
-    // Transform the request body to match the service interface
-    const propertyData = {
-      street_address: updateData.street_address,
-      city: updateData.city,
-      zip_code: updateData.zip_code,
-      net_operating_income: updateData.net_operating_income,
-      price: updateData.price,
-      return_on_investment: updateData.return_on_investment,
-      number_of_units: updateData.number_of_units,
-      square_feet: updateData.square_feet,
-      ownerIds: updateData.owners // Assuming owners is an array of owner IDs
-    }
-
-    const property = await PropertyService.updateProperty(id, propertyData)
     return NextResponse.json(property)
   } catch (error) {
     console.error('API: Error updating property:', error)

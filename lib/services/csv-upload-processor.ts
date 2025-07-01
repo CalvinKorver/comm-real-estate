@@ -235,7 +235,7 @@ export async function processCSVUpload(
 
     // Track addresses to detect duplicates
     const processedAddresses = new Set<string>();
-    const validRows: Array<{ row: number; csvRow: CSVRow; address: string }> = [];
+    const validRows: Array<{ row: number; values: string[]; address: string }> = [];
 
     // Helper function to get mapped value
     const getMappedValue = (csvRow: string[], header: string, targetField: string): string => {
@@ -254,22 +254,8 @@ export async function processCSVUpload(
       const line = dataLines[i];
       const values = parseCSVLine(line);
       
-      // Create CSV row object using mapping
-      const csvRow: CSVRow = {};
-      headers.forEach((header, index) => {
-        const mappedField = columnMapping[header];
-        if (mappedField) {
-          csvRow[mappedField as keyof CSVRow] = values[index] || '';
-        } else {
-          // Fallback to original header name
-          csvRow[header as keyof CSVRow] = values[index] || '';
-        }
-      });
-
       // Get the address for error reporting using mapping
-      const address = getMappedValue(values, '', 'street_address') || 
-                     getMappedValue(values, '', 'Address') || 
-                     'Unknown Address';
+      const address = getMappedValue(values, '', 'street_address') || 'Unknown Address';
       const normalizedAddress = address.toLowerCase().trim();
 
       // Check for duplicates
@@ -283,8 +269,8 @@ export async function processCSVUpload(
       }
       processedAddresses.add(normalizedAddress);
 
-      // Validate row
-      const validation = validateCSVRow(csvRow);
+      // Validate row using new database field mapping
+      const validation = validateCSVRowWithDatabaseMapping(values, headers, columnMapping);
       if (!validation.isValid) {
         result.errors.push({
           row: i + 2,
@@ -295,14 +281,14 @@ export async function processCSVUpload(
       }
 
       // Add to valid rows for processing
-      validRows.push({ row: i + 2, csvRow, address });
+      validRows.push({ row: i + 2, values, address });
     }
 
     // Second pass: process valid rows and save to database
-    for (const { row, csvRow, address } of validRows) {
+    for (const { row, values, address } of validRows) {
       try {
-        // Process the row to get owner and property data
-        const { owner, property } = processCSVRow(csvRow);
+        // Process the row to get owner and property data using new database mapping
+        const { owner, property, contacts } = processCSVRowWithDatabaseMapping(values, headers, columnMapping);
         
         // Handle unknown zip and city values
         if (property.zip_code === 0) {
@@ -325,8 +311,8 @@ export async function processCSVUpload(
           city: owner.city,
           state: owner.state,
           zip_code: owner.zip_code,
-          phone: csvRow['Wireless 1'] || csvRow['Landline 1'],
-          email: csvRow['Email 1'],
+          phone: contacts.find(c => c.phone)?.phone,
+          email: contacts.find(c => c.email)?.email,
         };
 
         const ownerResult = await ownerDeduplicationService.processOwner(ownerData);
@@ -493,15 +479,23 @@ export function suggestColumnMapping(
   
   // Define common field mappings for CSV columns
   const fieldMappings: Record<string, string[]> = {
-    'phone': ['phone', 'wireless', 'landline', 'mobile', 'cell', 'telephone'],
-    'email': ['email', 'e-mail', 'mail'],
     'street_address': ['address', 'street', 'streetaddress', 'propertyaddress', 'location'],
     'city': ['city', 'town', 'municipality'],
-    'state': ['state', 'province', 'region'],
     'zip_code': ['zip', 'zipcode', 'postal', 'postalcode', 'zip_code'],
+    'state': ['state', 'province', 'region'],
     'parcel_id': ['parcel', 'parcelid', 'parcel_id', 'propertyid', 'property_id', 'apn'],
+    'first_name': ['firstname', 'first', 'fname'],
+    'last_name': ['lastname', 'last', 'lname'],
     'full_name': ['name', 'fullname', 'ownername', 'owner', 'contactname', 'contact'],
     'llc_contact': ['llc', 'llccontact', 'company', 'business'],
+    'owner_street_address': ['owneraddress', 'owner_address', 'ownerstreet'],
+    'owner_city': ['ownercity', 'owner_city'],
+    'owner_state': ['ownerstate', 'owner_state'],
+    'owner_zip_code': ['ownerzip', 'owner_zip', 'ownerzipcode'],
+    'phone': ['phone', 'wireless', 'landline', 'mobile', 'cell', 'telephone'],
+    'email': ['email', 'e-mail', 'mail'],
+    'phone_type': ['phonetype', 'phone_type', 'type'],
+    'contact_priority': ['priority', 'contactpriority', 'order'],
   };
 
   const mapping: Record<string, string | null> = {};
@@ -585,4 +579,172 @@ export function suggestColumnMapping(
   }
   
   return mapping;
+}
+
+// New function to process CSV data directly using database field mappings
+function processCSVRowWithDatabaseMapping(
+  values: string[], 
+  headers: string[], 
+  columnMapping: Record<string, string | null>
+): {
+  owner: {
+    first_name: string;
+    last_name: string;
+    full_name?: string;
+    llc_contact?: string;
+    street_address?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  };
+  property: {
+    street_address: string;
+    city: string;
+    zip_code: number;
+    state?: string;
+    parcel_id?: string;
+  };
+  contacts: Array<{
+    phone?: string;
+    email?: string;
+    type: string;
+    priority: number;
+  }>;
+} {
+  // Helper function to get mapped value
+  const getMappedValue = (targetField: string): string => {
+    const mappedHeader = Object.keys(columnMapping).find(h => columnMapping[h] === targetField);
+    if (mappedHeader) {
+      const headerIndex = headers.indexOf(mappedHeader);
+      return headerIndex >= 0 ? values[headerIndex] || '' : '';
+    }
+    return '';
+  };
+
+  // Get property data
+  const streetAddress = getMappedValue('street_address');
+  const city = getMappedValue('city') || 'unknown';
+  const zipStr = getMappedValue('zip_code') || '0';
+  const zipCode = parseInt(zipStr, 10) || 0;
+  const state = getMappedValue('state');
+  const parcelId = getMappedValue('parcel_id');
+
+  // Get owner data
+  const fullName = getMappedValue('full_name');
+  const firstName = getMappedValue('first_name');
+  const lastName = getMappedValue('last_name');
+  const llcContact = getMappedValue('llc_contact');
+  const ownerStreetAddress = getMappedValue('owner_street_address');
+  const ownerCity = getMappedValue('owner_city');
+  const ownerState = getMappedValue('owner_state');
+  const ownerZipCode = getMappedValue('owner_zip_code');
+
+  // Parse owner name if only full_name is provided
+  let finalFirstName = firstName;
+  let finalLastName = lastName;
+  if (!firstName && !lastName && fullName) {
+    const parsedName = parseOwnerName(fullName);
+    finalFirstName = parsedName.firstName;
+    finalLastName = parsedName.lastName;
+  }
+
+  // Get contact data
+  const phone = getMappedValue('phone');
+  const email = getMappedValue('email');
+  const phoneType = getMappedValue('phone_type') || 'Cell';
+  const contactPriority = parseInt(getMappedValue('contact_priority') || '1', 10) || 1;
+
+  const property = {
+    street_address: streetAddress,
+    city: city,
+    zip_code: zipCode,
+    state: state || undefined,
+    parcel_id: parcelId || undefined,
+  };
+
+  const owner = {
+    first_name: finalFirstName,
+    last_name: finalLastName,
+    full_name: fullName || undefined,
+    llc_contact: llcContact || undefined,
+    street_address: ownerStreetAddress || undefined,
+    city: ownerCity || undefined,
+    state: ownerState || undefined,
+    zip_code: ownerZipCode || undefined,
+  };
+
+  const contacts = [];
+  if (phone) {
+    contacts.push({
+      phone,
+      email: undefined,
+      type: phoneType,
+      priority: contactPriority,
+    });
+  }
+  if (email) {
+    contacts.push({
+      phone: undefined,
+      email,
+      type: 'Email',
+      priority: contactPriority + 1,
+    });
+  }
+
+  return { owner, property, contacts };
+}
+
+// New validation function for database field mappings
+function validateCSVRowWithDatabaseMapping(
+  values: string[], 
+  headers: string[], 
+  columnMapping: Record<string, string | null>
+): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // Helper function to get mapped value
+  const getMappedValue = (targetField: string): string => {
+    const mappedHeader = Object.keys(columnMapping).find(h => columnMapping[h] === targetField);
+    if (mappedHeader) {
+      const headerIndex = headers.indexOf(mappedHeader);
+      return headerIndex >= 0 ? values[headerIndex] || '' : '';
+    }
+    return '';
+  };
+
+  // Required fields
+  const streetAddress = getMappedValue('street_address');
+  const fullName = getMappedValue('full_name');
+  const firstName = getMappedValue('first_name');
+  const lastName = getMappedValue('last_name');
+
+  if (!streetAddress?.trim()) {
+    errors.push('Property street address is required');
+  }
+
+  if (!fullName?.trim() && (!firstName?.trim() || !lastName?.trim())) {
+    errors.push('Owner name is required (either full_name or first_name + last_name)');
+  }
+
+  // Validate zip code format if provided
+  const zipCode = getMappedValue('zip_code');
+  if (zipCode && zipCode.trim() && !/^\d{5}(-\d{4})?$/.test(zipCode)) {
+    errors.push('Zip code must be in valid format (e.g., 12345 or 12345-6789)');
+  }
+
+  // Validate email format if provided
+  const email = getMappedValue('email');
+  if (email && !isValidEmail(email)) {
+    errors.push('Email is not in valid format');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 } 

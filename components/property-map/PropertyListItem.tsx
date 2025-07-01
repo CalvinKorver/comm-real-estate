@@ -143,33 +143,19 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
             <div className="mt-2">
               {property.owners && property.owners.length > 0 ? (
                 <div className="space-y-1">
-                  {property.owners.length === 1 ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      <span>
-                        {property.owners[0].first_name} {property.owners[0].last_name}
-                      </span>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm text-foreground font-semibold">
-                        {property.owners.length} Owners
-                      </p>
-                      <div className="text-xs text-muted-foreground">
-                        {property.owners.slice(0, 2).map((owner, idx) => (
-                          <div key={owner.id}>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <User className="h-4 w-4" />
-                              <span>
-                                {owner.first_name} {owner.last_name}
-                              </span>
-                            </div>
-                            {idx === 0 && property.owners && property.owners.length > 2 && ' + more...'}
-                          </div>
-                        ))}
+                  <div className="text-xs text-muted-foreground">
+                    {property.owners.slice(0, 3).map((owner) => (
+                      <div key={owner.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <User className="h-4 w-4" />
+                        <span>
+                          {owner.first_name} {owner.last_name}
+                        </span>
                       </div>
-                    </div>
-                  )}
+                    ))}
+                    {property.owners.length > 3 && (
+                      <div className="pl-6 text-xs text-muted-foreground">+{property.owners.length - 3} more</div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No owners</p>
@@ -190,13 +176,14 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                 <TableHeader>
                   <TableRow>
                     <TableHead>Phone</TableHead>
+                    <TableHead>Label</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {phoneContacts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={2} className="text-muted-foreground text-center py-4">
+                      <TableCell colSpan={3} className="text-muted-foreground text-center py-4">
                         No phone numbers
                       </TableCell>
                     </TableRow>
@@ -209,6 +196,9 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                       return (
                         <TableRow key={contact.id}>
                           <TableCell className="font-medium">{contact.phone}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {contact.label ? contact.label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'No label'}
+                          </TableCell>
                           <TableCell className="text-muted-foreground">
                             {contact.notes || 'No notes'}
                           </TableCell>

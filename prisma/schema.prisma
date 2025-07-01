@@ -12,6 +12,21 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum PhoneLabel {
+  primary
+  secondary
+  husband
+  wife
+  son
+  daughter
+  property_manager
+  attorney
+  tenant
+  grandson
+  granddaughter
+  other
+}
+
 model Property {
   id                    String    @id @default(uuid())
   street_address        String
@@ -67,15 +82,16 @@ model Owner {
 }
 
 model Contact {
-  id        String   @id @default(uuid())
-  phone     String?  // Optional phone number
-  email     String?  // Optional email address
-  type      String   // Required type: Email, Cell, Home, Work, etc.
-  priority  Int      // Priority for ordering (lower number = higher priority)
-  notes     String?  // Optional notes field
-  owner_id  String   // Foreign key to Owner
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id        String     @id @default(uuid())
+  phone     String?    // Optional phone number
+  email     String?    // Optional email address
+  type      String     // Required type: Email, Cell, Home, Work, etc.
+  label     PhoneLabel? // Phone label for categorization
+  priority  Int        // Priority for ordering (lower number = higher priority)
+  notes     String?    // Optional notes field
+  owner_id  String     // Foreign key to Owner
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
   
   owner Owner @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   

@@ -1,8 +1,11 @@
+import { PhoneLabel } from './property'
+
 export interface Contact {
   id: string;
   phone?: string;
   email?: string;
   type: string;
+  label?: PhoneLabel;
   priority: number;
   notes?: string;
   ownerId: string;
@@ -14,6 +17,7 @@ export interface CreateContactInput {
   phone?: string;
   email?: string;
   type: string;
+  label?: PhoneLabel;
   priority: number;
   notes?: string;
   ownerId: string;

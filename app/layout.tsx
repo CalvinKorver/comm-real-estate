@@ -6,6 +6,8 @@ import { fontSans } from "@/lib/shared/fonts"
 import { cn } from "@/lib/shared/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { Inter } from 'next/font/google'
 
 export const metadata: Metadata = {
   title: {
@@ -43,6 +45,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             {children}
+            <Toaster />
           </ThemeProvider>
         </AuthProvider>
       </body>
