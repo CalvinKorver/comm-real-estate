@@ -188,18 +188,19 @@ export default function SignUpPage() {
           </div>
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Button
-              onClick={() => signIn("github", { callbackUrl: "/workouts" })}
+              onClick={() => signIn('github', { callbackUrl: '/properties/map' })}
+              className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
-              className="flex w-full items-center justify-center space-x-2"
               disabled={isLoading}
             >
               <Icons.gitHub className="h-5 w-5" />
               <span>GitHub</span>
             </Button>
             <Button
-              onClick={() => signIn("google", { callbackUrl: "/workouts" })}
+              onClick={() => signIn('google', { callbackUrl: '/properties/map' })}
+              className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
-              className="flex w-full items-center justify-center space-x-2"
+              
               disabled={isLoading}
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">

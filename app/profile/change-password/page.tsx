@@ -3,33 +3,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { BaseHeader } from '@/components/base-header';
 import { Button } from '@/components/ui/button';
-import { SiteHeader } from '@/components/site-header';
-import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError('');
+    setError(null);
+    setSuccess(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    setError(null);
+    setSuccess(null);
 
     // Validate passwords
     if (formData.newPassword !== formData.confirmPassword) {
@@ -46,7 +48,7 @@ export default function ChangePasswordPage() {
 
     try {
       const response = await fetch('/api/user/change-password', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -56,49 +58,68 @@ export default function ChangePasswordPage() {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to change password');
+      if (response.ok) {
+        setSuccess('Password changed successfully!');
+        setFormData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to change password');
       }
-
-      setSuccess('Password changed successfully');
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-
-      // Redirect back to profile after a brief delay
-      setTimeout(() => {
-        router.push('/profile');
-      }, 2000);
-    } catch (error: any) {
-      setError(error.message || 'An unexpected error occurred');
-      console.error('Change password error:', error);
+    } catch (error) {
+      setError('An error occurred while changing your password');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!session) {
-    return <div>Loading...</div>;
+  if (status === 'loading') {
+    return (
+      <>
+        <BaseHeader />
+        <div className="container mx-auto px-4 py-12">
+          <div className="mx-auto max-w-md">
+            <div className="text-center">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <>
+        <BaseHeader />
+        <div className="container mx-auto px-4 py-12">
+          <div className="mx-auto max-w-md">
+            <div className="text-center">
+              <p className="text-muted-foreground">Please sign in to change your password.</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
   }
 
   return (
     <>
-      <SiteHeader />
+      <BaseHeader />
       <div className="container mx-auto px-4 py-12">
         <div className="mx-auto max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold">Change Password</h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm text-muted-foreground">
               Update your password to keep your account secure
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
+            <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -109,86 +130,63 @@ export default function ChangePasswordPage() {
             </div>
           )}
 
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <form onSubmit={handleSubmit} className="space-y-4 p-6">
-              <div>
-                <label
-                  htmlFor="currentPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Current Password
-                </label>
-                <input
-                  id="currentPassword"
-                  name="currentPassword"
-                  type="password"
-                  required
-                  value={formData.currentPassword}
-                  onChange={handleChange}
-                  className="mt-1 block h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-400 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  New Password
-                </label>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  required
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className="mt-1 block h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-400 sm:text-sm"
-                  placeholder="Minimum 8 characters"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="mt-1 block h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-400 sm:text-sm"
-                />
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+              <CardDescription>
+                Enter your current password and choose a new one
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-2">
+                    Current Password
+                  </label>
+                  <Input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/profile')}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Updating...' : 'Update Password'}
-                </Button>
-              </div>
-            </form>
-          </div>
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
+                    New Password
+                  </label>
+                  <Input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <Link href="/profile" className="text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
-              Back to Profile
-            </Link>
-          </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+                    Confirm New Password
+                  </label>
+                  <Input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? 'Changing Password...' : 'Change Password'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

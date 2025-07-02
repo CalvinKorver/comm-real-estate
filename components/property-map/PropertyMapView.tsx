@@ -1,28 +1,36 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyMapViewProps, Coordinates, MapStyle } from '@/types/map'
 import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
 import { MapProvider, useMapActions, useMapState } from '@/contexts/MapContext'
 import PropertyMapPanel from './PropertyMapPanel'
 import PropertyListPanel from './PropertyListPanel'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 
 // Inner component that uses the MapContext
 function PropertyMapViewContent({ 
-  properties,
+  properties: initialProperties,
   className = "",
   layout = 'split',
   defaultCenter = MAP_CENTERS.NEW_YORK,
   defaultZoom = ZOOM_LEVELS.CITY,
-  mapStyle = MAP_STYLES.LIGHT
+  mapStyle = MAP_STYLES.LIGHT,
+  onPropertyUpdated
 }: PropertyMapViewProps) {
+  const [properties, setProperties] = useState<Property[]>(initialProperties)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [highlightedMarkerId, setHighlightedMarkerId] = useState<string | null>(null)
   
   // Use centralized state management
   const { setCenter, setZoom, selectProperty, highlightProperty } = useMapActions()
   const { center: currentCenter, zoom: currentZoom } = useMapState()
+
+  // Update local properties when initialProperties changes
+  useEffect(() => {
+    setProperties(initialProperties)
+  }, [initialProperties])
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
@@ -76,6 +84,25 @@ function PropertyMapViewContent({
     // This prevents the jumping effect when the marker moves as the map centers
   }
 
+  const handlePropertyUpdated = (updatedProperty: Property) => {
+    console.log("PropertyMapView: Property updated:", updatedProperty.id)
+    
+    // Update the properties array
+    setProperties(prevProperties => 
+      prevProperties.map(property => 
+        property.id === updatedProperty.id ? updatedProperty : property
+      )
+    )
+    
+    // Update the selected property if it's the one being updated
+    if (selectedProperty?.id === updatedProperty.id) {
+      setSelectedProperty(updatedProperty)
+    }
+    
+    // Call the parent callback if provided
+    onPropertyUpdated?.(updatedProperty)
+  }
+
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
       {/* Mobile Layout - Stacked */}
@@ -100,6 +127,7 @@ function PropertyMapViewContent({
             selectedProperty={selectedProperty}
             onPropertySelect={handlePropertySelect}
             onPropertyDeselect={handlePropertyDeselect}
+            onPropertyUpdated={handlePropertyUpdated}
             className="h-full"
           />
         </div>
@@ -107,30 +135,35 @@ function PropertyMapViewContent({
 
       {/* Desktop Layout - Side by Side */}
       <div className="hidden lg:flex flex-1 min-h-0">
-        {/* Properties List Panel - Left Side (max 750px) */}
-        <PropertyListPanel
-          properties={properties}
-          selectedProperty={selectedProperty}
-          onPropertySelect={handlePropertySelect}
-          onPropertyDeselect={handlePropertyDeselect}
-          className="w-[750px] max-w-[750px] border-r h-full min-h-0"
-        />
-
-        {/* Map Panel - Right Side (remaining space) */}
-        <PropertyMapPanel
-          properties={properties}
-          selectedProperty={selectedProperty}
-          highlightedPropertyId={highlightedMarkerId}
-          onPropertySelect={handlePropertySelect}
-          onPropertyDeselect={handlePropertyDeselect}
-          onMarkerClick={handleMarkerClick}
-          className="flex-1 h-full min-h-0"
-        />
+        <ResizablePanelGroup direction="horizontal" className="w-full h-full">
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+            <PropertyListPanel
+              properties={properties}
+              selectedProperty={selectedProperty}
+              onPropertySelect={handlePropertySelect}
+              onPropertyDeselect={handlePropertyDeselect}
+              onPropertyUpdated={handlePropertyUpdated}
+              className="h-full min-h-0"
+            />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={70} minSize={50}>
+            <PropertyMapPanel
+              properties={properties}
+              selectedProperty={selectedProperty}
+              highlightedPropertyId={highlightedMarkerId}
+              onPropertySelect={handlePropertySelect}
+              onPropertyDeselect={handlePropertyDeselect}
+              onMarkerClick={handleMarkerClick}
+              className="h-full min-h-0"
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       {/* Selected Property Details Modal - Mobile Only */}
       {selectedProperty && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full max-h-2/3 rounded-t-lg overflow-y-auto">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
@@ -161,7 +194,7 @@ function PropertyMapViewContent({
                   <span className="text-sm text-muted-foreground">Units:</span>
                   <span className="font-medium">{selectedProperty.number_of_units}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Square Feet:</span>
                   <span className="font-medium">{selectedProperty.square_feet.toLocaleString()}</span>
                 </div>
@@ -172,7 +205,7 @@ function PropertyMapViewContent({
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">NOI:</span>
                   <span className="font-medium">${selectedProperty.net_operating_income.toLocaleString()}/year</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

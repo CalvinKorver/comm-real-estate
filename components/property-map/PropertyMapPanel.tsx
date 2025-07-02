@@ -30,13 +30,13 @@ export default function PropertyMapPanel({
     >
       {/* Loading State */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
         </div>
       )}
       {/* Error State */}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-90 z-10">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 z-10">
           <div className="text-red-500 mb-2">Error loading map</div>
           <button
             onClick={() => setError(null)}

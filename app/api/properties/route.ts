@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { PropertyService } from '@/lib/services/property-service'
 
+// Property-specific subresource endpoints (e.g., notes) should be placed under app/api/properties/[id]/
+
 // GET /api/properties - Get all properties or a single property by ID
 export async function GET(request: Request) {
   try {
@@ -79,6 +81,52 @@ export async function POST(request: Request) {
     
     return NextResponse.json(
       { error: 'Failed to create property', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/properties - Update a property
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+    const { 
+      id, 
+      note, 
+      contacts, 
+      notes,
+      ...updateData 
+    } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Property ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Handle comprehensive property update including contacts and notes
+    const property = await PropertyService.updatePropertyComprehensive(id, {
+      ...updateData,
+      contacts,
+      notes,
+      note // For backward compatibility
+    })
+
+    return NextResponse.json(property)
+  } catch (error) {
+    console.error('API: Error updating property:', error)
+    
+    // Handle validation errors
+    if (error instanceof Error && error.message === 'Property not found') {
+      return NextResponse.json(
+        { error: 'Property not found' },
+        { status: 404 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to update property', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

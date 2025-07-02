@@ -110,6 +110,66 @@ export default function PropertyDetailsPanel({
                 </div>
               </div>
 
+              {/* Notes Section */}
+              {property.notes && property.notes.length > 0 ? (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Notes</h4>
+                  <div className="space-y-2">
+                    {property.notes.slice(0, 2).map((note) => (
+                      <div key={note.id} className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm">{note.content}</p>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(note.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                    {property.notes.length > 2 && (
+                      <div className="text-xs text-muted-foreground">
+                        +{property.notes.length - 2} more notes
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground">
+                  No notes yet
+                </div>
+              )}
+
+              {/* Contacts Section */}
+              {property.owners && property.owners.some(owner => owner.contacts && owner.contacts.length > 0) && (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Contacts</h4>
+                  <div className="space-y-2">
+                    {property.owners
+                      .flatMap(owner => owner.contacts || [])
+                      .slice(0, 3)
+                      .map((contact) => (
+                        <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
+                          {contact.phone && (
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Phone:</span> {contact.phone}
+                            </p>
+                          )}
+                          {contact.email && (
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Email:</span> {contact.email}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {contact.type} • Priority: {contact.priority}
+                          </p>
+                        </div>
+                      ))}
+                    {property.owners.flatMap(owner => owner.contacts || []).length > 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        ({property.owners.flatMap(owner => owner.contacts || []).length - 3} more)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {property.parcel_id && (
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Legal Information</h4>
@@ -184,32 +244,30 @@ export default function PropertyDetailsPanel({
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm text-muted-foreground">Name</p>
-                        <p className="font-medium">{owner.firstName} {owner.lastName}</p>
+                        <p className="font-medium">{owner.first_name} {owner.last_name}</p>
                       </div>
 
-                      {owner.llcContact && (
+                      {owner.llc_contact && (
                         <div>
                           <p className="text-sm text-muted-foreground">LLC Contact</p>
-                          <p className="font-medium">{owner.llcContact}</p>
+                          <p className="font-medium">{owner.llc_contact}</p>
                         </div>
                       )}
 
-                      {owner.streetAddress && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Address</p>
-                          <p className="font-medium">
-                            {owner.streetAddress}
+                      {owner.street_address && (
+                        <div className="text-sm text-muted-foreground">
+                          <p>
+                            {owner.street_address}
                             {owner.city && `, ${owner.city}`}
                             {owner.state && `, ${owner.state}`}
-                            {owner.zipCode && ` ${owner.zipCode}`}
+                            {owner.zip_code && ` ${owner.zip_code}`}
                           </p>
                         </div>
                       )}
 
-                      {owner.phoneNumber && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Phone</p>
-                          <p className="font-medium">{owner.phoneNumber}</p>
+                      {owner.phone_number && (
+                        <div className="text-sm text-muted-foreground">
+                          <p className="font-medium">{owner.phone_number}</p>
                         </div>
                       )}
 
@@ -288,10 +346,10 @@ export default function PropertyDetailsPanel({
                       <p className="text-sm text-muted-foreground">Confidence</p>
                       <p className="font-medium capitalize">{property.coordinates.confidence}</p>
                     </div>
-                    {property.coordinates.placeId && (
+                    {property.coordinates.place_id && (
                       <div>
                         <p className="text-sm text-muted-foreground">Place ID</p>
-                        <p className="font-medium text-xs font-mono">{property.coordinates.placeId}</p>
+                        <p className="font-medium">{property.coordinates.place_id}</p>
                       </div>
                     )}
                   </div>

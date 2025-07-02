@@ -70,7 +70,7 @@ export default function PropertiesPage() {
 
   useEffect(() => {
     fetchProperties(currentPage, search)
-  }, [currentPage])
+  }, [currentPage, search])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

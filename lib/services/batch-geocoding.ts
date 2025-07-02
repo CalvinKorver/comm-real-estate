@@ -145,7 +145,7 @@ export class BatchGeocodingService {
         property.id,
         property.street_address,
         property.city,
-        property.state || undefined,
+        property.state || '',
         property.zip_code.toString()
       );
 

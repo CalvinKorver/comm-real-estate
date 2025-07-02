@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       user = await prisma.user.create({
         data: {
           email,
-          firstName,
-          lastName
+          first_name: firstName,
+          last_name: lastName
         }
       })
     }

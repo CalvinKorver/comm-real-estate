@@ -41,7 +41,11 @@ export class PropertyService {
     const property = await prisma.property.findUnique({
       where: { id },
       include: {
-        owners: true,
+        owners: {
+          include: {
+            contacts: true
+          }
+        },
         coordinates: true,
       }
     })
@@ -91,10 +95,14 @@ export class PropertyService {
     const properties = await prisma.property.findMany({
       where: whereClause,
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       },
       include: {
-        owners: true,
+        owners: {
+          include: {
+            contacts: true
+          }
+        },
         coordinates: true,
       },
       skip,
@@ -148,7 +156,11 @@ export class PropertyService {
     const property = await prisma.property.create({
       data: propertyData,
       include: {
-        owners: true,
+        owners: {
+          include: {
+            contacts: true
+          }
+        },
         coordinates: true,
       }
     })
@@ -168,10 +180,14 @@ export class PropertyService {
       },
       include: {
         coordinates: true,
-        owners: true,
+        owners: {
+          include: {
+            contacts: true
+          }
+        },
       },
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       }
     })
   }

@@ -1,7 +1,6 @@
-// middleware.ts
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -30,16 +29,10 @@ export async function middleware(request: NextRequest) {
 
   console.log(`[Middleware] Path: ${path}, isPublicPath: ${isPublicPath}, hasToken: ${!!token}`);
 
-  // Workout routes should be protected
-  if (path.startsWith('/workouts') && !token) {
-    console.log(`[Middleware] Redirecting to login: ${path}`);
-    return NextResponse.redirect(new URL('/auth/signin', request.url));
-  }
-
-  // Redirect logic for auth pages (except signup which is blocked above)
+  // Redirect logic for auth pages
   if (path.startsWith('/auth/') && token) {
-    console.log(`[Middleware] User already logged in, redirecting to workouts`);
-    return NextResponse.redirect(new URL('/workouts', request.url));
+    console.log(`[Middleware] User already logged in, redirecting to properties`);
+    return NextResponse.redirect(new URL('/properties/map', request.url));
   }
 
   // For all other protected routes
@@ -55,12 +48,12 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/marketing',
-    '/workouts',
-    '/workouts/:path*',
     '/auth/:path*',
     '/privacy',
     '/contact',
     '/profile/:path*',
+    '/properties',
+    '/properties/:path*',
+    '/csv-upload',
   ],
 };

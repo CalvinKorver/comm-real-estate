@@ -1,27 +1,43 @@
 // types/property.ts
 
+export enum PhoneLabel {
+  primary = 'primary',
+  secondary = 'secondary',
+  husband = 'husband',
+  wife = 'wife',
+  son = 'son',
+  daughter = 'daughter',
+  property_manager = 'property_manager',
+  attorney = 'attorney',
+  tenant = 'tenant',
+  grandson = 'grandson',
+  granddaughter = 'granddaughter',
+  other = 'other'
+}
+
 export interface Property {
   id: string
   street_address: string
   city: string
   zip_code: number
-  state?: string
-  parcel_id?: string
+  state?: string | null
+  parcel_id?: string | null
   net_operating_income: number
   price: number
   return_on_investment: number
   number_of_units: number
   square_feet: number
-  createdAt: Date
-  updatedAt: Date
+  created_at: Date
+  updated_at: Date
   owners?: Owner[]
   coordinates?: {
     id: string
     latitude: number
     longitude: number
     confidence: string
-    placeId?: string
+    place_id?: string
   }
+  notes?: Note[]
 }
 
 export interface PropertyWithImages extends Property {
@@ -44,17 +60,17 @@ export interface PropertyDetailsProps {
 
 export interface Owner {
   id: string
-  firstName: string
-  lastName: string
-  fullName?: string
-  llcContact?: string
-  streetAddress?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  phoneNumber?: string
-  createdAt: Date
-  updatedAt: Date
+  first_name: string
+  last_name: string
+  full_name?: string | null
+  llc_contact?: string | null
+  street_address?: string | null
+  city?: string | null
+  state?: string | null
+  zip_code?: string | null
+  phone_number?: string | null
+  created_at: Date
+  updated_at: Date
   contacts?: Contact[]
 }
 
@@ -63,8 +79,17 @@ export interface Contact {
   phone?: string
   email?: string
   type: string
+  label?: PhoneLabel
   priority: number
-  ownerId: string
-  createdAt: Date
-  updatedAt: Date
+  notes?: string
+  owner_id: string
+  created_at: Date
+  updated_at: Date
+}
+
+export interface Note {
+  id: string
+  content: string
+  created_at: string | Date
+  updated_at: string | Date
 }

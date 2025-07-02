@@ -147,6 +147,7 @@ export interface PropertyListPanelProps {
   selectedProperty?: Property | null
   onPropertySelect?: (property: Property) => void
   onPropertyDeselect?: () => void
+  onPropertyUpdated?: (updatedProperty: Property) => void
   className?: string
   resizable?: boolean
 }
@@ -158,6 +159,7 @@ export interface PropertyMapViewProps {
   defaultCenter?: Coordinates
   defaultZoom?: number
   mapStyle?: MapStyle
+  onPropertyUpdated?: (updatedProperty: Property) => void
 }
 
 // Google Maps type extensions

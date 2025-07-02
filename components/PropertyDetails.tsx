@@ -4,43 +4,17 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Building2, Square, TrendingUp, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-
-interface Property {
-  id: string
-  street_address: string
-  city: string
-  zip_code: number
-  net_operating_income: number
-  price: number
-  return_on_investment: number
-  owner: string
-  number_of_units: number
-  square_feet: number
-  createdAt: Date
-  updatedAt: Date
-  owners: {
-    id: string
-    firstName: string
-    lastName: string
-    streetAddress: string
-    city: string
-    zipCode: string
-    phoneNumber: string
-  }[]
-  images: {
-    id: string
-    url: string
-    alt: string | null
-    order: number
-  }[]
-}
+// import { PropertyEditModal } from './PropertyEditModal'
+import { useState } from 'react'
+import type { Property } from '@/types/property'
 
 interface PropertyDetailsProps {
   property: Property
 }
 
-export function PropertyDetails({ property }: PropertyDetailsProps) {
+export function PropertyDetails({ property: initialProperty }: PropertyDetailsProps) {
+  const [property, setProperty] = useState(initialProperty)
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -54,6 +28,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
   }
 
   const monthlyEstimate = Math.round(property.price * 0.06771 / 12) // Based on your image showing Est. $6,771/mo
+
+  const handlePropertyUpdated = (updatedProperty: Property) => {
+    setProperty(updatedProperty)
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -157,27 +135,47 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         {/* Property Owner */}
         <div className="bg-card p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4">Owners</h2>
-          <div className="flex items-center gap-3 grid grid-cols-1">
-            
-            {property.owners &&  property.owners.length > 0 ? (
-                property.owners.map((owner) => (
-                    <Link 
-                        key={owner.id}
-                            href={`/owners/${owner.id}`}
-                            className="">
-                    <div className="flex items-center gap-3">
-                        <span className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-muted-foreground" />
-                    </span>
-                    <span key={owner.id}>
-                        <p className="font-semibold">{owner.firstName} {owner.lastName}</p>
-                        <p className="text-sm text-muted-foreground">{owner.phoneNumber}</p>
-                    </span>
+          <div className="space-y-4">
+            {property.owners && property.owners.length > 0 ? (
+              property.owners.map((owner) => (
+                <div key={owner.id} className="space-y-2">
+                  <h3 className="font-semibold">
+                    {owner.first_name} {owner.last_name}
+                  </h3>
+                  {owner.phone_number && (
+                    <p className="text-sm text-muted-foreground">{owner.phone_number}</p>
+                  )}
+                  {owner.street_address && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>
+                        {owner.street_address}, {owner.city}, {owner.state} {owner.zip_code}
+                      </p>
                     </div>
-                </Link>
-                
-                ))
-            ) : (<div>No owners found</div>)}
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-muted-foreground text-center py-4">No owners found</div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <h3 className="font-semibold">Quick Stats</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Listed</span>
+              <span>{new Date(property.created_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Property Type</span>
+              <span>Multifamily</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Building Units</span>
+              <span>{property.number_of_units}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -197,6 +195,17 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             Start your offer
           </Button>
           
+          {/* Edit Property Button */}
+          <div className="mb-6">
+            {/* <PropertyEditModal 
+              property={property} 
+              onPropertyUpdated={handlePropertyUpdated}
+            /> */}
+            <Button variant="outline" className="w-full">
+              Edit Property (Coming Soon)
+            </Button>
+          </div>
+          
           {/* <p className="text-xs text-muted-foreground text-center">
             A local agent will help you prepare and negotiate.
           </p> */}
@@ -207,7 +216,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Listed</span>
-                <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(property.created_at).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Property Type</span>
