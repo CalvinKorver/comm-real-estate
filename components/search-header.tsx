@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/user-nav"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export function SearchHeader() {
   const { search, onSearchChange, onSearchSubmit, isSearchEnabled } = useSearch()
@@ -21,22 +22,22 @@ export function SearchHeader() {
       <div className="w-full px-4 flex h-18 items-center pt-2">
         {/* Left section - Navigation */}
         <div className="flex gap-6 md:gap-10">
-          <a href="/properties" className="flex items-center space-x-2">
+          <Link href="/properties" className="flex items-center space-x-2">
             <Icons.logo className="h-6 w-6" />
             <span className="inline-block font-bold">{siteConfig.name}</span>
-          </a>
+          </Link>
           {siteConfig.mainNav?.length ? (
             <nav className="flex gap-6">
               {siteConfig.mainNav?.map(
                 (item, index) =>
                   item.href && (
-                    <a
+                    <Link
                       key={index}
                       href={item.href}
                       className="flex items-center text-sm font-medium text-muted-foreground"
                     >
                       {item.title}
-                    </a>
+                    </Link>
                   )
               )}
             </nav>

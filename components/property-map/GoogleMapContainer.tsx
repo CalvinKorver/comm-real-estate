@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { 
   MapInitializer, 
   GoogleMapsErrorHandler, 
@@ -91,7 +91,7 @@ export default function GoogleMapContainer({
   }
 
   // Helper function to create markers for properties with coordinates
-  const createMarkers = (map: google.maps.Map, properties: Property[]) => {
+  const createMarkers = useCallback((map: google.maps.Map, properties: Property[]) => {
     // Clear existing markers
     markersRef.current.forEach(marker => marker.setMap(null))
     markersRef.current = []
@@ -132,15 +132,15 @@ export default function GoogleMapContainer({
       })
       map.fitBounds(bounds)
     }
-  }
+  }, [effectiveHighlightedPropertyId, onMarkerClick])
 
   // Helper function to update marker highlighting
-  const updateMarkerHighlighting = () => {
+  const updateMarkerHighlighting = useCallback(() => {
     markersMapRef.current.forEach((marker, propertyId) => {
       const isSelected = effectiveHighlightedPropertyId === propertyId
       marker.setIcon(createMarkerIcon(isSelected))
     })
-  }
+  }, [effectiveHighlightedPropertyId])
 
   // Initialize map
   useEffect(() => {
@@ -303,25 +303,25 @@ export default function GoogleMapContainer({
       // Clear markers
       markersRef.current.forEach(marker => marker.setMap(null))
       markersRef.current = []
-      markersMapRef.current.clear()
-      
+      const localMarkersMapRef = markersMapRef.current;
+      localMarkersMapRef.clear()
       setMapInstance(null)
     }
-  }, [])
+  }, [onMapBoundsChanged, onMapCenterChange, onMapClick, onMapError, onMapReady, onMapZoomChange, options, properties, setCenter, setError, setLoading, setMapInstance, setZoom, style, zoom, center, createMarkers])
 
   // Update markers when properties change
   useEffect(() => {
     if (mapInstance) {
       createMarkers(mapInstance, properties)
     }
-  }, [properties, mapInstance])
+  }, [properties, mapInstance, createMarkers])
 
   // Update marker highlighting when highlightedPropertyId changes
   useEffect(() => {
     if (mapInstance) {
       updateMarkerHighlighting()
     }
-  }, [effectiveHighlightedPropertyId, mapInstance])
+  }, [effectiveHighlightedPropertyId, mapInstance, updateMarkerHighlighting])
 
   // Update map center and zoom when context state changes
   useEffect(() => {
