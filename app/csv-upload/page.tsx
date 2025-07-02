@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { BaseHeader } from '@/components/base-header';
 import { ArrowLeft, Upload, Settings, Eye, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { CSVUploadStage } from '@/components/CSVUploadStage';
 import { CSVColumnMappingStage } from '@/components/CSVColumnMappingStage';
 import { CSVPreviewStage } from '@/components/CSVPreviewStage';
@@ -79,14 +80,25 @@ export default function CSVUploadPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
+        const errorMessage = data.error || 'Upload failed';
+        toast.error(errorMessage);
+        
+        // If it's a row limit error, redirect back to upload
+        if (errorMessage.includes('maximum allowed is 100')) {
+          setTimeout(() => {
+            handleBackToUpload();
+          }, 2000);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setUploadResult(data);
       setCurrentStage('results');
+      toast.success('CSV file processed successfully!');
     } catch (err) {
       console.error('Upload error:', err);
-      // You might want to show an error message here
+      // Error toast is already shown above
     } finally {
       setIsProcessing(false);
     }
