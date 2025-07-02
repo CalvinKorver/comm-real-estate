@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { middleware } from '../app/middleware/middleware';
+import { middleware } from '../middleware';
 
 // Mock next-auth/jwt
 jest.mock('next-auth/jwt', () => ({
