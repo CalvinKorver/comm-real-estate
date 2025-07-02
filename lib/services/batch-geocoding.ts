@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/shared/prisma';
 import { CoordinateService } from './coordinate-service';
+import { Property } from '@/generated/prisma';
 
 export interface BatchGeocodingResult {
   totalProperties: number;
@@ -84,7 +85,7 @@ export class BatchGeocodingService {
       }
 
       // Convert null values to undefined for the geocoding service
-      const propertiesForGeocoding = propertiesWithoutCoordinates.map(property => ({
+      const propertiesForGeocoding = propertiesWithoutCoordinates.map((property: { id: string; street_address: string; city: string; state: string | null; zip_code: number }) => ({
         ...property,
         state: property.state || undefined,
       }));
@@ -188,7 +189,7 @@ export class BatchGeocodingService {
       });
 
       // Convert null values to undefined
-      return properties.map(property => ({
+      return properties.map((property: { id: string; street_address: string; city: string; state: string | null; zip_code: number }) => ({
         ...property,
         state: property.state || undefined,
       }));

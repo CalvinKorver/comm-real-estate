@@ -1,4 +1,5 @@
 import { prisma } from '../lib/shared/prisma';
+import { Owner, Property } from '../generated/prisma';
 
 async function main() {
   console.log('Deleting all property-related data...');
@@ -12,7 +13,7 @@ async function main() {
       },
     },
   });
-  const ownerIdList = ownerIds.map(o => o.id);
+  const ownerIdList = ownerIds.map((o: { id: string }) => o.id);
 
   const deleteContacts = prisma.contact.deleteMany({
     where: {
@@ -22,7 +23,7 @@ async function main() {
 
   // Delete all notes for properties
   const propertyIds = await prisma.property.findMany({ select: { id: true } });
-  const propertyIdList = propertyIds.map(p => p.id);
+  const propertyIdList = propertyIds.map((p: { id: string }) => p.id);
 
   const deleteNotes = prisma.note.deleteMany({
     where: {

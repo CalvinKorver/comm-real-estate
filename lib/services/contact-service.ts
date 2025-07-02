@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/shared/prisma'
 import type { CreateContactInput } from '@/types/contact'
 import { PhoneLabel } from '@/types/property'
+import { Contact as PrismaContact } from '@/generated/prisma'
 
 export interface ContactUpdateInput {
   phone?: string
@@ -93,7 +94,7 @@ export class ContactService {
       orderBy: { priority: 'asc' }
     })
 
-    return contacts.map(contact => ({
+    return contacts.map((contact: PrismaContact) => ({
       ...contact,
       phone: contact.phone || undefined,
       email: contact.email || undefined,
@@ -116,7 +117,7 @@ export class ContactService {
     action: 'create' | 'update' | 'delete'
   }>): Promise<Contact[]> {
     // Use a transaction to ensure all operations succeed or fail together
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       const results: Contact[] = []
 
       for (const contact of contacts) {

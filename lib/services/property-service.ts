@@ -288,7 +288,7 @@ export class PropertyService {
     }
 
     // Use a transaction to ensure all operations succeed or fail together
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       // Update property basic info
       const propertyData: any = {}
       if (data.street_address !== undefined) propertyData.street_address = data.street_address

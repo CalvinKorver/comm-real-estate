@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/shared/prisma'
 import { PropertyImageGrid } from '@/components/PropertyImageGrid'
 import { PropertyDetails } from '@/components/PropertyDetails'
+import { PropertyImage, Owner } from '@/generated/prisma'
 
 export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,13 +19,13 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   }
 
   // Use the actual property images if they exist, otherwise use the default images
-  const propertyImages = property.images?.map(img => img.url) || []
+  const propertyImages = property.images?.map((img: PropertyImage) => img.url) || []
 
   // Map property to match PropertyDetails prop type
   const propertyForDetails = {
     ...property,
     owner: property.owners?.[0]?.id || '', // fallback for required 'owner' field
-    owners: (property.owners || []).map(owner => ({
+    owners: (property.owners || []).map((owner: Owner) => ({
       ...owner,
       street_address: owner.street_address || '',
       city: owner.city || '',
