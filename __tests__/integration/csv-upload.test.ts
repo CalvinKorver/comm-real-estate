@@ -3,6 +3,7 @@ import fs from 'fs';
 import fetch from 'cross-fetch';
 import FormData from 'form-data';
 import { prisma } from '../../lib/shared/prisma';
+import { Property, Owner, Contact } from '../../generated/prisma';
 
 describe('CSV Upload API', () => {
   afterAll(async () => {
@@ -97,13 +98,13 @@ describe('CSV Upload API', () => {
     });
 
     console.log('Found properties:', properties.length);
-    console.log('Property addresses:', properties.map(p => p.street_address));
+    console.log('Property addresses:', properties.map((p: Property & { owners: (Owner & { contacts: Contact[] })[] }) => p.street_address));
     
     // Should find at least the 2 properties we uploaded (may be more due to duplicates)
     expect(properties.length).toBeGreaterThanOrEqual(2);
 
     // Verify specific property data
-    const mainStProperty = properties.find(p => p.street_address === '123 Main St');
+    const mainStProperty = properties.find((p: Property & { owners: (Owner & { contacts: Contact[] })[] }) => p.street_address === '123 Main St');
     expect(mainStProperty).toBeDefined();
     expect(mainStProperty?.city).toBe('Testville');
     expect(mainStProperty?.zip_code).toBe(12345);
@@ -123,8 +124,8 @@ describe('CSV Upload API', () => {
     console.log('Owner contacts:', owner?.contacts);
     expect(owner?.contacts.length).toBeGreaterThan(0);
     
-    const phoneContact = owner?.contacts.find(c => c.phone);
-    const emailContact = owner?.contacts.find(c => c.email);
+    const phoneContact = owner?.contacts.find((c: Contact) => c.phone);
+    const emailContact = owner?.contacts.find((c: Contact) => c.email);
     
     if (phoneContact) {
       expect(phoneContact.phone).toBe('(555) 123-4567');
@@ -134,7 +135,7 @@ describe('CSV Upload API', () => {
     }
 
     // Also verify the second property
-    const oakDrProperty = properties.find(p => p.street_address === '789 Oak Dr');
+    const oakDrProperty = properties.find((p: Property & { owners: (Owner & { contacts: Contact[] })[] }) => p.street_address === '789 Oak Dr');
     expect(oakDrProperty).toBeDefined();
     expect(oakDrProperty?.city).toBe('Testburg');
     expect(oakDrProperty?.zip_code).toBe(54321);
