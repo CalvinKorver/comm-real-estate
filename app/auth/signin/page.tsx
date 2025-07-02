@@ -180,10 +180,10 @@ export default function SignInPage() {
           </div>
         </div>
         <div className="text-center text-sm text-muted-foreground">
-          <p className="text-gray-500">
-            Signup is currently not available during our early release. 
-            Please contact us for access.
-          </p>
+          Don&apos;t have an account?{' '}
+          <Link href="/auth/signup" className="font-medium text-emerald-700 hover:text-emerald-600">
+            Sign up
+          </Link>
         </div>
       </div>
     </div>

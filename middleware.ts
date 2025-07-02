@@ -5,20 +5,12 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
-  // Block access to signup page for early release
-  if (path === '/auth/signup') {
-    console.log(`[Middleware] Blocking access to signup page: ${path}`);
-    return NextResponse.redirect(new URL('/auth/signin', request.url));
-  }
-  
   // Define paths that are public (don't require authentication)
   const isPublicPath = 
     path === '/' || 
-    path === '/marketing' ||
     path === '/privacy' || 
     path === '/contact' || 
-    path === '/auth/signin' ||
-    path === '/auth/signout' ||
+    path.startsWith('/auth/') ||
     path.startsWith('/api/auth/');
 
   // Check if there is a valid session token
