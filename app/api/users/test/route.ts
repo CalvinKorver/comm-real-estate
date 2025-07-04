@@ -3,7 +3,7 @@ import { PrismaClient } from '@/generated/prisma'
 
 const prisma = new PrismaClient()
 
-export async function POST(request: Request) {
+export async  function POST(request: Request) {
   try {
     const body = await request.json()
     const { email, firstName, lastName } = body
