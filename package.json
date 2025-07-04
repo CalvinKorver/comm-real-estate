@@ -22,6 +22,19 @@
     "fix-all": "npm run format:write && npm run lint:fix",
     "prepare": "husky install"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write --cache",
+      "eslint --fix"
+    ],
+    "*.{js,jsx}": [
+      "prettier --write --cache",
+      "eslint --fix"
+    ],
+    "*.{json,md,mdx}": [
+      "prettier --write --cache"
+    ]
+  },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
