@@ -144,6 +144,9 @@ export default function GoogleMapContainer({
 
   // Initialize map
   useEffect(() => {
+    // Capture ref values for cleanup
+    const markersMapForCleanup = markersMapRef.current
+    
     const initializeMap = async () => {
       if (!mapRef.current) {
         const errorMsg = 'Map container not found'
@@ -303,11 +306,10 @@ export default function GoogleMapContainer({
       // Clear markers
       markersRef.current.forEach(marker => marker.setMap(null))
       markersRef.current = []
-      const localMarkersMapRef = markersMapRef.current;
-      localMarkersMapRef.clear()
+      markersMapForCleanup.clear()
       setMapInstance(null)
     }
-  }, [onMapBoundsChanged, onMapCenterChange, onMapClick, onMapError, onMapReady, onMapZoomChange, options, properties, setCenter, setError, setLoading, setMapInstance, setZoom, style, zoom, center, createMarkers])
+  }, []) // Empty dependency array intentional - this effect should only run once on mount to prevent infinite re-renders
 
   // Update markers when properties change
   useEffect(() => {
