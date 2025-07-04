@@ -97,7 +97,10 @@ export function UserNav() {
           </Link>
           <div className="border-t border-gray-200 dark:border-gray-700"></div>
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={() => {
+              console.log('Signout button clicked');
+              signOut({ callbackUrl: '/' });
+            }}
             className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <LogOut className="mr-2 h-4 w-4" />

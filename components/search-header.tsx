@@ -69,17 +69,6 @@ export function SearchHeader() {
 
         {/* Right section - User controls */}
         <div className="flex items-center space-x-4">
-          {session && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="text-muted-foreground hover:text-foreground"
-              title="Sign out"
-            >
-              <Icons.logout className="h-4 w-4" />
-            </Button>
-          )}
           <Button 
             className="h-8 w-24 bg-green-600 rounded-full hover:bg-green-700 text-white text-muted-foreground hover:text-foreground"
             variant="ghost"
