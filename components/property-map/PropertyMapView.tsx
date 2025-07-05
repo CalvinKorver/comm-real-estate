@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyMapViewProps, Coordinates, MapStyle } from '@/types/map'
 import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
@@ -27,10 +27,13 @@ function PropertyMapViewContent({
   const { setCenter, setZoom, selectProperty, highlightProperty } = useMapActions()
   const { center: currentCenter, zoom: currentZoom } = useMapState()
 
+  // Memoize properties to prevent unnecessary re-renders
+  const memoizedProperties = useMemo(() => initialProperties, [initialProperties])
+  
   // Update local properties when initialProperties changes
   useEffect(() => {
-    setProperties(initialProperties)
-  }, [initialProperties])
+    setProperties(memoizedProperties)
+  }, [memoizedProperties])
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
