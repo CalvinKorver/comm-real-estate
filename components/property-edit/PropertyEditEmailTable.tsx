@@ -15,11 +15,11 @@ import {
 } from '@/components/ui/table'
 import type { Property, PhoneLabel } from '@/types/property'
 
-interface PhoneNumber {
+interface EmailContact {
   id: string
   ownerId: string
-  phone: string
-  email?: string
+  email: string
+  phone?: string
   type: string
   label?: PhoneLabel
   priority: number
@@ -28,58 +28,58 @@ interface PhoneNumber {
   updated_at: Date
 }
 
-interface PropertyEditPhoneTableProps {
+interface PropertyEditEmailTableProps {
   property: Property
-  phoneNumbers: PhoneNumber[]
-  onPhoneNumbersChange: (phoneNumbers: PhoneNumber[]) => void
+  emailContacts: EmailContact[]
+  onEmailContactsChange: (emailContacts: EmailContact[]) => void
 }
 
-export function PropertyEditPhoneTable({ 
+export function PropertyEditEmailTable({ 
   property, 
-  phoneNumbers, 
-  onPhoneNumbersChange 
-}: PropertyEditPhoneTableProps) {
-  const [newPhone, setNewPhone] = useState({ phone: '', type: 'Mobile', label: undefined as PhoneLabel | undefined, notes: '' })
+  emailContacts, 
+  onEmailContactsChange 
+}: PropertyEditEmailTableProps) {
+  const [newEmail, setNewEmail] = useState({ email: '', type: 'Email', label: undefined as PhoneLabel | undefined, notes: '' })
 
-  const addPhoneNumber = () => {
+  const addEmailContact = () => {
     const firstOwner = property.owners?.[0];
     if (!firstOwner) return;
     
-    const updatedPhoneNumbers = [...phoneNumbers, {
+    const updatedEmailContacts = [...emailContacts, {
       id: `temp-${Date.now()}`,
       ownerId: firstOwner.id,
-      phone: newPhone.phone,
-      type: newPhone.type,
-      label: newPhone.label,
-      notes: newPhone.notes,
-      priority: phoneNumbers.length + 1,
+      email: newEmail.email,
+      type: newEmail.type,
+      label: newEmail.label,
+      notes: newEmail.notes,
+      priority: emailContacts.length + 1,
       created_at: new Date(),
       updated_at: new Date(),
     }];
-    onPhoneNumbersChange(updatedPhoneNumbers);
-    setNewPhone({ phone: '', type: 'Mobile', label: undefined, notes: '' });
+    onEmailContactsChange(updatedEmailContacts);
+    setNewEmail({ email: '', type: 'Email', label: undefined, notes: '' });
   };
 
-  const removePhoneNumber = (index: number) => {
-    const phoneToRemove = phoneNumbers[index];
-    if (phoneToRemove.id.startsWith('temp-')) {
-      // If it's a temporary phone number, just remove it from state
-      onPhoneNumbersChange(phoneNumbers.filter((_, i) => i !== index));
+  const removeEmailContact = (index: number) => {
+    const emailToRemove = emailContacts[index];
+    if (emailToRemove.id.startsWith('temp-')) {
+      // If it's a temporary email contact, just remove it from state
+      onEmailContactsChange(emailContacts.filter((_, i) => i !== index));
     } else {
-      // If it's an existing phone number, mark it for deletion
-      const updated = [...phoneNumbers];
-      updated[index] = { ...updated[index], phone: '', type: 'deleted' };
-      onPhoneNumbersChange(updated);
+      // If it's an existing email contact, mark it for deletion
+      const updated = [...emailContacts];
+      updated[index] = { ...updated[index], email: '', type: 'deleted' };
+      onEmailContactsChange(updated);
     }
   };
 
-  const updatePhoneNumber = (index: number, field: keyof PhoneNumber, value: string | PhoneLabel) => {
-    const updated = [...phoneNumbers];
+  const updateEmailContact = (index: number, field: keyof EmailContact, value: string | PhoneLabel) => {
+    const updated = [...emailContacts];
     updated[index] = { ...updated[index], [field]: value, updated_at: new Date() };
-    onPhoneNumbersChange(updated);
+    onEmailContactsChange(updated);
   };
 
-  const phoneLabelOptions = [
+  const emailLabelOptions = [
     { value: 'primary', label: 'Primary' },
     { value: 'secondary', label: 'Secondary' },
     { value: 'husband', label: 'Husband' },
@@ -96,44 +96,44 @@ export function PropertyEditPhoneTable({
 
   return (
     <div className="space-y-4">
-      {/* Phone Numbers Table */}
+      {/* Email Table */}
       <div className="overflow-hidden">
         <Table>
           <TableHeader className="">
             <TableRow>
-              <TableHead className="">Phone</TableHead>
+              <TableHead className="">Email</TableHead>
               <TableHead className="">Label</TableHead>
               <TableHead className="">Notes</TableHead>
               <TableHead className="">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-{phoneNumbers.filter(phone => phone.phone && phone.phone.trim() !== '').length === 0 ? (
+            {emailContacts.filter(contact => contact.email && contact.email.trim() !== '').length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                  No phone numbers
+                  No email addresses
                 </TableCell>
               </TableRow>
             ) : (
-              phoneNumbers.filter(phone => phone.phone && phone.phone.trim() !== '').map((phone, index) => {
-                const isMarkedForDeletion = phone.type === 'deleted';
+              emailContacts.filter(contact => contact.email && contact.email.trim() !== '').map((contact, index) => {
+                const isMarkedForDeletion = contact.type === 'deleted';
                 
                 return (
-                  <TableRow key={phone.id || index}>
+                  <TableRow key={contact.id || index}>
                     <TableCell className="p-3">
-                      {phone.phone}
+                      {contact.email}
                     </TableCell>
                     <TableCell className="p-3">
                       <Select
-                        value={phone.label || ''}
-                        onValueChange={(value) => updatePhoneNumber(phoneNumbers.indexOf(phone), 'label', value as PhoneLabel)}
+                        value={contact.label || ''}
+                        onValueChange={(value) => updateEmailContact(emailContacts.indexOf(contact), 'label', value as PhoneLabel)}
                         disabled={isMarkedForDeletion}
                       >
                         <SelectTrigger className="w-full border-0 p-0 bg-transparent">
                           <SelectValue placeholder="Select label" />
                         </SelectTrigger>
                         <SelectContent>
-                          {phoneLabelOptions.map((option) => (
+                          {emailLabelOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>
@@ -143,8 +143,8 @@ export function PropertyEditPhoneTable({
                     </TableCell>
                     <TableCell className="p-3">
                       <Input
-                        value={phone.notes || ''}
-                        onChange={(e) => updatePhoneNumber(phoneNumbers.indexOf(phone), 'notes', e.target.value)}
+                        value={contact.notes || ''}
+                        onChange={(e) => updateEmailContact(emailContacts.indexOf(contact), 'notes', e.target.value)}
                         placeholder="Notes"
                         className="border-0 p-0 bg-transparent"
                         disabled={isMarkedForDeletion}
@@ -155,7 +155,7 @@ export function PropertyEditPhoneTable({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removePhoneNumber(phoneNumbers.indexOf(phone))}
+                        onClick={() => removeEmailContact(emailContacts.indexOf(contact))}
                         className="text-red-600 hover:text-red-800"
                       >
                         <X className="h-4 w-4" />
@@ -165,26 +165,27 @@ export function PropertyEditPhoneTable({
                 );
               })
             )}
-            {/* Add New Phone Row */}
+            {/* Add New Email Row */}
             <TableRow>
               <TableCell className="p-3">
                 <Input
-                  value={newPhone.phone}
-                  onChange={(e) => setNewPhone({ ...newPhone, phone: e.target.value })}
-                  placeholder="New phone number"
+                  value={newEmail.email}
+                  onChange={(e) => setNewEmail({ ...newEmail, email: e.target.value })}
+                  placeholder="New email address"
                   className="border-0 p-0 bg-transparent"
+                  type="email"
                 />
               </TableCell>
               <TableCell className="p-3">
                 <Select
-                  value={newPhone.label || ''}
-                  onValueChange={(value) => setNewPhone({ ...newPhone, label: value as PhoneLabel })}
+                  value={newEmail.label || ''}
+                  onValueChange={(value) => setNewEmail({ ...newEmail, label: value as PhoneLabel })}
                 >
                   <SelectTrigger className="w-full border-0 p-0 bg-transparent">
                     <SelectValue placeholder="Select label" />
                   </SelectTrigger>
                   <SelectContent>
-                    {phoneLabelOptions.map((option) => (
+                    {emailLabelOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -194,8 +195,8 @@ export function PropertyEditPhoneTable({
               </TableCell>
               <TableCell className="p-3">
                 <Input
-                  value={newPhone.notes}
-                  onChange={(e) => setNewPhone({ ...newPhone, notes: e.target.value })}
+                  value={newEmail.notes}
+                  onChange={(e) => setNewEmail({ ...newEmail, notes: e.target.value })}
                   placeholder="Notes"
                   className="border-0 p-0 bg-transparent"
                 />
@@ -203,7 +204,7 @@ export function PropertyEditPhoneTable({
               <TableCell className="p-3">
                 <Button 
                   type="button" 
-                  onClick={addPhoneNumber} 
+                  onClick={addEmailContact} 
                   size="sm"
                   className="bg-emerald-700 hover:bg-emerald-800 text-white"
                 >
@@ -216,4 +217,4 @@ export function PropertyEditPhoneTable({
       </div>
     </div>
   )
-} 
+}

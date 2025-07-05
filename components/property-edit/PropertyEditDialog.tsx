@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner'
 import type { Property, PhoneLabel } from '@/types/property'
 import { PropertyEditPhoneTable } from './PropertyEditPhoneTable'
+import { PropertyEditEmailTable } from './PropertyEditEmailTable'
 import { PropertyEditNoteTable } from './PropertyEditNoteTable'
 
 interface PropertyEditDialogProps {
@@ -37,6 +38,19 @@ interface PhoneNumber {
   updated_at: Date
 }
 
+interface EmailContact {
+  id: string
+  ownerId: string
+  email: string
+  phone?: string
+  type: string
+  label?: PhoneLabel
+  priority: number
+  notes?: string
+  created_at: Date
+  updated_at: Date
+}
+
 interface Note {
   id: string
   content: string
@@ -50,13 +64,31 @@ export function PropertyEditDialog({
   onOpenChange, 
   onPropertyUpdated 
 }: PropertyEditDialogProps) {
+  console.log(property)
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>(
     property.owners?.flatMap(owner => 
-      owner.contacts?.map(contact => ({
+      owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
         id: contact.id,
         ownerId: contact.owner_id,
         phone: contact.phone || '',
         email: contact.email || '',
+        type: contact.type,
+        label: contact.label,
+        priority: contact.priority,
+        notes: contact.notes,
+        created_at: contact.created_at,
+        updated_at: contact.updated_at,
+      })) || []
+    ) || []
+  )
+  
+  const [emailContacts, setEmailContacts] = useState<EmailContact[]>(
+    property.owners?.flatMap(owner => 
+      owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
+        id: contact.id,
+        ownerId: contact.owner_id,
+        email: contact.email || '',
+        phone: contact.phone || '',
         type: contact.type,
         label: contact.label,
         priority: contact.priority,
@@ -85,11 +117,27 @@ export function PropertyEditDialog({
       setOriginalProperty(property)
       setPhoneNumbers(
         property.owners?.flatMap(owner => 
-          owner.contacts?.map(contact => ({
+          owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
             id: contact.id,
             ownerId: contact.owner_id,
             phone: contact.phone || '',
             email: contact.email || '',
+            type: contact.type,
+            label: contact.label,
+            priority: contact.priority,
+            notes: contact.notes,
+            created_at: contact.created_at,
+            updated_at: contact.updated_at,
+          })) || []
+        ) || []
+      )
+      setEmailContacts(
+        property.owners?.flatMap(owner => 
+          owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
+            id: contact.id,
+            ownerId: contact.owner_id,
+            email: contact.email || '',
+            phone: contact.phone || '',
             type: contact.type,
             label: contact.label,
             priority: contact.priority,
@@ -118,38 +166,45 @@ export function PropertyEditDialog({
       // Prepare contacts data with actions
       const contactsData = property.owners?.map(owner => {
         const ownerPhones = phoneNumbers.filter(p => p.ownerId === owner.id)
+        const ownerEmails = emailContacts.filter(e => e.ownerId === owner.id)
+        
+        const allContacts = [...ownerPhones, ...ownerEmails]
+        
         return {
           ownerId: owner.id,
-          contacts: ownerPhones.map(phone => {
-            const originalContact = owner.contacts?.find(c => c.id === phone.id)
+          contacts: allContacts.map(contact => {
+            const originalContact = owner.contacts?.find(c => c.id === contact.id)
             if (!originalContact) {
               // New contact
               return {
-                id: phone.id,
-                phone: phone.phone,
-                type: phone.type,
-                label: phone.label,
-                priority: phone.priority,
-                notes: phone.notes,
+                id: contact.id,
+                phone: 'phone' in contact ? contact.phone : '',
+                email: 'email' in contact ? contact.email : '',
+                type: contact.type,
+                label: contact.label,
+                priority: contact.priority,
+                notes: contact.notes,
                 action: 'create' as const
               }
             } else {
               // Check if contact was modified
               const isModified = 
-                phone.phone !== originalContact.phone ||
-                phone.type !== originalContact.type ||
-                phone.label !== originalContact.label ||
-                phone.priority !== originalContact.priority ||
-                phone.notes !== originalContact.notes
+                ('phone' in contact ? contact.phone !== originalContact.phone : false) ||
+                ('email' in contact ? contact.email !== originalContact.email : false) ||
+                contact.type !== originalContact.type ||
+                contact.label !== originalContact.label ||
+                contact.priority !== originalContact.priority ||
+                contact.notes !== originalContact.notes
               
               if (isModified) {
                 return {
-                  id: phone.id,
-                  phone: phone.phone,
-                  type: phone.type,
-                  label: phone.label,
-                  priority: phone.priority,
-                  notes: phone.notes,
+                  id: contact.id,
+                  phone: 'phone' in contact ? contact.phone : originalContact.phone,
+                  email: 'email' in contact ? contact.email : originalContact.email,
+                  type: contact.type,
+                  label: contact.label,
+                  priority: contact.priority,
+                  notes: contact.notes,
                   action: 'update' as const
                 }
               }
@@ -193,21 +248,28 @@ export function PropertyEditDialog({
       // Optimistic update - immediately update the UI
       const optimisticProperty = {
         ...property,
-        owners: property.owners?.map(owner => ({
-          ...owner,
-          contacts: phoneNumbers.filter(p => p.ownerId === owner.id).map(phone => ({
-            id: phone.id,
-            phone: phone.phone,
-            email: phone.email,
-            type: phone.type,
-            label: phone.label,
-            priority: phone.priority,
-            notes: phone.notes,
-            owner_id: phone.ownerId,
-            created_at: phone.created_at,
-            updated_at: new Date()
-          }))
-        })),
+        owners: property.owners?.map(owner => {
+          const ownerPhones = phoneNumbers.filter(p => p.ownerId === owner.id)
+          const ownerEmails = emailContacts.filter(e => e.ownerId === owner.id)
+          
+          const allContacts = [...ownerPhones, ...ownerEmails]
+          
+          return {
+            ...owner,
+            contacts: allContacts.map(contact => ({
+              id: contact.id,
+              phone: 'phone' in contact ? contact.phone : '',
+              email: 'email' in contact ? contact.email : '',
+              type: contact.type,
+              label: contact.label,
+              priority: contact.priority,
+              notes: contact.notes,
+              owner_id: contact.ownerId,
+              created_at: contact.created_at,
+              updated_at: new Date()
+            }))
+          }
+        }),
         notes: notes.map(note => ({
           id: note.id,
           content: note.content,
@@ -299,6 +361,16 @@ export function PropertyEditDialog({
               property={property}
               phoneNumbers={phoneNumbers}
               onPhoneNumbersChange={setPhoneNumbers}
+            />
+          </div>
+
+          {/* Email Addresses Section */}
+          <div className="space-y-4">
+            <Label className="text-base font-semibold">Email Addresses</Label>
+            <PropertyEditEmailTable
+              property={property}
+              emailContacts={emailContacts}
+              onEmailContactsChange={setEmailContacts}
             />
           </div>
 
