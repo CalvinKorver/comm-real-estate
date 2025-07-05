@@ -17,6 +17,7 @@ import type { Property, PhoneLabel } from '@/types/property'
 import { PropertyEditPhoneTable } from './PropertyEditPhoneTable'
 import { PropertyEditEmailTable } from './PropertyEditEmailTable'
 import { PropertyEditNoteTable } from './PropertyEditNoteTable'
+import { sortContactsByPriority } from '@/utils/contactSorting'
 
 interface PropertyEditDialogProps {
   property: Property
@@ -66,37 +67,41 @@ export function PropertyEditDialog({
 }: PropertyEditDialogProps) {
   console.log(property)
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>(
-    property.owners?.flatMap(owner => 
-      owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
-        id: contact.id,
-        ownerId: contact.owner_id,
-        phone: contact.phone || '',
-        email: contact.email || '',
-        type: contact.type,
-        label: contact.label,
-        priority: contact.priority,
-        notes: contact.notes,
-        created_at: contact.created_at,
-        updated_at: contact.updated_at,
-      })) || []
-    ) || []
+    sortContactsByPriority(
+      property.owners?.flatMap(owner => 
+        owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
+          id: contact.id,
+          ownerId: contact.owner_id,
+          phone: contact.phone || '',
+          email: contact.email || '',
+          type: contact.type,
+          label: contact.label,
+          priority: contact.priority,
+          notes: contact.notes,
+          created_at: contact.created_at,
+          updated_at: contact.updated_at,
+        })) || []
+      ) || []
+    )
   )
   
   const [emailContacts, setEmailContacts] = useState<EmailContact[]>(
-    property.owners?.flatMap(owner => 
-      owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
-        id: contact.id,
-        ownerId: contact.owner_id,
-        email: contact.email || '',
-        phone: contact.phone || '',
-        type: contact.type,
-        label: contact.label,
-        priority: contact.priority,
-        notes: contact.notes,
-        created_at: contact.created_at,
-        updated_at: contact.updated_at,
-      })) || []
-    ) || []
+    sortContactsByPriority(
+      property.owners?.flatMap(owner => 
+        owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
+          id: contact.id,
+          ownerId: contact.owner_id,
+          email: contact.email || '',
+          phone: contact.phone || '',
+          type: contact.type,
+          label: contact.label,
+          priority: contact.priority,
+          notes: contact.notes,
+          created_at: contact.created_at,
+          updated_at: contact.updated_at,
+        })) || []
+      ) || []
+    )
   )
   
   const [notes, setNotes] = useState<Note[]>(
@@ -116,36 +121,40 @@ export function PropertyEditDialog({
     if (property.id !== originalProperty.id) {
       setOriginalProperty(property)
       setPhoneNumbers(
-        property.owners?.flatMap(owner => 
-          owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
-            id: contact.id,
-            ownerId: contact.owner_id,
-            phone: contact.phone || '',
-            email: contact.email || '',
-            type: contact.type,
-            label: contact.label,
-            priority: contact.priority,
-            notes: contact.notes,
-            created_at: contact.created_at,
-            updated_at: contact.updated_at,
-          })) || []
-        ) || []
+        sortContactsByPriority(
+          property.owners?.flatMap(owner => 
+            owner.contacts?.filter(contact => contact.phone && contact.phone.trim() !== '').map(contact => ({
+              id: contact.id,
+              ownerId: contact.owner_id,
+              phone: contact.phone || '',
+              email: contact.email || '',
+              type: contact.type,
+              label: contact.label,
+              priority: contact.priority,
+              notes: contact.notes,
+              created_at: contact.created_at,
+              updated_at: contact.updated_at,
+            })) || []
+          ) || []
+        )
       )
       setEmailContacts(
-        property.owners?.flatMap(owner => 
-          owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
-            id: contact.id,
-            ownerId: contact.owner_id,
-            email: contact.email || '',
-            phone: contact.phone || '',
-            type: contact.type,
-            label: contact.label,
-            priority: contact.priority,
-            notes: contact.notes,
-            created_at: contact.created_at,
-            updated_at: contact.updated_at,
-          })) || []
-        ) || []
+        sortContactsByPriority(
+          property.owners?.flatMap(owner => 
+            owner.contacts?.filter(contact => contact.email && contact.email.trim() !== '').map(contact => ({
+              id: contact.id,
+              ownerId: contact.owner_id,
+              email: contact.email || '',
+              phone: contact.phone || '',
+              type: contact.type,
+              label: contact.label,
+              priority: contact.priority,
+              notes: contact.notes,
+              created_at: contact.created_at,
+              updated_at: contact.updated_at,
+            })) || []
+          ) || []
+        )
       )
       setNotes(
         property.notes?.map(note => ({
