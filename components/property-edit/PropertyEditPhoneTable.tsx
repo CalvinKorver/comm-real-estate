@@ -10,6 +10,8 @@ interface PhoneNumber extends PhoneTableItem {
   phone: string
   email?: string
   label?: PhoneLabel
+  created_at: Date | string
+  updated_at: Date | string
 }
 
 interface PropertyEditPhoneTableProps {
@@ -56,7 +58,7 @@ export function PropertyEditPhoneTable({
         editable: false,
       },
     ],
-    filterFn: (phone) => phone.phone && phone.phone.trim() !== '',
+    filterFn: (phone) => Boolean(phone.phone && phone.phone.trim()),
     createNewItem: () => ({
       id: '',
       ownerId: '',

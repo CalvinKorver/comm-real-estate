@@ -83,6 +83,11 @@ export function BasePropertyEditTable<T extends BaseTableItem>({
     setNewItem(prev => ({ ...prev, [field]: value }))
   }
 
+  const updateNewItemForRenderer = (index: number, field: string, value: any) => {
+    // For new items, ignore the index parameter and just update the field
+    updateNewItem(field, value)
+  }
+
   return (
     <div className="space-y-4">
       <div className="overflow-hidden">
@@ -142,7 +147,7 @@ export function BasePropertyEditTable<T extends BaseTableItem>({
                       <Plus className="h-4 w-4" />
                     </Button>
                   ) : column.editable !== false ? (
-                    column.renderer(newItem, -1, updateNewItem, [newItem])
+                    column.renderer(newItem, -1, updateNewItemForRenderer, [newItem])
                   ) : (
                     <div className="text-muted-foreground text-sm">
                       {/* Empty cell for non-editable columns in add row */}

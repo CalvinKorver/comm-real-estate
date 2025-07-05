@@ -35,8 +35,8 @@ interface PhoneNumber {
   label?: PhoneLabel
   priority: number
   notes?: string
-  created_at: Date
-  updated_at: Date
+  created_at: Date | string
+  updated_at: Date | string
 }
 
 interface EmailContact {
@@ -48,13 +48,16 @@ interface EmailContact {
   label?: PhoneLabel
   priority: number
   notes?: string
-  created_at: Date
-  updated_at: Date
+  created_at: Date | string
+  updated_at: Date | string
 }
 
 interface Note {
   id: string
   content: string
+  type: string
+  priority: number
+  notes?: string
   created_at: string | Date
   updated_at: string | Date
 }
@@ -108,6 +111,9 @@ export function PropertyEditDialog({
     property.notes?.map(note => ({
       id: note.id,
       content: note.content,
+      type: 'note',
+      priority: 0,
+      notes: '',
       created_at: note.created_at,
       updated_at: note.updated_at,
     })) || []
@@ -160,6 +166,9 @@ export function PropertyEditDialog({
         property.notes?.map(note => ({
           id: note.id,
           content: note.content,
+          type: 'note',
+          priority: 0,
+          notes: '',
           created_at: note.created_at,
           updated_at: note.updated_at,
         })) || []
@@ -274,7 +283,7 @@ export function PropertyEditDialog({
               priority: contact.priority,
               notes: contact.notes,
               owner_id: contact.ownerId,
-              created_at: contact.created_at,
+              created_at: new Date(contact.created_at),
               updated_at: new Date()
             }))
           }
@@ -283,7 +292,7 @@ export function PropertyEditDialog({
           id: note.id,
           content: note.content,
           property_id: property.id,
-          created_at: note.created_at,
+          created_at: new Date(note.created_at),
           updated_at: new Date()
         }))
       }

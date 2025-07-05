@@ -10,6 +10,8 @@ interface EmailContact extends EmailTableItem {
   email: string
   phone?: string
   label?: PhoneLabel
+  created_at: Date | string
+  updated_at: Date | string
 }
 
 interface PropertyEditEmailTableProps {
@@ -56,7 +58,7 @@ export function PropertyEditEmailTable({
         editable: false,
       },
     ],
-    filterFn: (contact) => contact.email && contact.email.trim() !== '',
+    filterFn: (contact) => Boolean(contact.email && contact.email.trim()),
     createNewItem: () => ({
       id: '',
       ownerId: '',

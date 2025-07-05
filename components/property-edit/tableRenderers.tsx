@@ -6,8 +6,8 @@ import type { PhoneLabel } from '@/types/property'
 
 // Built-in renderers for common column types
 
-export const textRenderer = (field: string, placeholder?: string, type?: string): ColumnRenderer => 
-  (item, index, updateItem) => {
+export const textRenderer = (field: string, placeholder?: string, type?: string): ColumnRenderer => {
+  const TextRenderer = (item: any, index: number, updateItem: (index: number, field: string, value: any) => void) => {
     const isAddRow = index === -1
     const value = item[field] || ''
     
@@ -21,11 +21,7 @@ export const textRenderer = (field: string, placeholder?: string, type?: string)
       <Input
         value={value}
         onChange={(e) => {
-          if (isAddRow) {
-            updateItem(field, e.target.value)
-          } else {
-            updateItem(index, field, e.target.value)
-          }
+          updateItem(index, field, e.target.value)
         }}
         placeholder={placeholder}
         type={type}
@@ -34,9 +30,12 @@ export const textRenderer = (field: string, placeholder?: string, type?: string)
       />
     )
   }
+  TextRenderer.displayName = 'TextRenderer'
+  return TextRenderer
+}
 
-export const textareaRenderer = (field: string, placeholder?: string, rows: number = 3): ColumnRenderer => 
-  (item, index, updateItem) => {
+export const textareaRenderer = (field: string, placeholder?: string, rows: number = 3): ColumnRenderer => {
+  const TextareaRenderer = (item: any, index: number, updateItem: (index: number, field: string, value: any) => void) => {
     const isAddRow = index === -1
     const value = item[field] || ''
     const isNewItem = item.id?.startsWith('temp-')
@@ -50,11 +49,7 @@ export const textareaRenderer = (field: string, placeholder?: string, rows: numb
       <Textarea
         value={value}
         onChange={(e) => {
-          if (isAddRow) {
-            updateItem(field, e.target.value)
-          } else {
-            updateItem(index, field, e.target.value)
-          }
+          updateItem(index, field, e.target.value)
         }}
         placeholder={placeholder}
         rows={rows}
@@ -63,9 +58,12 @@ export const textareaRenderer = (field: string, placeholder?: string, rows: numb
       />
     )
   }
+  TextareaRenderer.displayName = 'TextareaRenderer'
+  return TextareaRenderer
+}
 
-export const selectRenderer = (field: string, options: SelectOption[], placeholder?: string): ColumnRenderer => 
-  (item, index, updateItem) => {
+export const selectRenderer = (field: string, options: SelectOption[], placeholder?: string): ColumnRenderer => {
+  const SelectRenderer = (item: any, index: number, updateItem: (index: number, field: string, value: any) => void) => {
     const isAddRow = index === -1
     const value = item[field] || ''
     
@@ -73,11 +71,7 @@ export const selectRenderer = (field: string, options: SelectOption[], placehold
       <Select
         value={value}
         onValueChange={(newValue) => {
-          if (isAddRow) {
-            updateItem(field, newValue)
-          } else {
-            updateItem(index, field, newValue)
-          }
+          updateItem(index, field, newValue)
         }}
         disabled={item.type === 'deleted'}
       >
@@ -94,9 +88,12 @@ export const selectRenderer = (field: string, options: SelectOption[], placehold
       </Select>
     )
   }
+  SelectRenderer.displayName = 'SelectRenderer'
+  return SelectRenderer
+}
 
-export const dateRenderer = (field: string): ColumnRenderer => 
-  (item) => {
+export const dateRenderer = (field: string): ColumnRenderer => {
+  const DateRenderer = (item: any) => {
     const date = item[field]
     if (!date) return null
     
@@ -106,6 +103,9 @@ export const dateRenderer = (field: string): ColumnRenderer =>
       </p>
     )
   }
+  DateRenderer.displayName = 'DateRenderer'
+  return DateRenderer
+}
 
 // Label options for phone/email tables
 export const labelOptions: SelectOption[] = [
