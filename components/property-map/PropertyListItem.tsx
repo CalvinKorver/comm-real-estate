@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from 'react'
 import type { Property } from '@/types/property'
 import { Ellipsis, Edit, User } from 'lucide-react'
+import { sortContactsByPriority } from '@/utils/contactSorting'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -75,10 +76,12 @@ const formatFullDateTime = (dateString: string | Date) => {
 const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ property, selected, onClick, onPropertyUpdated }, ref) => {
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  // Get up to 3 phone contacts from all owners
-  const phoneContacts = property.owners?.flatMap(owner => 
-    owner.contacts?.filter(c => c.phone) || []
-  ).slice(0, 3) || [];
+  // Get up to 3 phone contacts from all owners, sorted by priority
+  const phoneContacts = sortContactsByPriority(
+    property.owners?.flatMap(owner => 
+      owner.contacts?.filter(c => c.phone) || []
+    ) || []
+  ).slice(0, 3);
 
   // Get up to 2 notes
   const displayNotes = property.notes?.slice(0, 2) || [];

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Property } from '@/types/property'
 import type { PropertyMapViewProps, Coordinates, MapStyle } from '@/types/map'
 import { MAP_CENTERS, ZOOM_LEVELS, MAP_STYLES } from '@/lib/map-constants'
@@ -27,10 +27,13 @@ function PropertyMapViewContent({
   const { setCenter, setZoom, selectProperty, highlightProperty } = useMapActions()
   const { center: currentCenter, zoom: currentZoom } = useMapState()
 
+  // Memoize properties to prevent unnecessary re-renders
+  const memoizedProperties = useMemo(() => initialProperties, [initialProperties])
+  
   // Update local properties when initialProperties changes
   useEffect(() => {
-    setProperties(initialProperties)
-  }, [initialProperties])
+    setProperties(memoizedProperties)
+  }, [memoizedProperties])
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property)
@@ -40,22 +43,25 @@ function PropertyMapViewContent({
     selectProperty(property.id)
     highlightProperty(property.id)
     
-    // Only center map on the selected property if it has coordinates AND is not already visible
+    // Implement smart zoom/pan logic directly for side panel clicks
     if (property.coordinates) {
       const propertyCenter = {
         lat: property.coordinates.latitude,
         lng: property.coordinates.longitude
       }
       
-      // Simple check: if property is within a reasonable distance of current center, don't move
+      // Simple distance check for now - we'll optimize this later
       const latDiff = Math.abs(propertyCenter.lat - currentCenter.lat)
       const lngDiff = Math.abs(propertyCenter.lng - currentCenter.lng)
       
-      // If property is more than ~0.01 degrees away (roughly 1km), then center on it
+      // If property is far away, center on it
       if (latDiff > 0.01 || lngDiff > 0.01) {
         setCenter(propertyCenter)
+        // Set appropriate zoom level if too zoomed out
+        if (currentZoom < 10) {
+          setZoom(15)
+        }
       }
-      // Otherwise, just select the property without moving the map
     }
   }
 
@@ -102,6 +108,7 @@ function PropertyMapViewContent({
     // Call the parent callback if provided
     onPropertyUpdated?.(updatedProperty)
   }
+
 
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>

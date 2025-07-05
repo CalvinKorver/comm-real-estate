@@ -56,17 +56,6 @@ export function MainNav({ items }: MainNavProps) {
 
       {/* Add user profile and theme toggle to the right side */}
       <div className="flex items-center space-x-4">
-        {session && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleSignOut}
-            className="text-muted-foreground hover:text-foreground"
-            title="Sign out"
-          >
-
-          </Button>
-        )}
         <Button 
         className="h-8 w-24 bg-green-600 rounded-full hover:bg-green-700 text-white text-muted-foreground hover:text-foreground"
           variant="ghost"

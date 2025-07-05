@@ -3,36 +3,36 @@
 import { BasePropertyEditTable } from './BasePropertyEditTable'
 import { textRenderer, selectRenderer, labelOptions } from './tableRenderers'
 import type { Property, PhoneLabel } from '@/types/property'
-import type { PhoneTableItem, TableConfig } from '@/types/tableConfig'
+import type { EmailTableItem, TableConfig } from '@/types/tableConfig'
 
-interface PhoneNumber extends PhoneTableItem {
+interface EmailContact extends EmailTableItem {
   ownerId: string
-  phone: string
-  email?: string
+  email: string
+  phone?: string
   label?: PhoneLabel
   created_at: Date | string
   updated_at: Date | string
 }
 
-interface PropertyEditPhoneTableProps {
+interface PropertyEditEmailTableProps {
   property: Property
-  phoneNumbers: PhoneNumber[]
-  onPhoneNumbersChange: (phoneNumbers: PhoneNumber[]) => void
+  emailContacts: EmailContact[]
+  onEmailContactsChange: (emailContacts: EmailContact[]) => void
 }
 
-export function PropertyEditPhoneTable({ 
+export function PropertyEditEmailTable({ 
   property, 
-  phoneNumbers, 
-  onPhoneNumbersChange 
-}: PropertyEditPhoneTableProps) {
+  emailContacts, 
+  onEmailContactsChange 
+}: PropertyEditEmailTableProps) {
   
-  const phoneTableConfig: TableConfig<PhoneNumber> = {
+  const emailTableConfig: TableConfig<EmailContact> = {
     columns: [
       {
-        key: 'phone',
-        header: 'Phone',
+        key: 'email',
+        header: 'Email',
         width: '25%',
-        renderer: textRenderer('phone', 'New phone number'),
+        renderer: textRenderer('email', 'New email address', 'email'),
         editable: true,
         required: true,
       },
@@ -58,27 +58,27 @@ export function PropertyEditPhoneTable({
         editable: false,
       },
     ],
-    filterFn: (phone) => Boolean(phone.phone && phone.phone.trim()),
+    filterFn: (contact) => Boolean(contact.email && contact.email.trim()),
     createNewItem: () => ({
       id: '',
       ownerId: '',
-      phone: '',
       email: '',
-      type: 'Mobile',
+      phone: '',
+      type: 'Email',
       label: undefined,
       notes: '',
       priority: 0,
       created_at: new Date(),
       updated_at: new Date(),
     }),
-    validateNewItem: (item) => Boolean(item.phone && item.phone.trim()),
+    validateNewItem: (item) => Boolean(item.email && item.email.trim()),
   }
 
   return (
     <BasePropertyEditTable
-      items={phoneNumbers}
-      onItemsChange={onPhoneNumbersChange}
-      config={phoneTableConfig}
+      items={emailContacts}
+      onItemsChange={onEmailContactsChange}
+      config={emailTableConfig}
       property={property}
     />
   )

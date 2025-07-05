@@ -75,7 +75,7 @@ export default function PropertiesPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1) // Reset to first page when searching
-    fetchProperties(1, search)
+    // fetchProperties will be called by useEffect when currentPage changes
   }
 
   const handlePageChange = (newPage: number) => {

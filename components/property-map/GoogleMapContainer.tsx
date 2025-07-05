@@ -69,6 +69,7 @@ export default function GoogleMapContainer({
   // Use context highlighted property ID if available, otherwise fall back to prop
   const effectiveHighlightedPropertyId = contextHighlightedPropertyId || highlightedPropertyId
 
+
   // Helper function to create marker icon
   const createMarkerIcon = (isSelected: boolean) => {
     return {
@@ -91,7 +92,7 @@ export default function GoogleMapContainer({
   }
 
   // Helper function to create markers for properties with coordinates
-  const createMarkers = useCallback((map: google.maps.Map, properties: Property[]) => {
+  const createMarkers = useCallback((map: google.maps.Map, properties: Property[], shouldFitBounds: boolean = false) => {
     // Clear existing markers
     markersRef.current.forEach(marker => marker.setMap(null))
     markersRef.current = []
@@ -100,10 +101,9 @@ export default function GoogleMapContainer({
     // Filter properties that have coordinates
     const propertiesWithCoordinates = properties.filter(property => property.coordinates)
 
-    // Create markers for each property
+    // Create markers for each property (without highlighting - that's handled separately)
     propertiesWithCoordinates.forEach(property => {
       if (property.coordinates) {
-        const isSelected = effectiveHighlightedPropertyId === property.id
         const marker = new google.maps.Marker({
           position: {
             lat: property.coordinates.latitude,
@@ -111,7 +111,7 @@ export default function GoogleMapContainer({
           },
           map: map,
           title: `${property.street_address}, ${property.city}`,
-          icon: createMarkerIcon(isSelected)
+          icon: createMarkerIcon(false) // Start with unselected icon
         })
 
         // Add click listener to marker
@@ -124,15 +124,15 @@ export default function GoogleMapContainer({
       }
     })
 
-    // Fit map bounds to show all markers if there are any
-    if (markersRef.current.length > 0) {
+    // Only fit map bounds on initial load, not on subsequent updates
+    if (shouldFitBounds && markersRef.current.length > 0) {
       const bounds = new google.maps.LatLngBounds()
       markersRef.current.forEach(marker => {
         bounds.extend(marker.getPosition()!)
       })
       map.fitBounds(bounds)
     }
-  }, [effectiveHighlightedPropertyId, onMarkerClick])
+  }, [onMarkerClick])
 
   // Helper function to update marker highlighting
   const updateMarkerHighlighting = useCallback(() => {
@@ -144,6 +144,9 @@ export default function GoogleMapContainer({
 
   // Initialize map
   useEffect(() => {
+    // Capture ref values for cleanup
+    const markersMapForCleanup = markersMapRef.current
+    
     const initializeMap = async () => {
       if (!mapRef.current) {
         const errorMsg = 'Map container not found'
@@ -193,13 +196,18 @@ export default function GoogleMapContainer({
         // Additional check to ensure map is fully rendered
         await new Promise(resolve => setTimeout(resolve, 100))
 
-        // Create markers for properties
-        createMarkers(map, properties)
+        // Create markers for properties with initial bounds fitting
+        createMarkers(map, properties, true)
+        
+        // Apply initial highlighting
+        updateMarkerHighlighting()
 
         // Set up map event listeners AFTER map is ready
         if (onMapReady) {
           onMapReady(map)
         }
+
+
 
         if (onMapClick) {
           map.addListener('click', (event: google.maps.MapMouseEvent) => {
@@ -287,6 +295,7 @@ export default function GoogleMapContainer({
         }
 
         setLoading(false)
+
       } catch (err) {
         console.error('Error initializing map:', err)
         const errorMessage = GoogleMapsErrorHandler.handleAPIError(err)
@@ -303,18 +312,19 @@ export default function GoogleMapContainer({
       // Clear markers
       markersRef.current.forEach(marker => marker.setMap(null))
       markersRef.current = []
-      const localMarkersMapRef = markersMapRef.current;
-      localMarkersMapRef.clear()
+      markersMapForCleanup.clear()
       setMapInstance(null)
     }
-  }, [onMapBoundsChanged, onMapCenterChange, onMapClick, onMapError, onMapReady, onMapZoomChange, options, properties, setCenter, setError, setLoading, setMapInstance, setZoom, style, zoom, center, createMarkers])
+  }, []) // Empty dependency array intentional - this effect should only run once on mount to prevent infinite re-renders
 
-  // Update markers when properties change
+  // Update markers when properties change (without fitting bounds)
   useEffect(() => {
     if (mapInstance) {
-      createMarkers(mapInstance, properties)
+      createMarkers(mapInstance, properties, false)
+      // Apply highlighting after markers are created
+      updateMarkerHighlighting()
     }
-  }, [properties, mapInstance, createMarkers])
+  }, [properties, mapInstance, createMarkers, updateMarkerHighlighting])
 
   // Update marker highlighting when highlightedPropertyId changes
   useEffect(() => {
@@ -322,6 +332,7 @@ export default function GoogleMapContainer({
       updateMarkerHighlighting()
     }
   }, [effectiveHighlightedPropertyId, mapInstance, updateMarkerHighlighting])
+
 
   // Update map center and zoom when context state changes
   useEffect(() => {

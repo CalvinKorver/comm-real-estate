@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Property } from '@/types/property'
 import { PANEL_WIDTHS } from '@/lib/map-constants'
+import { sortContactsByPriority } from '@/utils/contactSorting'
 
 interface PropertyDetailsPanelProps {
   property: Property
@@ -141,8 +142,10 @@ export default function PropertyDetailsPanel({
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Contacts</h4>
                   <div className="space-y-2">
-                    {property.owners
-                      .flatMap(owner => owner.contacts || [])
+                    {sortContactsByPriority(
+                      property.owners
+                        .flatMap(owner => owner.contacts || [])
+                    )
                       .slice(0, 3)
                       .map((contact) => (
                         <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
@@ -275,7 +278,7 @@ export default function PropertyDetailsPanel({
                         <div>
                           <p className="text-sm text-muted-foreground mb-2">Additional Contacts</p>
                           <div className="space-y-2">
-                            {owner.contacts.map((contact) => (
+                            {sortContactsByPriority(owner.contacts).map((contact) => (
                               <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
                                 {contact.phone && (
                                   <p className="text-sm">
