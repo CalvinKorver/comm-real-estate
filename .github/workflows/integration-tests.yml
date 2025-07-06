@@ -46,6 +46,8 @@ jobs:
       - name: Run database migrations
         run: npx prisma migrate deploy
         env:
+          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?pgbouncer=true&connect_timeout=15
+          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
           DATABASE_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
 
       - name: Run integration tests
