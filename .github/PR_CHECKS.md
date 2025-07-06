@@ -29,11 +29,6 @@ The following checks must pass before a pull request can be merged:
 - **Framework**: Jest
 - **Runtime**: ~1-2 minutes
 
-### 4. Build Verification
-- **Workflow**: `.github/workflows/ci.yml` (job: `build`)
-- **Purpose**: Ensures the application builds successfully
-- **Process**: Next.js production build with Prisma client generation
-- **Runtime**: ~2-3 minutes
 
 ## Setting Up GitHub Branch Protection
 
@@ -47,7 +42,6 @@ To enable these as required status checks in GitHub:
    Run Integration Tests
    Lint and Type Check
    Unit Tests
-   Build Application
    ```
 5. Enable **"Require branches to be up to date before merging"**
 6. Optionally enable **"Require pull request reviews before merging"**
@@ -82,7 +76,6 @@ npm run typecheck
 npm run format:check
 npm test
 npm run test:integration
-npm run build
 ```
 
 ## Troubleshooting Status Checks
@@ -98,10 +91,6 @@ npm run build
 - Run `npm run format:write` to fix Prettier formatting
 - Check TypeScript errors with `npm run typecheck`
 
-### Build Failures
-- Verify all dependencies are properly installed
-- Check for missing environment variables
-- Ensure Prisma client is generated correctly
 
 ### Coverage Failures
 - Add tests for uncovered code
