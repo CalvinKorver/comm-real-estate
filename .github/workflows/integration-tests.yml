@@ -1,0 +1,72 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: comm_real_estate_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
+
+      - name: Run integration tests
+        run: npm run test:integration:ci
+        env:
+          CI: true
+          NODE_ENV: test
+          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?pgbouncer=true&connect_timeout=15
+          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret-key-for-ci
+          DISABLE_GEOCODING: true
+          DISABLE_EMAIL_SENDING: true
+          DISABLE_S3_UPLOAD: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
