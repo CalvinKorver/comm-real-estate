@@ -13,6 +13,13 @@ export default async function globalSetup() {
     error: result.error?.message
   })
   
+  // Skip Docker setup in CI environment
+  if (process.env.CI) {
+    console.log('🔧 CI environment detected - skipping Docker setup')
+    console.log('✅ Using GitHub Actions PostgreSQL service')
+    return
+  }
+  
   console.log('🐳 Starting test database container...')
   
   try {
@@ -42,6 +49,12 @@ export default async function globalSetup() {
 }
 
 export async function globalTeardown() {
+  // Skip Docker cleanup in CI environment
+  if (process.env.CI) {
+    console.log('🔧 CI environment detected - skipping Docker cleanup')
+    return
+  }
+  
   console.log('🧹 Cleaning up test database container...')
   
   try {
