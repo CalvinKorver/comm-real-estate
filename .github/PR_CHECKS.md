@@ -101,7 +101,7 @@ npm run test:integration
 
 - **Integration Tests**: `.github/workflows/integration-tests.yml`
 - **CI Pipeline**: `.github/workflows/ci.yml`
-- **Test Configuration**: `vitest.config.integration.ci.ts`
-- **Test Setup**: `tests/setup/integration-setup-ci.ts`
+- **Test Configuration**: `vitest.config.integration.mjs`
+- **Test Setup**: `tests/setup/integration-setup.ts` (with CI detection)
 
 These workflows ensure that every pull request maintains the high quality standards of the codebase and prevents regressions in functionality.
