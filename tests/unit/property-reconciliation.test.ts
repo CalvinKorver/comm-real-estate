@@ -1,25 +1,26 @@
+import { vi } from 'vitest';
 import { PropertyReconciliationService, PropertyData, PropertyMatch } from '@/lib/services/property-reconciliation';
+import { prisma } from '@/lib/shared/prisma';
 
 // Mock Prisma
-jest.mock('@/lib/shared/prisma', () => ({
+vi.mock('@/lib/shared/prisma', () => ({
   prisma: {
     property: {
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
 
 describe('Property Reconciliation Service', () => {
   let service: PropertyReconciliationService;
-  let mockPrisma: any;
+  const mockPrisma = prisma as any;
 
   beforeEach(() => {
     service = new PropertyReconciliationService();
-    mockPrisma = require('@/lib/shared/prisma').prisma;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('normalizeAddress', () => {

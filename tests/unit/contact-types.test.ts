@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { createContactsFromCSV, CONTACT_TYPES, ContactType } from '@/types/contact';
 
 describe('Contact Types', () => {

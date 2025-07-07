@@ -1,14 +1,15 @@
+import { vi } from 'vitest';
 import { processCSVRow, validateCSVRow, createContactsForOwner, CSVRow } from '@/lib/services/csv-processor';
 import { createContactsFromCSV } from '@/types/contact';
 
 // Mock the contact creation function
-jest.mock('@/types/contact', () => ({
-  createContactsFromCSV: jest.fn()
+vi.mock('@/types/contact', () => ({
+  createContactsFromCSV: vi.fn()
 }));
 
 describe('CSV Processor', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('processCSVRow', () => {
@@ -387,7 +388,7 @@ describe('CSV Processor', () => {
         { phone: '206-555-0101', type: 'Cell', priority: 1, ownerId }
       ];
 
-      (createContactsFromCSV as jest.Mock).mockReturnValue(mockContacts);
+      (createContactsFromCSV as any).mockReturnValue(mockContacts);
 
       const result = createContactsForOwner(ownerId, csvRow);
 

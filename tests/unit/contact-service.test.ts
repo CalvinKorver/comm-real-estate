@@ -1,25 +1,26 @@
+import { vi } from 'vitest';
 import { ContactService, Contact, ContactUpdateInput } from '@/lib/services/contact-service';
 import { CreateContactInput } from '@/types/contact';
+import { prisma } from '@/lib/shared/prisma';
 
 // Mock Prisma
-jest.mock('@/lib/shared/prisma', () => ({
+vi.mock('@/lib/shared/prisma', () => ({
   prisma: {
     contact: {
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      findMany: jest.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findMany: vi.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   },
 }));
 
 describe('Contact Service', () => {
-  let mockPrisma: any;
+  const mockPrisma = prisma as any;
 
   beforeEach(() => {
-    mockPrisma = require('@/lib/shared/prisma').prisma;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('createContact', () => {
@@ -335,12 +336,12 @@ describe('Contact Service', () => {
         updated_at: new Date()
       };
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return await callback({
           contact: {
-            create: jest.fn().mockResolvedValue(mockCreatedContact),
-            update: jest.fn(),
-            delete: jest.fn()
+            create: vi.fn().mockResolvedValue(mockCreatedContact),
+            update: vi.fn(),
+            delete: vi.fn()
           }
         });
       });
@@ -391,12 +392,12 @@ describe('Contact Service', () => {
         updated_at: new Date()
       };
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return await callback({
           contact: {
-            create: jest.fn(),
-            update: jest.fn().mockResolvedValue(mockUpdatedContact),
-            delete: jest.fn()
+            create: vi.fn(),
+            update: vi.fn().mockResolvedValue(mockUpdatedContact),
+            delete: vi.fn()
           }
         });
       });
@@ -432,12 +433,12 @@ describe('Contact Service', () => {
         }
       ];
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return await callback({
           contact: {
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn().mockResolvedValue({ id: 'contact-1' })
+            create: vi.fn(),
+            update: vi.fn(),
+            delete: vi.fn().mockResolvedValue({ id: 'contact-1' })
           }
         });
       });
@@ -499,12 +500,12 @@ describe('Contact Service', () => {
         updated_at: new Date()
       };
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return await callback({
           contact: {
-            create: jest.fn().mockResolvedValue(mockCreatedContact),
-            update: jest.fn().mockResolvedValue(mockUpdatedContact),
-            delete: jest.fn().mockResolvedValue({ id: 'contact-2' })
+            create: vi.fn().mockResolvedValue(mockCreatedContact),
+            update: vi.fn().mockResolvedValue(mockUpdatedContact),
+            delete: vi.fn().mockResolvedValue({ id: 'contact-2' })
           }
         });
       });
@@ -548,11 +549,11 @@ describe('Contact Service', () => {
         updated_at: new Date()
       };
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return await callback({
           contact: {
-            create: jest.fn().mockResolvedValue(mockCreatedContact),
-            update: jest.fn().mockResolvedValue({
+            create: vi.fn().mockResolvedValue(mockCreatedContact),
+            update: vi.fn().mockResolvedValue({
               id: 'contact-1',
               phone: '206-555-0101',
               email: null,
@@ -563,7 +564,7 @@ describe('Contact Service', () => {
               created_at: new Date(),
               updated_at: new Date()
             }),
-            delete: jest.fn()
+            delete: vi.fn()
           }
         });
       });

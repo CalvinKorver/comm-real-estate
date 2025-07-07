@@ -1,34 +1,35 @@
+import { vi } from 'vitest';
 import { processCSVUpload, suggestColumnMapping, extractCSVHeaders } from '@/lib/services/csv-upload-processor';
 import { CoordinateService } from '@/lib/services/coordinate-service';
 import { PropertyReconciliationService } from '@/lib/services/property-reconciliation';
 import { OwnerDeduplicationService } from '@/lib/services/owner-deduplication';
 
 // Mock the services
-jest.mock('@/lib/services/coordinate-service');
-jest.mock('@/lib/services/property-reconciliation');
-jest.mock('@/lib/services/owner-deduplication');
-jest.mock('@/lib/shared/prisma', () => ({
+vi.mock('@/lib/services/coordinate-service');
+vi.mock('@/lib/services/property-reconciliation');
+vi.mock('@/lib/services/owner-deduplication');
+vi.mock('@/lib/shared/prisma', () => ({
   prisma: {}
 }));
 
 describe('CSV Upload Processor', () => {
   const mockCoordinateService = {
-    getOrCreateCoordinates: jest.fn()
+    getOrCreateCoordinates: vi.fn()
   };
   const mockPropertyReconciliationService = {
-    processProperty: jest.fn()
+    processProperty: vi.fn()
   };
   const mockOwnerDeduplicationService = {
-    processOwner: jest.fn()
+    processOwner: vi.fn()
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock service constructors
-    (CoordinateService as jest.Mock).mockImplementation(() => mockCoordinateService);
-    (PropertyReconciliationService as jest.Mock).mockImplementation(() => mockPropertyReconciliationService);
-    (OwnerDeduplicationService as jest.Mock).mockImplementation(() => mockOwnerDeduplicationService);
+    (CoordinateService as any).mockImplementation(() => mockCoordinateService);
+    (PropertyReconciliationService as any).mockImplementation(() => mockPropertyReconciliationService);
+    (OwnerDeduplicationService as any).mockImplementation(() => mockOwnerDeduplicationService);
   });
 
   describe('processCSVUpload - Happy Path', () => {
