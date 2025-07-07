@@ -33,10 +33,13 @@ export default async function globalSetup() {
     
     // Run Prisma migrations on the test database
     console.log('🔄 Running Prisma migrations on test database...')
+    const localDbUrl = 'postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15'
     await execAsync('npx prisma migrate deploy', {
       env: {
         ...process.env,
-        DATABASE_URL: process.env.POSTGRES_URL_NON_POOLING,
+        DATABASE_URL: localDbUrl,
+        POSTGRES_PRISMA_URL: localDbUrl,
+        POSTGRES_URL_NON_POOLING: localDbUrl,
       }
     })
     

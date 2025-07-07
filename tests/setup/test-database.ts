@@ -5,17 +5,21 @@ import { PrismaClient } from '../../generated/prisma'
  */
 export function getTestPrismaClient() {
   // In CI environment, use environment variables, otherwise use local Docker database
-  const databaseUrl = process.env.CI 
-    ? process.env.POSTGRES_URL_NON_POOLING
-    : 'postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15'
+  const localDbUrl = 'postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15'
   
-  return new PrismaClient({
-    datasources: {
-      db: {
-        url: databaseUrl
+  if (process.env.CI) {
+    // Use CI environment variables (already set at job level)
+    return new PrismaClient()
+  } else {
+    // Use local Docker database
+    return new PrismaClient({
+      datasources: {
+        db: {
+          url: localDbUrl
+        }
       }
-    }
-  })
+    })
+  }
 }
 
 /**

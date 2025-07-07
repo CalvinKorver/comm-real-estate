@@ -50,10 +50,11 @@ To enable these as required status checks in GitHub:
 
 ### Integration Tests
 - **Database**: PostgreSQL 15 service container
-- **Environment**: Complete test environment with all required environment variables
-- **Migrations**: Automatic database schema setup
-- **Isolation**: Fresh database for each test run
+- **Environment**: Compatible with both Vercel (POSTGRES_PRISMA_URL) and standard (DATABASE_URL) setups
+- **Schema Setup**: Uses `prisma db push` for fast CI database initialization
+- **Isolation**: Fresh database for each test run with automatic reset
 - **Framework**: Vitest with custom integration setup
+- **Validation**: Environment variable validation with proper error handling
 
 ### Code Quality Checks
 - **ESLint**: Next.js and TypeScript rules
