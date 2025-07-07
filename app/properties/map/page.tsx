@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
-import { Property } from '@/types/property'
-import PropertyMapView from '@/components/property-map/PropertyMapView'
-import { useSearch } from '@/contexts/SearchContext'
+import { useCallback, useEffect, useState } from "react"
+import { useSearch } from "@/contexts/SearchContext"
+
+import { Property } from "@/types/property"
+import PropertyMapView from "@/components/property-map/PropertyMapView"
 
 interface PaginationData {
   currentPage: number
@@ -19,56 +20,68 @@ export default function PropertiesMapPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState<PaginationData | null>(null)
-  
-  const { search, setSearch, onSearchChange, setIsSearchEnabled, setOnSearchSubmit } = useSearch()
+
+  const {
+    search,
+    setSearch,
+    onSearchChange,
+    setIsSearchEnabled,
+    setOnSearchSubmit,
+  } = useSearch()
 
   const fetchProperties = useCallback(async (searchQuery: string = "") => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       // Build query parameters
       const params = new URLSearchParams({
-        limit: '20' // Get 20 properties for map view
+        limit: "20", // Get 20 properties for map view
       })
-      
+
       if (searchQuery) {
-        params.append('search', searchQuery)
+        params.append("search", searchQuery)
       }
-      
+
       // Fetch properties for the map view
       const response = await fetch(`/api/properties?${params}`)
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch properties')
+        throw new Error("Failed to fetch properties")
       }
-      
+
       const data = await response.json()
-      console.log("Map: Fetched properties for map view:", data.properties.length)
-      
+      console.log(
+        "Map: Fetched properties for map view:",
+        data.properties.length
+      )
+
       setProperties(data.properties)
       setPagination(data.pagination)
     } catch (error) {
-      console.error('Map: Failed to load properties:', error)
-      setError('Failed to load properties for map view')
+      console.error("Map: Failed to load properties:", error)
+      setError("Failed to load properties for map view")
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   // Handle search form submission
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    fetchProperties(search)
-  }, [fetchProperties, search])
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      fetchProperties(search)
+    },
+    [fetchProperties, search]
+  )
 
   // Handle property updates from the PropertyEditDialog
   const handlePropertyUpdated = useCallback((updatedProperty: Property) => {
     console.log("Map: Property updated:", updatedProperty.id)
-    
+
     // Update the property in the local state
-    setProperties(prevProperties => 
-      prevProperties.map(property => 
+    setProperties((prevProperties) =>
+      prevProperties.map((property) =>
         property.id === updatedProperty.id ? updatedProperty : property
       )
     )
@@ -77,10 +90,10 @@ export default function PropertiesMapPage() {
   useEffect(() => {
     // Enable search when component mounts
     setIsSearchEnabled(true)
-    
+
     // Set the search submit handler
     setOnSearchSubmit(handleSearch)
-    
+
     // Cleanup: disable search when component unmounts
     return () => {
       setIsSearchEnabled(false)
@@ -127,11 +140,23 @@ export default function PropertiesMapPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-red-500 mb-4">
-              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <svg
+                className="w-12 h-12 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
-            <p className="text-red-500 font-medium mb-2">Error loading properties</p>
+            <p className="text-red-500 font-medium mb-2">
+              Error loading properties
+            </p>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
               onClick={() => fetchProperties()}
@@ -149,17 +174,16 @@ export default function PropertiesMapPage() {
     <div className="flex flex-col h-[calc(100vh-var(--header-height))]">
       {/* Header */}
       <div className="bg-white border-b shrink-0">
-        <div className="w-full px-4 py-4">
-        </div>
+        <div className="w-full px-4 py-4"></div>
       </div>
 
       {/* Map View Component - Takes remaining height */}
       <div className="flex-1 min-h-0">
-        <PropertyMapView 
-          properties={properties} 
+        <PropertyMapView
+          properties={properties}
           onPropertyUpdated={handlePropertyUpdated}
         />
       </div>
     </div>
   )
-} 
+}

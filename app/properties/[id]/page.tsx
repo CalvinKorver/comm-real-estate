@@ -1,17 +1,22 @@
-import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/shared/prisma'
-import { PropertyImageGrid } from '@/components/PropertyImageGrid'
-import { PropertyDetails } from '@/components/PropertyDetails'
-import { PropertyImage, Owner } from '@/generated/prisma'
+import { notFound } from "next/navigation"
+import { Owner, PropertyImage } from "@/generated/prisma"
 
-export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+import { prisma } from "@/lib/shared/prisma"
+import { PropertyDetails } from "@/components/PropertyDetails"
+import { PropertyImageGrid } from "@/components/PropertyImageGrid"
+
+export default async function PropertyPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   const { id } = await params
   const property = await prisma.property.findUnique({
     where: { id },
     include: {
       images: true,
-      owners: true
-    }
+      owners: true,
+    },
   })
 
   if (!property) {
@@ -19,18 +24,19 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   }
 
   // Use the actual property images if they exist, otherwise use the default images
-  const propertyImages = property.images?.map((img: PropertyImage) => img.url) || []
+  const propertyImages =
+    property.images?.map((img: PropertyImage) => img.url) || []
 
   // Map property to match PropertyDetails prop type
   const propertyForDetails = {
     ...property,
-    owner: property.owners?.[0]?.id || '', // fallback for required 'owner' field
+    owner: property.owners?.[0]?.id || "", // fallback for required 'owner' field
     owners: (property.owners || []).map((owner: Owner) => ({
       ...owner,
-      street_address: owner.street_address || '',
-      city: owner.city || '',
-      zip_code: owner.zip_code || '',
-      phone_number: owner.phone_number || '', // Ensure phone_number is always a string
+      street_address: owner.street_address || "",
+      city: owner.city || "",
+      zip_code: owner.zip_code || "",
+      phone_number: owner.phone_number || "", // Ensure phone_number is always a string
     })),
     images: property.images || [],
   }

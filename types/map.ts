@@ -1,6 +1,6 @@
 // Map-specific TypeScript interfaces and types
 
-import { Property } from './property'
+import { Property } from "./property"
 
 // Basic coordinate types
 export interface Coordinates {
@@ -39,7 +39,7 @@ export interface MapInitializationOptions {
 }
 
 // Map style types
-export type MapStyle = 'light' | 'dark' | 'satellite' | 'terrain'
+export type MapStyle = "light" | "dark" | "satellite" | "terrain"
 
 // Panel layout types
 export interface PanelLayout {
@@ -71,7 +71,7 @@ export interface MarkerConfig {
   description?: string
   icon?: string
   color?: string
-  size?: 'small' | 'medium' | 'large'
+  size?: "small" | "medium" | "large"
   clickable?: boolean
   draggable?: boolean
 }
@@ -83,9 +83,21 @@ export interface MarkerSettings {
 }
 
 // Map state types
-export type LoadingState = 'initializing' | 'loading_api' | 'creating_map' | 'loading_markers' | 'ready' | 'error'
+export type LoadingState =
+  | "initializing"
+  | "loading_api"
+  | "creating_map"
+  | "loading_markers"
+  | "ready"
+  | "error"
 
-export type ErrorType = 'api_key_missing' | 'api_key_invalid' | 'network_error' | 'initialization_error' | 'container_error' | 'coordinates_error'
+export type ErrorType =
+  | "api_key_missing"
+  | "api_key_invalid"
+  | "network_error"
+  | "initialization_error"
+  | "container_error"
+  | "coordinates_error"
 
 export interface MapState {
   isLoading: boolean
@@ -97,7 +109,7 @@ export interface MapState {
 
 // Map interaction types
 export interface MapInteraction {
-  type: 'click' | 'hover' | 'drag' | 'zoom'
+  type: "click" | "hover" | "drag" | "zoom"
   coordinates?: Coordinates
   propertyId?: string
   data?: any
@@ -155,7 +167,7 @@ export interface PropertyListPanelProps {
 export interface PropertyMapViewProps {
   properties: Property[]
   className?: string
-  layout?: 'split' | 'stacked' | 'fullscreen'
+  layout?: "split" | "stacked" | "fullscreen"
   defaultCenter?: Coordinates
   defaultZoom?: number
   mapStyle?: MapStyle
@@ -195,10 +207,16 @@ declare global {
 // Map service types
 export interface MapService {
   initialize(): Promise<void>
-  createMap(container: HTMLElement, options: MapInitializationOptions): Promise<google.maps.Map>
+  createMap(
+    container: HTMLElement,
+    options: MapInitializationOptions
+  ): Promise<google.maps.Map>
   addMarker(map: google.maps.Map, marker: PropertyMarker): google.maps.Marker
   removeMarker(marker: google.maps.Marker): void
-  updateMarker(marker: google.maps.Marker, updates: Partial<PropertyMarker>): void
+  updateMarker(
+    marker: google.maps.Marker,
+    updates: Partial<PropertyMarker>
+  ): void
   fitBounds(map: google.maps.Map, bounds: Bounds): void
   panTo(map: google.maps.Map, center: Coordinates): void
   setZoom(map: google.maps.Map, zoom: number): void
@@ -254,7 +272,7 @@ export type {
   Coordinates as LatLng,
   MapConfig as MapOptions,
   PropertyMarker as Marker,
-  MapState as State
+  MapState as State,
 }
 
 /**
@@ -275,7 +293,7 @@ export interface MapViewConfig {
   zoom: number
   minZoom?: number
   maxZoom?: number
-  mapType?: 'roadmap' | 'satellite' | 'hybrid' | 'terrain'
+  mapType?: "roadmap" | "satellite" | "hybrid" | "terrain"
 }
 
 /**
@@ -315,4 +333,4 @@ export interface MapFilters {
     max: number
   }
   propertyTypes?: string[]
-} 
+}

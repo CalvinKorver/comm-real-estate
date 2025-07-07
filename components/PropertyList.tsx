@@ -1,15 +1,25 @@
-import React from 'react'
-import { Property } from '@/types/property'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React from "react"
+import Link from "next/link"
+
+import { Property } from "@/types/property"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 interface PropertyListProps {
   properties: Property[]
   isLoading?: boolean
 }
 
-const PropertyList = React.memo(function PropertyList({ properties, isLoading = false }: PropertyListProps) {
+const PropertyList = React.memo(function PropertyList({
+  properties,
+  isLoading = false,
+}: PropertyListProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -32,8 +42,12 @@ const PropertyList = React.memo(function PropertyList({ properties, isLoading = 
   if (properties.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-muted-foreground">No properties found</h3>
-        <p className="text-sm text-muted-foreground mt-2">Try adjusting your search criteria</p>
+        <h3 className="text-lg font-medium text-muted-foreground">
+          No properties found
+        </h3>
+        <p className="text-sm text-muted-foreground mt-2">
+          Try adjusting your search criteria
+        </p>
       </div>
     )
   }
@@ -53,11 +67,15 @@ const PropertyList = React.memo(function PropertyList({ properties, isLoading = 
               <p className="text-2xl font-bold text-foreground">
                 ${property.price.toLocaleString()}
               </p>
-              <p className="text-muted-foreground">{property.city}, {property.zip_code}</p>
+              <p className="text-muted-foreground">
+                {property.city}, {property.zip_code}
+              </p>
             </div>
-            
+
             <div className="flex items-center justify-between">
-              <p className="text-muted-foreground mt-1">${property.price.toLocaleString()}</p>
+              <p className="text-muted-foreground mt-1">
+                ${property.price.toLocaleString()}
+              </p>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{property.number_of_units} units</span>
                 {property.square_feet && (
@@ -71,7 +89,8 @@ const PropertyList = React.memo(function PropertyList({ properties, isLoading = 
 
             {property.owners && property.owners.length > 0 ? (
               <div className="text-sm text-muted-foreground">
-                {property.owners.length} owner{property.owners.length !== 1 ? 's' : ''}
+                {property.owners.length} owner
+                {property.owners.length !== 1 ? "s" : ""}
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">No owners</div>
@@ -79,14 +98,10 @@ const PropertyList = React.memo(function PropertyList({ properties, isLoading = 
 
             <div className="flex gap-2">
               <Button asChild variant="outline" className="flex-1">
-                <Link href={`/properties/${property.id}`}>
-                  View Details
-                </Link>
+                <Link href={`/properties/${property.id}`}>View Details</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1">
-                <Link href={`/properties/${property.id}/edit`}>
-                  Edit
-                </Link>
+                <Link href={`/properties/${property.id}/edit`}>Edit</Link>
               </Button>
             </div>
           </CardContent>
@@ -96,4 +111,4 @@ const PropertyList = React.memo(function PropertyList({ properties, isLoading = 
   )
 })
 
-export default PropertyList 
+export default PropertyList

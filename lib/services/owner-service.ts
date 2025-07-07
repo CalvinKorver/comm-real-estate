@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/shared/prisma'
+import { prisma } from "@/lib/shared/prisma"
 
 export interface OwnerSearchParams {
   id?: string
@@ -55,15 +55,15 @@ export class OwnerService {
       include: {
         properties: {
           include: {
-            coordinates: true
-          }
+            coordinates: true,
+          },
         },
-        contacts: true
-      }
+        contacts: true,
+      },
     })
 
     if (!owner) {
-      throw new Error('Owner not found')
+      throw new Error("Owner not found")
     }
 
     return owner
@@ -73,46 +73,46 @@ export class OwnerService {
    * Get owners with pagination and search
    */
   static async getOwners(params: OwnerSearchParams): Promise<OwnersResponse> {
-    const { page = 1, limit = 10, search = '' } = params
+    const { page = 1, limit = 10, search = "" } = params
 
     // Calculate pagination
     const skip = (page - 1) * limit
 
     // Build where clause for search
     let whereClause: any = {}
-    
+
     if (search) {
       whereClause = {
         OR: [
-          { first_name: { contains: search, mode: 'insensitive' } },
-          { last_name: { contains: search, mode: 'insensitive' } },
-          { full_name: { contains: search, mode: 'insensitive' } },
-          { llc_contact: { contains: search, mode: 'insensitive' } },
-        ]
+          { first_name: { contains: search, mode: "insensitive" } },
+          { last_name: { contains: search, mode: "insensitive" } },
+          { full_name: { contains: search, mode: "insensitive" } },
+          { llc_contact: { contains: search, mode: "insensitive" } },
+        ],
       }
     }
 
     // Get total count for pagination
     const totalCount = await prisma.owner.count({
-      where: whereClause
+      where: whereClause,
     })
 
     // Get paginated owners
     const owners = await prisma.owner.findMany({
       where: whereClause,
       orderBy: {
-        first_name: 'asc'
+        first_name: "asc",
       },
       include: {
         properties: {
           include: {
-            coordinates: true
-          }
+            coordinates: true,
+          },
         },
-        contacts: true
+        contacts: true,
       },
       skip,
-      take: limit
+      take: limit,
     })
 
     const totalPages = Math.ceil(totalCount / limit)
@@ -125,8 +125,8 @@ export class OwnerService {
         totalCount,
         limit,
         hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1
-      }
+        hasPreviousPage: page > 1,
+      },
     }
   }
 
@@ -136,11 +136,11 @@ export class OwnerService {
   static async getAllOwners() {
     return prisma.owner.findMany({
       orderBy: {
-        first_name: 'asc'
+        first_name: "asc",
       },
       include: {
-        contacts: true
-      }
+        contacts: true,
+      },
     })
   }
 
@@ -150,7 +150,7 @@ export class OwnerService {
   static async createOwner(data: OwnerCreateInput) {
     // Validate required fields
     if (!data.first_name || !data.last_name) {
-      throw new Error('First name and last name are required')
+      throw new Error("First name and last name are required")
     }
 
     const owner = await prisma.owner.create({
@@ -163,16 +163,16 @@ export class OwnerService {
         city: data.city,
         state: data.state,
         zip_code: data.zip_code,
-        phone_number: data.phone_number
+        phone_number: data.phone_number,
       },
       include: {
         properties: {
           include: {
-            coordinates: true
-          }
+            coordinates: true,
+          },
         },
-        contacts: true
-      }
+        contacts: true,
+      },
     })
 
     return owner
@@ -184,11 +184,11 @@ export class OwnerService {
   static async updateOwner(id: string, data: OwnerUpdateInput) {
     // Check if owner exists
     const existingOwner = await prisma.owner.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!existingOwner) {
-      throw new Error('Owner not found')
+      throw new Error("Owner not found")
     }
 
     const owner = await prisma.owner.update({
@@ -202,16 +202,16 @@ export class OwnerService {
         city: data.city,
         state: data.state,
         zip_code: data.zip_code,
-        phone_number: data.phone_number
+        phone_number: data.phone_number,
       },
       include: {
         properties: {
           include: {
-            coordinates: true
-          }
+            coordinates: true,
+          },
         },
-        contacts: true
-      }
+        contacts: true,
+      },
     })
 
     return owner
@@ -223,15 +223,15 @@ export class OwnerService {
   static async deleteOwner(id: string) {
     // Check if owner exists
     const existingOwner = await prisma.owner.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!existingOwner) {
-      throw new Error('Owner not found')
+      throw new Error("Owner not found")
     }
 
     await prisma.owner.delete({
-      where: { id }
+      where: { id },
     })
 
     return { success: true }
@@ -248,18 +248,18 @@ export class OwnerService {
           include: {
             coordinates: true,
             notes: {
-              orderBy: { created_at: 'desc' },
-              take: 1
-            }
-          }
-        }
-      }
+              orderBy: { created_at: "desc" },
+              take: 1,
+            },
+          },
+        },
+      },
     })
 
     if (!owner) {
-      throw new Error('Owner not found')
+      throw new Error("Owner not found")
     }
 
     return owner.properties
   }
-} 
+}

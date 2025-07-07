@@ -1,17 +1,18 @@
-import { NextResponse } from 'next/server'
-import { PropertyService } from '@/lib/services/property-service'
+import { NextResponse } from "next/server"
+
+import { PropertyService } from "@/lib/services/property-service"
 
 // Property-specific subresource endpoints (e.g., notes) should be placed under app/api/properties/[id]/
 
 // GET /api/properties - Get all properties or a single property by ID
 export async function GET(request: Request) {
   try {
-    console.log('API: Fetching properties from database')
+    console.log("API: Fetching properties from database")
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const search = searchParams.get('search') || ''
+    const id = searchParams.get("id")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+    const search = searchParams.get("search") || ""
 
     if (id) {
       // Get single property
@@ -19,9 +20,9 @@ export async function GET(request: Request) {
         const property = await PropertyService.getPropertyById(id)
         return NextResponse.json(property)
       } catch (error) {
-        if (error instanceof Error && error.message === 'Property not found') {
+        if (error instanceof Error && error.message === "Property not found") {
           return NextResponse.json(
-            { error: 'Property not found' },
+            { error: "Property not found" },
             { status: 404 }
           )
         }
@@ -33,16 +34,21 @@ export async function GET(request: Request) {
     const result = await PropertyService.getProperties({
       page,
       limit,
-      search
+      search,
     })
 
-    console.log(`API: Fetched ${result.properties.length} properties (page ${result.pagination.currentPage}/${result.pagination.totalPages})`)
-    
+    console.log(
+      `API: Fetched ${result.properties.length} properties (page ${result.pagination.currentPage}/${result.pagination.totalPages})`
+    )
+
     return NextResponse.json(result)
   } catch (error) {
-    console.error('API: Error fetching properties:', error)
+    console.error("API: Error fetching properties:", error)
     return NextResponse.json(
-      { error: 'Failed to fetch properties', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: "Failed to fetch properties",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
@@ -52,7 +58,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    
+
     // Transform the request body to match the service interface
     const propertyData = {
       street_address: body.street_address,
@@ -63,24 +69,27 @@ export async function POST(request: Request) {
       return_on_investment: body.return_on_investment,
       number_of_units: body.number_of_units,
       square_feet: body.square_feet,
-      ownerIds: body.owners // Assuming owners is an array of owner IDs
+      ownerIds: body.owners, // Assuming owners is an array of owner IDs
     }
 
     const property = await PropertyService.createProperty(propertyData)
     return NextResponse.json(property, { status: 201 })
   } catch (error) {
-    console.error('API: Error creating property:', error)
-    
+    console.error("API: Error creating property:", error)
+
     // Handle validation errors
-    if (error instanceof Error && error.message === 'Missing required fields') {
+    if (error instanceof Error && error.message === "Missing required fields") {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
-    
+
     return NextResponse.json(
-      { error: 'Failed to create property', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: "Failed to create property",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
@@ -90,17 +99,11 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { 
-      id, 
-      note, 
-      contacts, 
-      notes,
-      ...updateData 
-    } = body
+    const { id, note, contacts, notes, ...updateData } = body
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Property ID is required' },
+        { error: "Property ID is required" },
         { status: 400 }
       )
     }
@@ -110,24 +113,24 @@ export async function PUT(request: Request) {
       ...updateData,
       contacts,
       notes,
-      note // For backward compatibility
+      note, // For backward compatibility
     })
 
     return NextResponse.json(property)
   } catch (error) {
-    console.error('API: Error updating property:', error)
-    
+    console.error("API: Error updating property:", error)
+
     // Handle validation errors
-    if (error instanceof Error && error.message === 'Property not found') {
-      return NextResponse.json(
-        { error: 'Property not found' },
-        { status: 404 }
-      )
+    if (error instanceof Error && error.message === "Property not found") {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 })
     }
-    
+
     return NextResponse.json(
-      { error: 'Failed to update property', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: "Failed to update property",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
-} 
+}

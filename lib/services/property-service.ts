@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/shared/prisma'
-import { PhoneLabel } from '@/types/property'
+import { PhoneLabel } from "@/types/property"
+import { prisma } from "@/lib/shared/prisma"
 
 export interface PropertySearchParams {
   id?: string
@@ -56,18 +56,18 @@ export class PropertyService {
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
         notes: {
-          orderBy: { created_at: 'desc' }
-        }
-      }
+          orderBy: { created_at: "desc" },
+        },
+      },
     })
 
     if (!property) {
-      throw new Error('Property not found')
+      throw new Error("Property not found")
     }
 
     return property
@@ -76,26 +76,36 @@ export class PropertyService {
   /**
    * Get properties with pagination and search
    */
-  static async getProperties(params: PropertySearchParams): Promise<PropertiesResponse> {
-    const { page = 1, limit = 10, search = '' } = params
+  static async getProperties(
+    params: PropertySearchParams
+  ): Promise<PropertiesResponse> {
+    const { page = 1, limit = 10, search = "" } = params
 
     // Calculate pagination
     const skip = (page - 1) * limit
 
     // Build where clause for search
     let whereClause: any = {}
-    
+
     if (search) {
       whereClause = {
         OR: [
-          { owners: { some: { first_name: { contains: search, mode: 'insensitive' } } } },
-          { owners: { some: { last_name: { contains: search, mode: 'insensitive' } } } },
-          { street_address: { contains: search, mode: 'insensitive' } },
-          { city: { contains: search, mode: 'insensitive' } },
-          { parcel_id: { contains: search, mode: 'insensitive' } }
-        ]
+          {
+            owners: {
+              some: { first_name: { contains: search, mode: "insensitive" } },
+            },
+          },
+          {
+            owners: {
+              some: { last_name: { contains: search, mode: "insensitive" } },
+            },
+          },
+          { street_address: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
+          { parcel_id: { contains: search, mode: "insensitive" } },
+        ],
       }
-      
+
       // Handle zip code search separately to avoid type issues
       const zipCode = parseInt(search)
       if (!isNaN(zipCode)) {
@@ -105,26 +115,26 @@ export class PropertyService {
 
     // Get total count for pagination
     const totalCount = await prisma.property.count({
-      where: whereClause
+      where: whereClause,
     })
 
     // Get paginated properties
     const properties = await prisma.property.findMany({
       where: whereClause,
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
         notes: {
-          orderBy: { created_at: 'desc' }
-        }
+          orderBy: { created_at: "desc" },
+        },
       },
       skip,
-      take: limit
+      take: limit,
     })
 
     const totalPages = Math.ceil(totalCount / limit)
@@ -137,8 +147,8 @@ export class PropertyService {
         totalCount,
         limit,
         hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1
-      }
+        hasPreviousPage: page > 1,
+      },
     }
   }
 
@@ -148,7 +158,7 @@ export class PropertyService {
   static async createProperty(data: PropertyCreateInput) {
     // Validate required fields
     if (!data.street_address || !data.city || !data.zip_code || !data.price) {
-      throw new Error('Missing required fields')
+      throw new Error("Missing required fields")
     }
 
     // Prepare the data for Prisma
@@ -160,13 +170,13 @@ export class PropertyService {
       price: data.price,
       return_on_investment: data.return_on_investment,
       number_of_units: data.number_of_units,
-      square_feet: data.square_feet
+      square_feet: data.square_feet,
     }
 
     // Connect owners if provided
     if (data.ownerIds && data.ownerIds.length > 0) {
       propertyData.owners = {
-        connect: data.ownerIds.map(id => ({ id }))
+        connect: data.ownerIds.map((id) => ({ id })),
       }
     }
 
@@ -176,11 +186,11 @@ export class PropertyService {
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
-        coordinates: true
-      }
+        coordinates: true,
+      },
     })
 
     return property
@@ -192,36 +202,41 @@ export class PropertyService {
   static async updateProperty(id: string, data: PropertyUpdateInput) {
     // Check if property exists
     const existingProperty = await prisma.property.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!existingProperty) {
-      throw new Error('Property not found')
+      throw new Error("Property not found")
     }
 
     // Prepare the data for Prisma
     const propertyData: any = {}
 
     // Only include fields that are provided
-    if (data.street_address !== undefined) propertyData.street_address = data.street_address
+    if (data.street_address !== undefined)
+      propertyData.street_address = data.street_address
     if (data.city !== undefined) propertyData.city = data.city
     if (data.zip_code !== undefined) propertyData.zip_code = data.zip_code
-    if (data.net_operating_income !== undefined) propertyData.net_operating_income = data.net_operating_income
+    if (data.net_operating_income !== undefined)
+      propertyData.net_operating_income = data.net_operating_income
     if (data.price !== undefined) propertyData.price = data.price
-    if (data.return_on_investment !== undefined) propertyData.return_on_investment = data.return_on_investment
-    if (data.number_of_units !== undefined) propertyData.number_of_units = data.number_of_units
-    if (data.square_feet !== undefined) propertyData.square_feet = data.square_feet
+    if (data.return_on_investment !== undefined)
+      propertyData.return_on_investment = data.return_on_investment
+    if (data.number_of_units !== undefined)
+      propertyData.number_of_units = data.number_of_units
+    if (data.square_feet !== undefined)
+      propertyData.square_feet = data.square_feet
 
     // Handle owners connection if provided
     if (data.ownerIds !== undefined) {
       if (data.ownerIds.length > 0) {
         propertyData.owners = {
           set: [], // Clear existing connections
-          connect: data.ownerIds.map(id => ({ id }))
+          connect: data.ownerIds.map((id) => ({ id })),
         }
       } else {
         propertyData.owners = {
-          set: [] // Clear all connections
+          set: [], // Clear all connections
         }
       }
     }
@@ -233,14 +248,14 @@ export class PropertyService {
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
         notes: {
-          orderBy: { created_at: 'desc' }
-        }
-      }
+          orderBy: { created_at: "desc" },
+        },
+      },
     })
 
     return property
@@ -249,67 +264,75 @@ export class PropertyService {
   /**
    * Comprehensive property update including contacts and notes
    */
-  static async updatePropertyComprehensive(id: string, data: PropertyUpdateInput & {
-    contacts?: Array<{
-      ownerId: string
-      contacts: Array<{
-        id?: string
-        phone?: string
-        email?: string
-        type: string
-        label?: PhoneLabel
-        priority: number
-        notes?: string
-        action: 'create' | 'update' | 'delete'
+  static async updatePropertyComprehensive(
+    id: string,
+    data: PropertyUpdateInput & {
+      contacts?: Array<{
+        ownerId: string
+        contacts: Array<{
+          id?: string
+          phone?: string
+          email?: string
+          type: string
+          label?: PhoneLabel
+          priority: number
+          notes?: string
+          action: "create" | "update" | "delete"
+        }>
       }>
-    }>
-    notes?: Array<{
-      id?: string
-      content: string
-      action: 'create' | 'update' | 'delete'
-    }>
-    note?: string // For backward compatibility
-  }) {
+      notes?: Array<{
+        id?: string
+        content: string
+        action: "create" | "update" | "delete"
+      }>
+      note?: string // For backward compatibility
+    }
+  ) {
     // Check if property exists
     const existingProperty = await prisma.property.findUnique({
       where: { id },
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
-        notes: true
-      }
+        notes: true,
+      },
     })
 
     if (!existingProperty) {
-      throw new Error('Property not found')
+      throw new Error("Property not found")
     }
 
     // Use a transaction to ensure all operations succeed or fail together
     return await prisma.$transaction(async (tx: any) => {
       // Update property basic info
       const propertyData: any = {}
-      if (data.street_address !== undefined) propertyData.street_address = data.street_address
+      if (data.street_address !== undefined)
+        propertyData.street_address = data.street_address
       if (data.city !== undefined) propertyData.city = data.city
       if (data.zip_code !== undefined) propertyData.zip_code = data.zip_code
-      if (data.net_operating_income !== undefined) propertyData.net_operating_income = data.net_operating_income
+      if (data.net_operating_income !== undefined)
+        propertyData.net_operating_income = data.net_operating_income
       if (data.price !== undefined) propertyData.price = data.price
-      if (data.return_on_investment !== undefined) propertyData.return_on_investment = data.return_on_investment
-      if (data.number_of_units !== undefined) propertyData.number_of_units = data.number_of_units
-      if (data.square_feet !== undefined) propertyData.square_feet = data.square_feet
+      if (data.return_on_investment !== undefined)
+        propertyData.return_on_investment = data.return_on_investment
+      if (data.number_of_units !== undefined)
+        propertyData.number_of_units = data.number_of_units
+      if (data.square_feet !== undefined)
+        propertyData.square_feet = data.square_feet
 
       // Handle owners connection if provided
       if (data.ownerIds !== undefined) {
         if (data.ownerIds.length > 0) {
           propertyData.owners = {
             set: [], // Clear existing connections
-            connect: data.ownerIds.map(id => ({ id }))
+            connect: data.ownerIds.map((id) => ({ id })),
           }
         } else {
           propertyData.owners = {
-            set: [] // Clear all connections
+            set: [], // Clear all connections
           }
         }
       }
@@ -321,14 +344,14 @@ export class PropertyService {
         include: {
           owners: {
             include: {
-              contacts: true
-            }
+              contacts: true,
+            },
           },
           coordinates: true,
           notes: {
-            orderBy: { created_at: 'desc' }
-          }
-        }
+            orderBy: { created_at: "desc" },
+          },
+        },
       })
 
       // Update contacts for each owner
@@ -336,8 +359,8 @@ export class PropertyService {
         for (const ownerContacts of data.contacts) {
           for (const contact of ownerContacts.contacts) {
             switch (contact.action) {
-              case 'create':
-                if (contact.id?.startsWith('temp-')) {
+              case "create":
+                if (contact.id?.startsWith("temp-")) {
                   await tx.contact.create({
                     data: {
                       phone: contact.phone,
@@ -346,14 +369,14 @@ export class PropertyService {
                       label: contact.label,
                       priority: contact.priority,
                       notes: contact.notes,
-                      owner_id: ownerContacts.ownerId
-                    }
+                      owner_id: ownerContacts.ownerId,
+                    },
                   })
                 }
                 break
 
-              case 'update':
-                if (contact.id && !contact.id.startsWith('temp-')) {
+              case "update":
+                if (contact.id && !contact.id.startsWith("temp-")) {
                   await tx.contact.update({
                     where: { id: contact.id },
                     data: {
@@ -362,16 +385,16 @@ export class PropertyService {
                       type: contact.type,
                       label: contact.label,
                       priority: contact.priority,
-                      notes: contact.notes
-                    }
+                      notes: contact.notes,
+                    },
                   })
                 }
                 break
 
-              case 'delete':
-                if (contact.id && !contact.id.startsWith('temp-')) {
+              case "delete":
+                if (contact.id && !contact.id.startsWith("temp-")) {
                   await tx.contact.delete({
-                    where: { id: contact.id }
+                    where: { id: contact.id },
                   })
                 }
                 break
@@ -384,30 +407,30 @@ export class PropertyService {
       if (data.notes) {
         for (const note of data.notes) {
           switch (note.action) {
-            case 'create':
-              if (note.id?.startsWith('temp-')) {
+            case "create":
+              if (note.id?.startsWith("temp-")) {
                 await tx.note.create({
                   data: {
                     content: note.content,
-                    property_id: id
-                  }
+                    property_id: id,
+                  },
                 })
               }
               break
 
-            case 'update':
-              if (note.id && !note.id.startsWith('temp-')) {
+            case "update":
+              if (note.id && !note.id.startsWith("temp-")) {
                 await tx.note.update({
                   where: { id: note.id },
-                  data: { content: note.content }
+                  data: { content: note.content },
                 })
               }
               break
 
-            case 'delete':
-              if (note.id && !note.id.startsWith('temp-')) {
+            case "delete":
+              if (note.id && !note.id.startsWith("temp-")) {
                 await tx.note.delete({
-                  where: { id: note.id }
+                  where: { id: note.id },
                 })
               }
               break
@@ -420,8 +443,8 @@ export class PropertyService {
         await tx.note.create({
           data: {
             content: data.note,
-            property_id: id
-          }
+            property_id: id,
+          },
         })
       }
 
@@ -431,14 +454,14 @@ export class PropertyService {
         include: {
           owners: {
             include: {
-              contacts: true
-            }
+              contacts: true,
+            },
           },
           coordinates: true,
           notes: {
-            orderBy: { created_at: 'desc' }
-          }
-        }
+            orderBy: { created_at: "desc" },
+          },
+        },
       })
     })
   }
@@ -449,7 +472,7 @@ export class PropertyService {
   static async getNotesForProperty(propertyId: string) {
     return prisma.note.findMany({
       where: { property_id: propertyId },
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
     })
   }
 
@@ -461,7 +484,7 @@ export class PropertyService {
       data: {
         content: content,
         property_id: propertyId,
-      }
+      },
     })
   }
 
@@ -483,4 +506,4 @@ export class PropertyService {
       where: { id: noteId },
     })
   }
-} 
+}

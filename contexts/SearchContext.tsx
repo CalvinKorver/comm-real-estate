@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, ReactNode, useContext, useState } from "react"
 
 interface SearchContextType {
   search: string
@@ -21,7 +21,9 @@ interface SearchProviderProps {
 export function SearchProvider({ children }: SearchProviderProps) {
   const [search, setSearch] = useState("")
   const [isSearchEnabled, setIsSearchEnabled] = useState(false)
-  const [onSearchSubmit, setOnSearchSubmitState] = useState<(e: React.FormEvent) => void>(() => (e: React.FormEvent) => {
+  const [onSearchSubmit, setOnSearchSubmitState] = useState<
+    (e: React.FormEvent) => void
+  >(() => (e: React.FormEvent) => {
     e.preventDefault()
     // Default no-op handler
   })
@@ -35,15 +37,17 @@ export function SearchProvider({ children }: SearchProviderProps) {
   }
 
   return (
-    <SearchContext.Provider value={{
-      search,
-      setSearch,
-      onSearchChange,
-      onSearchSubmit,
-      setOnSearchSubmit,
-      isSearchEnabled,
-      setIsSearchEnabled
-    }}>
+    <SearchContext.Provider
+      value={{
+        search,
+        setSearch,
+        onSearchChange,
+        onSearchSubmit,
+        setOnSearchSubmit,
+        isSearchEnabled,
+        setIsSearchEnabled,
+      }}
+    >
       {children}
     </SearchContext.Provider>
   )
@@ -52,7 +56,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
 export function useSearch() {
   const context = useContext(SearchContext)
   if (context === undefined) {
-    throw new Error('useSearch must be used within a SearchProvider')
+    throw new Error("useSearch must be used within a SearchProvider")
   }
   return context
-} 
+}

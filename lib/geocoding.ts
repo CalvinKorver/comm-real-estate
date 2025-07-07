@@ -22,19 +22,22 @@ export function extractCoordinatesFromAddress(
  * Provide fallback coordinates for a given city/state
  * Useful when exact address geocoding fails
  */
-export function getFallbackCoordinates(city: string, state?: string): Coordinates {
+export function getFallbackCoordinates(
+  city: string,
+  state?: string
+): Coordinates {
   // Common fallback coordinates for major cities
   const fallbackCoords: Record<string, Coordinates> = {
-    'New York': { lat: 40.7128, lng: -74.0060 },
-    'Los Angeles': { lat: 34.0522, lng: -118.2437 },
-    'Chicago': { lat: 41.8781, lng: -87.6298 },
-    'Houston': { lat: 29.7604, lng: -95.3698 },
-    'Phoenix': { lat: 33.4484, lng: -112.0740 },
-    'Philadelphia': { lat: 39.9526, lng: -75.1652 },
-    'San Antonio': { lat: 29.4241, lng: -98.4936 },
-    'San Diego': { lat: 32.7157, lng: -117.1611 },
-    'Dallas': { lat: 32.7767, lng: -96.7970 },
-    'San Jose': { lat: 37.3382, lng: -121.8863 },
+    "New York": { lat: 40.7128, lng: -74.006 },
+    "Los Angeles": { lat: 34.0522, lng: -118.2437 },
+    Chicago: { lat: 41.8781, lng: -87.6298 },
+    Houston: { lat: 29.7604, lng: -95.3698 },
+    Phoenix: { lat: 33.4484, lng: -112.074 },
+    Philadelphia: { lat: 39.9526, lng: -75.1652 },
+    "San Antonio": { lat: 29.4241, lng: -98.4936 },
+    "San Diego": { lat: 32.7157, lng: -117.1611 },
+    Dallas: { lat: 32.7767, lng: -96.797 },
+    "San Jose": { lat: 37.3382, lng: -121.8863 },
   }
 
   const locationKey = state ? `${city}, ${state}` : city
@@ -58,7 +61,10 @@ export function validateCoordinates(coordinates: Coordinates): boolean {
 /**
  * Calculate distance between two coordinates (Haversine formula)
  */
-export function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
+export function calculateDistance(
+  coord1: Coordinates,
+  coord2: Coordinates
+): number {
   const R = 6371 // Earth's radius in kilometers
   const dLat = (coord2.lat - coord1.lat) * (Math.PI / 180)
   const dLng = (coord2.lng - coord1.lng) * (Math.PI / 180)
@@ -70,4 +76,4 @@ export function calculateDistance(coord1: Coordinates, coord2: Coordinates): num
       Math.sin(dLng / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
-} 
+}

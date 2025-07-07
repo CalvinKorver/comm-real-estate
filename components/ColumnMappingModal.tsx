@@ -1,14 +1,28 @@
-import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select';
-import { Table, TableHead, TableHeader, TableRow, TableCell, TableBody } from './ui/table';
-import { AlertCircle } from 'lucide-react';
+import React, { useState } from "react"
+import { AlertCircle } from "lucide-react"
+
+import { Button } from "./ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table"
 
 interface ColumnMappingModalProps {
-  csvHeaders: string[];
-  dbFields: string[];
-  initialMapping?: Record<string, string | null>;
-  onMappingChange: (mapping: Record<string, string | null>) => void;
+  csvHeaders: string[]
+  dbFields: string[]
+  initialMapping?: Record<string, string | null>
+  onMappingChange: (mapping: Record<string, string | null>) => void
 }
 
 export const ColumnMappingModal: React.FC<ColumnMappingModalProps> = ({
@@ -18,29 +32,39 @@ export const ColumnMappingModal: React.FC<ColumnMappingModalProps> = ({
   onMappingChange,
 }) => {
   const [mapping, setMapping] = useState<Record<string, string | null>>({
-    ...Object.fromEntries(csvHeaders.map(h => [h, null])),
+    ...Object.fromEntries(csvHeaders.map((h) => [h, null])),
     ...initialMapping,
-  });
+  })
 
-  const IGNORE_VALUE = '__ignore__';
+  const IGNORE_VALUE = "__ignore__"
 
   const handleMappingChange = (header: string, value: string | null) => {
-    const newMapping = { ...mapping, [header]: value === IGNORE_VALUE ? null : value };
-    setMapping(newMapping);
-    onMappingChange(newMapping);
-  };
+    const newMapping = {
+      ...mapping,
+      [header]: value === IGNORE_VALUE ? null : value,
+    }
+    setMapping(newMapping)
+    onMappingChange(newMapping)
+  }
 
   const clearMapping = () => {
-    const cleared = Object.fromEntries(csvHeaders.map(h => [h, null]));
-    setMapping(cleared);
-    onMappingChange(cleared);
-  };
+    const cleared = Object.fromEntries(csvHeaders.map((h) => [h, null]))
+    setMapping(cleared)
+    onMappingChange(cleared)
+  }
 
   return (
     <div className="p-4 border rounded bg-card max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-2">
         <h2 className="font-bold text-lg">Map Your File Fields</h2>
-        <Button variant="outline" size="sm" onClick={clearMapping} className="text-red-500">Clear Mapping</Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={clearMapping}
+          className="text-red-500"
+        >
+          Clear Mapping
+        </Button>
       </div>
       <Table>
         <TableHeader>
@@ -51,8 +75,8 @@ export const ColumnMappingModal: React.FC<ColumnMappingModalProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {csvHeaders.map(header => {
-            const isUnmapped = !mapping[header];
+          {csvHeaders.map((header) => {
+            const isUnmapped = !mapping[header]
             return (
               <TableRow key={header}>
                 <TableCell className="w-1/3 flex items-center gap-2">
@@ -67,24 +91,26 @@ export const ColumnMappingModal: React.FC<ColumnMappingModalProps> = ({
                 <TableCell className="w-1/2">
                   <Select
                     value={mapping[header] || IGNORE_VALUE}
-                    onValueChange={val => handleMappingChange(header, val)}
+                    onValueChange={(val) => handleMappingChange(header, val)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select DB Field or Ignore" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={IGNORE_VALUE}>Ignore</SelectItem>
-                      {dbFields.map(field => (
-                        <SelectItem key={field} value={field}>{field}</SelectItem>
+                      {dbFields.map((field) => (
+                        <SelectItem key={field} value={field}>
+                          {field}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </TableCell>
               </TableRow>
-            );
+            )
           })}
         </TableBody>
       </Table>
     </div>
-  );
-}; 
+  )
+}

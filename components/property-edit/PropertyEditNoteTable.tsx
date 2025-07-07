@@ -1,8 +1,9 @@
 "use client"
 
-import { BasePropertyEditTable } from './BasePropertyEditTable'
-import { textareaRenderer, dateRenderer } from './tableRenderers'
-import type { NoteTableItem, TableConfig } from '@/types/tableConfig'
+import type { NoteTableItem, TableConfig } from "@/types/tableConfig"
+
+import { BasePropertyEditTable } from "./BasePropertyEditTable"
+import { dateRenderer, textareaRenderer } from "./tableRenderers"
 
 interface Note extends NoteTableItem {
   content: string
@@ -15,42 +16,41 @@ interface PropertyEditNoteTableProps {
   onNotesChange: (notes: Note[]) => void
 }
 
-export function PropertyEditNoteTable({ 
-  notes, 
-  onNotesChange 
+export function PropertyEditNoteTable({
+  notes,
+  onNotesChange,
 }: PropertyEditNoteTableProps) {
-  
   const noteTableConfig: TableConfig<Note> = {
     columns: [
       {
-        key: 'content',
-        header: 'Content',
-        width: '65%',
-        renderer: textareaRenderer('content', 'Add a new note...', 3),
+        key: "content",
+        header: "Content",
+        width: "65%",
+        renderer: textareaRenderer("content", "Add a new note...", 3),
         editable: true,
         required: true,
       },
       {
-        key: 'created_at',
-        header: 'Date',
-        width: '25%',
-        renderer: dateRenderer('created_at'),
+        key: "created_at",
+        header: "Date",
+        width: "25%",
+        renderer: dateRenderer("created_at"),
         editable: false,
       },
       {
-        key: 'actions',
-        header: 'Actions',
-        width: '10%',
+        key: "actions",
+        header: "Actions",
+        width: "10%",
         renderer: () => null, // Actions are handled by base component
         editable: false,
       },
     ],
     createNewItem: () => ({
-      id: '',
-      content: '',
-      type: 'note',
+      id: "",
+      content: "",
+      type: "note",
       priority: 0,
-      notes: '',
+      notes: "",
       created_at: new Date(),
       updated_at: new Date(),
     }),

@@ -1,5 +1,6 @@
-import { ReactNode } from 'react'
-import type { PhoneLabel } from './property'
+import { ReactNode } from "react"
+
+import type { PhoneLabel } from "./property"
 
 // Base interface for all table items
 export interface BaseTableItem {

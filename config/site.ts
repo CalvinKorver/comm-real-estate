@@ -4,9 +4,8 @@ export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
   name: "Keystone",
-  description:
-    "Commercial Real Estate Investment Management",
-  
+  description: "Commercial Real Estate Investment Management",
+
   mainNav: [
     {
       title: "Properties",
@@ -16,5 +15,5 @@ export const siteConfig = {
       title: "Map",
       href: "/properties/map",
     },
-  ] as NavItem[]
+  ] as NavItem[],
 }

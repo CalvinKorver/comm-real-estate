@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/shared/prisma'
-import type { Owner, Contact } from '@/generated/prisma'
+import type { Contact, Owner } from "@/generated/prisma"
+
+import { prisma } from "@/lib/shared/prisma"
 
 export interface OwnerData {
   first_name: string
@@ -23,10 +24,10 @@ export interface OwnerMatch {
 }
 
 export interface ConflictResolution {
-  action: 'merge' | 'create_new' | 'skip'
+  action: "merge" | "create_new" | "skip"
   targetOwnerId?: string
-  phoneResolution?: 'keep_existing' | 'add_new' | 'replace'
-  emailResolution?: 'keep_existing' | 'add_new' | 'replace'
+  phoneResolution?: "keep_existing" | "add_new" | "replace"
+  emailResolution?: "keep_existing" | "add_new" | "replace"
 }
 
 export class OwnerDeduplicationService {
@@ -35,8 +36,8 @@ export class OwnerDeduplicationService {
    */
   normalizePhone(phone: string): string {
     return phone
-      .replace(/\D/g, '') // Remove all non-digits
-      .replace(/^1/, '') // Remove leading 1 for US numbers
+      .replace(/\D/g, "") // Remove all non-digits
+      .replace(/^1/, "") // Remove leading 1 for US numbers
       .slice(-10) // Take last 10 digits
   }
 
@@ -47,8 +48,8 @@ export class OwnerDeduplicationService {
     return name
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/[^\w\s]/g, '') // Remove special characters
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .replace(/[^\w\s]/g, "") // Remove special characters
   }
 
   /**
@@ -61,10 +62,10 @@ export class OwnerDeduplicationService {
     if (normalized1 === normalized2) return 1.0
 
     // Split into words and compare
-    const words1 = normalized1.split(' ')
-    const words2 = normalized2.split(' ')
+    const words1 = normalized1.split(" ")
+    const words2 = normalized2.split(" ")
 
-    const commonWords = words1.filter(word => words2.includes(word))
+    const commonWords = words1.filter((word) => words2.includes(word))
     const totalWords = Math.max(words1.length, words2.length)
 
     if (totalWords === 0) return 0
@@ -84,36 +85,43 @@ export class OwnerDeduplicationService {
         where: {
           OR: [
             { full_name: ownerData.full_name },
-            { 
+            {
               AND: [
                 { first_name: ownerData.first_name },
-                { last_name: ownerData.last_name }
-              ]
-            }
-          ]
+                { last_name: ownerData.last_name },
+              ],
+            },
+          ],
         },
         include: {
-          contacts: true
-        }
+          contacts: true,
+        },
       })
 
       for (const match of nameMatches) {
         const nameSimilarity = this.calculateNameSimilarity(
-          ownerData.full_name || `${ownerData.first_name} ${ownerData.last_name}`,
+          ownerData.full_name ||
+            `${ownerData.first_name} ${ownerData.last_name}`,
           match.full_name || `${match.first_name} ${match.last_name}`
         )
 
         if (nameSimilarity >= 0.8) {
-          const phoneConflict: boolean | undefined = ownerData.phone && ownerData.phone.trim() !== '' ? this.hasPhoneConflict(ownerData.phone, match.contacts) : undefined;
-          const emailConflict: boolean | undefined = ownerData.email && ownerData.email.trim() !== '' ? this.hasEmailConflict(ownerData.email, match.contacts) : undefined;
+          const phoneConflict: boolean | undefined =
+            ownerData.phone && ownerData.phone.trim() !== ""
+              ? this.hasPhoneConflict(ownerData.phone, match.contacts)
+              : undefined
+          const emailConflict: boolean | undefined =
+            ownerData.email && ownerData.email.trim() !== ""
+              ? this.hasEmailConflict(ownerData.email, match.contacts)
+              : undefined
 
           matches.push({
             owner: match,
             confidence: nameSimilarity,
             matchReason: `Name match (${Math.round(nameSimilarity * 100)}% similarity)`,
             phoneConflict,
-            emailConflict
-          });
+            emailConflict,
+          })
         }
       }
     }
@@ -126,29 +134,29 @@ export class OwnerDeduplicationService {
           contacts: {
             some: {
               phone: {
-                contains: normalizedPhone
-              }
-            }
-          }
+                contains: normalizedPhone,
+              },
+            },
+          },
         },
         include: {
-          contacts: true
-        }
+          contacts: true,
+        },
       })
 
       for (const match of phoneMatches) {
         // Check if this owner is already in our matches
-        const existingMatch = matches.find(m => m.owner.id === match.id)
+        const existingMatch = matches.find((m) => m.owner.id === match.id)
         if (existingMatch) {
           existingMatch.confidence = Math.max(existingMatch.confidence, 0.9)
-          existingMatch.matchReason = 'Name and phone match'
+          existingMatch.matchReason = "Name and phone match"
           existingMatch.phoneConflict = true
         } else {
           matches.push({
             owner: match,
             confidence: 0.9,
-            matchReason: 'Phone number match',
-            phoneConflict: true
+            matchReason: "Phone number match",
+            phoneConflict: true,
           })
         }
       }
@@ -161,20 +169,30 @@ export class OwnerDeduplicationService {
   /**
    * Check if there's a phone number conflict
    */
-  private hasPhoneConflict(newPhone: string, existingContacts: Contact[]): boolean {
+  private hasPhoneConflict(
+    newPhone: string,
+    existingContacts: Contact[]
+  ): boolean {
     const normalizedNewPhone = this.normalizePhone(newPhone)
-    return existingContacts.some(contact => 
-      contact.phone && this.normalizePhone(contact.phone) === normalizedNewPhone
+    return existingContacts.some(
+      (contact) =>
+        contact.phone &&
+        this.normalizePhone(contact.phone) === normalizedNewPhone
     )
   }
 
   /**
    * Check if there's an email conflict
    */
-  private hasEmailConflict(newEmail: string, existingContacts: Contact[]): boolean {
+  private hasEmailConflict(
+    newEmail: string,
+    existingContacts: Contact[]
+  ): boolean {
     const normalizedNewEmail = newEmail.toLowerCase().trim()
-    return existingContacts.some(contact => 
-      contact.email && contact.email.toLowerCase().trim() === normalizedNewEmail
+    return existingContacts.some(
+      (contact) =>
+        contact.email &&
+        contact.email.toLowerCase().trim() === normalizedNewEmail
     )
   }
 
@@ -182,29 +200,29 @@ export class OwnerDeduplicationService {
    * Resolve phone number conflicts
    */
   async resolvePhoneConflicts(
-    ownerData: OwnerData, 
+    ownerData: OwnerData,
     existingOwners: OwnerMatch[]
   ): Promise<ConflictResolution> {
     if (existingOwners.length === 0) {
-      return { action: 'create_new' }
+      return { action: "create_new" }
     }
 
     const bestMatch = existingOwners[0]
-    
+
     if (bestMatch.confidence >= 0.95) {
       // High confidence match - merge
       return {
-        action: 'merge',
+        action: "merge",
         targetOwnerId: bestMatch.owner.id,
-        phoneResolution: bestMatch.phoneConflict ? 'add_new' : 'add_new',
-        emailResolution: bestMatch.emailConflict ? 'add_new' : 'add_new'
+        phoneResolution: bestMatch.phoneConflict ? "add_new" : "add_new",
+        emailResolution: bestMatch.emailConflict ? "add_new" : "add_new",
       }
     } else if (bestMatch.confidence >= 0.8) {
       // Medium confidence - create new to be safe
-      return { action: 'create_new' }
+      return { action: "create_new" }
     } else {
       // Low confidence - create new
-      return { action: 'create_new' }
+      return { action: "create_new" }
     }
   }
 
@@ -239,7 +257,7 @@ export class OwnerDeduplicationService {
     if (Object.keys(updateData).length > 0) {
       return await prisma.owner.update({
         where: { id: existing.id },
-        data: updateData
+        data: updateData,
       })
     }
 
@@ -260,22 +278,26 @@ export class OwnerDeduplicationService {
         city: ownerData.city,
         state: ownerData.state,
         zip_code: ownerData.zip_code,
-      }
+      },
     })
   }
 
   /**
    * Add contact information to an owner
    */
-  async addContactToOwner(ownerId: string, phone?: string, email?: string): Promise<void> {
+  async addContactToOwner(
+    ownerId: string,
+    phone?: string,
+    email?: string
+  ): Promise<void> {
     const contactsToCreate = []
 
     if (phone) {
       contactsToCreate.push({
         owner_id: ownerId,
         phone,
-        type: 'phone',
-        priority: 1
+        type: "phone",
+        priority: 1,
       })
     }
 
@@ -283,15 +305,15 @@ export class OwnerDeduplicationService {
       contactsToCreate.push({
         owner_id: ownerId,
         email,
-        type: 'email',
-        priority: 1
+        type: "email",
+        priority: 1,
       })
     }
 
     if (contactsToCreate.length > 0) {
       await prisma.contact.createMany({
         data: contactsToCreate,
-        skipDuplicates: true
+        skipDuplicates: true,
       })
     }
   }
@@ -301,7 +323,7 @@ export class OwnerDeduplicationService {
    */
   async processOwner(ownerData: OwnerData): Promise<{
     owner: Owner
-    action: 'created' | 'merged' | 'updated'
+    action: "created" | "merged" | "updated"
     matches?: OwnerMatch[]
   }> {
     // Find potential duplicates
@@ -310,47 +332,59 @@ export class OwnerDeduplicationService {
     if (matches.length === 0) {
       // No matches found - create new owner
       const newOwner = await this.createNewOwner(ownerData)
-      await this.addContactToOwner(newOwner.id, ownerData.phone, ownerData.email)
+      await this.addContactToOwner(
+        newOwner.id,
+        ownerData.phone,
+        ownerData.email
+      )
 
       return {
         owner: newOwner,
-        action: 'created'
+        action: "created",
       }
     }
 
     // Resolve conflicts
     const resolution = await this.resolvePhoneConflicts(ownerData, matches)
 
-    if (resolution.action === 'create_new') {
+    if (resolution.action === "create_new") {
       // Create new owner despite matches
       const newOwner = await this.createNewOwner(ownerData)
-      await this.addContactToOwner(newOwner.id, ownerData.phone, ownerData.email)
+      await this.addContactToOwner(
+        newOwner.id,
+        ownerData.phone,
+        ownerData.email
+      )
 
       return {
         owner: newOwner,
-        action: 'created',
-        matches
+        action: "created",
+        matches,
       }
-    } else if (resolution.action === 'merge' && resolution.targetOwnerId) {
+    } else if (resolution.action === "merge" && resolution.targetOwnerId) {
       // Merge with existing owner
       const existingOwner = await prisma.owner.findUnique({
-        where: { id: resolution.targetOwnerId }
+        where: { id: resolution.targetOwnerId },
       })
 
       if (!existingOwner) {
-        throw new Error('Target owner not found for merge')
+        throw new Error("Target owner not found for merge")
       }
 
       const mergedOwner = await this.mergeOwnerData(existingOwner, ownerData)
-      await this.addContactToOwner(mergedOwner.id, ownerData.phone, ownerData.email)
+      await this.addContactToOwner(
+        mergedOwner.id,
+        ownerData.phone,
+        ownerData.email
+      )
 
       return {
         owner: mergedOwner,
-        action: 'merged',
-        matches
+        action: "merged",
+        matches,
       }
     } else {
-      throw new Error('Invalid conflict resolution action')
+      throw new Error("Invalid conflict resolution action")
     }
   }
-} 
+}

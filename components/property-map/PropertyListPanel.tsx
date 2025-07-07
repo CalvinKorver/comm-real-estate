@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
-import type { Property } from '@/types/property'
-import type { PropertyListPanelProps } from '@/types/map'
-import { PANEL_WIDTHS } from '@/lib/map-constants'
-import PropertyListItem from './PropertyListItem'
+import { useEffect, useRef, useState } from "react"
+
+import type { PropertyListPanelProps } from "@/types/map"
+import type { Property } from "@/types/property"
+import { PANEL_WIDTHS } from "@/lib/map-constants"
+
+import PropertyListItem from "./PropertyListItem"
 
 export default function PropertyListPanel({
   properties,
@@ -11,14 +13,17 @@ export default function PropertyListPanel({
   onPropertyDeselect,
   onPropertyUpdated,
   className = "",
-  resizable = true
+  resizable = true,
 }: PropertyListPanelProps) {
   // Create refs for each property
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
     if (selectedProperty && itemRefs.current[selectedProperty.id]) {
-      itemRefs.current[selectedProperty.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      itemRefs.current[selectedProperty.id]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
     }
   }, [selectedProperty])
 
@@ -53,11 +58,11 @@ export default function PropertyListPanel({
               selected={selectedProperty?.id === property.id}
               onClick={() => onPropertySelect?.(property)}
               onPropertyUpdated={onPropertyUpdated}
-              ref={el => (itemRefs.current[property.id] = el)}
+              ref={(el) => (itemRefs.current[property.id] = el)}
             />
           ))}
         </div>
       </div>
     </aside>
   )
-} 
+}

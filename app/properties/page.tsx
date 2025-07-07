@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Property, Owner } from "@/types/property"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Trash } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { 
+
+import { Owner, Property } from "@/types/property"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -14,8 +14,9 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle 
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 
 interface PaginationData {
@@ -38,21 +39,24 @@ export default function PropertiesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState<PaginationData | null>(null)
 
-  const fetchProperties = async (page: number = 1, searchQuery: string = "") => {
+  const fetchProperties = async (
+    page: number = 1,
+    searchQuery: string = ""
+  ) => {
     try {
       setIsLoading(true)
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '10'
+        limit: "10",
       })
-      
+
       if (searchQuery) {
-        params.append('search', searchQuery)
+        params.append("search", searchQuery)
       }
-      
+
       const response = await fetch(`/api/properties?${params}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch properties')
+        throw new Error("Failed to fetch properties")
       }
       const data = await response.json()
       console.log("fetched")
@@ -61,8 +65,8 @@ export default function PropertiesPage() {
       setPagination(data.pagination)
       setError(null)
     } catch (error) {
-      setError('Failed to load properties')
-      console.error('Failed to load properties:', error)
+      setError("Failed to load properties")
+      console.error("Failed to load properties:", error)
     } finally {
       setIsLoading(false)
     }
@@ -83,7 +87,7 @@ export default function PropertiesPage() {
   }
 
   const handleCreateProperty = () => {
-    router.push('/properties/create')
+    router.push("/properties/create")
   }
 
   const handleDeleteClick = (e: React.MouseEvent, propertyId: string) => {
@@ -94,19 +98,19 @@ export default function PropertiesPage() {
 
   const handleConfirmDelete = async () => {
     if (!propertyToDelete) return
-    
+
     try {
       setIsDeleting(true)
       const response = await fetch(`/api/properties/${propertyToDelete}`, {
-        method: 'DELETE',
+        method: "DELETE",
       })
       if (!response.ok) {
-        throw new Error('Failed to delete property')
+        throw new Error("Failed to delete property")
       }
       await fetchProperties(currentPage, search) // Refresh the list
     } catch (error) {
-      console.error('Error deleting property:', error)
-      setError('Failed to delete property')
+      console.error("Error deleting property:", error)
+      setError("Failed to delete property")
     } finally {
       setIsDeleting(false)
       setPropertyToDelete(null)
@@ -118,8 +122,14 @@ export default function PropertiesPage() {
 
     const pages = []
     const maxVisiblePages = 5
-    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2))
-    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1)
+    let startPage = Math.max(
+      1,
+      pagination.currentPage - Math.floor(maxVisiblePages / 2)
+    )
+    let endPage = Math.min(
+      pagination.totalPages,
+      startPage + maxVisiblePages - 1
+    )
 
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1)
@@ -146,8 +156,8 @@ export default function PropertiesPage() {
           onClick={() => handlePageChange(i)}
           className={`px-3 py-2 text-sm font-medium border ${
             i === pagination.currentPage
-              ? 'bg-emerald-600 text-white border-emerald-600'
-              : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
+              ? "bg-emerald-600 text-white border-emerald-600"
+              : "text-gray-500 bg-white border-gray-300 hover:bg-gray-50"
           }`}
         >
           {i}
@@ -170,9 +180,7 @@ export default function PropertiesPage() {
 
     return (
       <div className="flex justify-center mt-8">
-        <div className="flex space-x-0">
-          {pages}
-        </div>
+        <div className="flex space-x-0">{pages}</div>
       </div>
     )
   }
@@ -180,25 +188,22 @@ export default function PropertiesPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <form onSubmit={handleSearch} className="flex w-full max-w-xl mx-auto">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search (for owners, addresses, etc)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-emerald-600 text-white rounded-r-lg hover:bg-emerald-700 flex items-center justify-center"
-            aria-label="Search"
-          >
-            <Icons.searchIcon className="w-5 h-5" />
-          </button>
-        </form>
-      <div className="flex flex-col items-center mb-8 space-y-4">
-        
-        
-      </div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search (for owners, addresses, etc)"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-r-lg hover:bg-emerald-700 flex items-center justify-center"
+          aria-label="Search"
+        >
+          <Icons.searchIcon className="w-5 h-5" />
+        </button>
+      </form>
+      <div className="flex flex-col items-center mb-8 space-y-4"></div>
       <div className="space-y-4">
         {isLoading ? (
           <p className="text-gray-500">Loading properties...</p>
@@ -208,17 +213,16 @@ export default function PropertiesPage() {
           <p className="text-gray-500">No properties found</p>
         ) : (
           properties.map((property) => (
-            <div 
-              key={property.id} 
+            <div
+              key={property.id}
               className="block p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow relative bg-gray-200"
             >
-              <Link 
-                href={`/properties/${property.id}`} 
-                className="block"
-              >
+              <Link href={`/properties/${property.id}`} className="block">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-xl font-semibold">{property.street_address}</h2>
+                    <h2 className="text-xl font-semibold">
+                      {property.street_address}
+                    </h2>
                     <p className="text-gray-600">
                       {property.city}, {property.zip_code}
                     </p>
@@ -231,10 +235,6 @@ export default function PropertiesPage() {
                       {property.number_of_units} units
                     </p>
                   </div>
-                  
-                  
-                  
-
                 </div>
                 <div className="pt-2">
                   {/* <h3 className="font-semibold-800">Details</h3> */}
@@ -247,10 +247,8 @@ export default function PropertiesPage() {
                   <span className="text-sm text-gray-600">Annual Taxes: </span>
                   <span className="font-semibold">$25,000/year</span>
                   </p> */}
-                
-                  </div>
+                </div>
               </Link>
-
             </div>
           ))
         )}
@@ -262,7 +260,12 @@ export default function PropertiesPage() {
       {/* Results info */}
       {pagination && (
         <div className="text-center mt-4 text-sm text-gray-600">
-          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of {pagination.totalCount} properties
+          Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+          {Math.min(
+            pagination.currentPage * pagination.limit,
+            pagination.totalCount
+          )}{" "}
+          of {pagination.totalCount} properties
         </div>
       )}
 
@@ -276,26 +279,30 @@ export default function PropertiesPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!propertyToDelete} onOpenChange={(open: boolean) => !open && setPropertyToDelete(null)}>
+      <AlertDialog
+        open={!!propertyToDelete}
+        onOpenChange={(open: boolean) => !open && setPropertyToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this property and all of its data. This action cannot be undone.
+              This will permanently delete this property and all of its data.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700"
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   )
-} 
+}

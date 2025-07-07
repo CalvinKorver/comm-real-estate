@@ -6,7 +6,8 @@ export default function TestTailwindPage() {
           Tailwind CSS v4 Test
         </h1>
         <p className="text-muted-foreground mb-6">
-          If you can see this styled content, Tailwind CSS v4 is working correctly!
+          If you can see this styled content, Tailwind CSS v4 is working
+          correctly!
         </p>
         <div className="space-y-4">
           <div className="bg-blue-100 border border-blue-300 text-blue-700 px-4 py-3 rounded">
@@ -25,10 +26,12 @@ export default function TestTailwindPage() {
         <button className="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition-colors">
           Test Button (Hover me!)
         </button>
-        
+
         {/* Test some v4 specific features */}
         <div className="mt-6 p-4 bg-muted rounded">
-          <h3 className="font-semibold text-foreground mb-2">v4 Features Test:</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            v4 Features Test:
+          </h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-card p-2 rounded border">Grid Layout</div>
             <div className="bg-card p-2 rounded border">Responsive</div>
@@ -39,4 +42,4 @@ export default function TestTailwindPage() {
       </div>
     </div>
   )
-} 
+}

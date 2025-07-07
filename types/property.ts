@@ -1,18 +1,18 @@
 // types/property.ts
 
 export enum PhoneLabel {
-  primary = 'primary',
-  secondary = 'secondary',
-  husband = 'husband',
-  wife = 'wife',
-  son = 'son',
-  daughter = 'daughter',
-  property_manager = 'property_manager',
-  attorney = 'attorney',
-  tenant = 'tenant',
-  grandson = 'grandson',
-  granddaughter = 'granddaughter',
-  other = 'other'
+  primary = "primary",
+  secondary = "secondary",
+  husband = "husband",
+  wife = "wife",
+  son = "son",
+  daughter = "daughter",
+  property_manager = "property_manager",
+  attorney = "attorney",
+  tenant = "tenant",
+  grandson = "grandson",
+  granddaughter = "granddaughter",
+  other = "other",
 }
 
 export interface Property {

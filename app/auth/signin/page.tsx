@@ -1,60 +1,61 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Icons } from '@/components/icons';
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { signIn } from "next-auth/react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { Button } from "@/components/ui/button"
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Icons } from "@/components/icons"
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(1, { message: 'Password is required.' }),
-});
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+})
 
-type SignInFormValues = z.infer<typeof formSchema>;
+type SignInFormValues = z.infer<typeof formSchema>
 
 export default function SignInPage() {
-  const router = useRouter();
-  const [serverError, setServerError] = useState('');
+  const router = useRouter()
+  const [serverError, setServerError] = useState("")
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
-  });
+  })
 
-  const isLoading = form.formState.isSubmitting;
+  const isLoading = form.formState.isSubmitting
 
   async function onSubmit(values: SignInFormValues) {
-    setServerError('');
+    setServerError("")
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         redirect: false,
         email: values.email,
         password: values.password,
-      });
+      })
       if (result?.error) {
-        setServerError('Invalid email or password');
-        return;
+        setServerError("Invalid email or password")
+        return
       }
-      router.push('/properties/map');
-      router.refresh();
+      router.push("/properties/map")
+      router.refresh()
     } catch (error) {
-      setServerError('An unexpected error occurred');
+      setServerError("An unexpected error occurred")
     }
   }
 
@@ -70,7 +71,11 @@ export default function SignInPage() {
         </div>
 
         <Form {...form}>
-          <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+          <form
+            className="mt-8 space-y-6"
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
+          >
             <FormField
               control={form.control}
               name="email"
@@ -78,7 +83,13 @@ export default function SignInPage() {
                 <FormItem>
                   <FormLabel>Email address</FormLabel>
                   <FormControl>
-                    <Input type="email" autoComplete="email" placeholder="Email address" {...field} disabled={isLoading} />
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="Email address"
+                      {...field}
+                      disabled={isLoading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -91,7 +102,13 @@ export default function SignInPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="current-password" placeholder="Password" {...field} disabled={isLoading} />
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Password"
+                      {...field}
+                      disabled={isLoading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,25 +123,33 @@ export default function SignInPage() {
                   className="h-4 w-4 rounded border-input text-emerald-700 focus:ring-emerald-700 bg-background"
                   disabled={isLoading}
                 />
-                <label htmlFor="remember_me" className="ml-2 block text-sm text-foreground">
+                <label
+                  htmlFor="remember_me"
+                  className="ml-2 block text-sm text-foreground"
+                >
                   Remember me
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-emerald-700 hover:text-emerald-600">
+                <a
+                  href="#"
+                  className="font-medium text-emerald-700 hover:text-emerald-600"
+                >
                   Forgot your password?
                 </a>
               </div>
             </div>
             {serverError && (
-              <FormMessage className="text-destructive text-sm text-center">{serverError}</FormMessage>
+              <FormMessage className="text-destructive text-sm text-center">
+                {serverError}
+              </FormMessage>
             )}
             <Button
               type="submit"
               className="w-full bg-emerald-700 hover:bg-emerald-800 text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </Form>
@@ -135,25 +160,29 @@ export default function SignInPage() {
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Button
-              onClick={() => signIn('github', { callbackUrl: '/properties/map' })}
+              onClick={() =>
+                signIn("github", { callbackUrl: "/properties/map" })
+              }
               className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
-              
               disabled={isLoading}
             >
               <Icons.gitHub className="h-5 w-5" />
               <span>GitHub</span>
             </Button>
             <Button
-              onClick={() => signIn('google', { callbackUrl: '/properties/map' })}
+              onClick={() =>
+                signIn("google", { callbackUrl: "/properties/map" })
+              }
               className="flex w-full items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               variant="outline"
-              
               disabled={isLoading}
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -180,12 +209,15 @@ export default function SignInPage() {
           </div>
         </div>
         <div className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="font-medium text-emerald-700 hover:text-emerald-600">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/auth/signup"
+            className="font-medium text-emerald-700 hover:text-emerald-600"
+          >
             Sign up
           </Link>
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,92 +1,99 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileText } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { FileText, Upload } from "lucide-react"
+import { toast } from "sonner"
+
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 interface CSVUploadStageProps {
-  onFileSelected: (file: File) => void;
+  onFileSelected: (file: File) => void
 }
 
-const MAX_ROWS = 100;
+const MAX_ROWS = 100
 
 export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
-  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
+  const router = useRouter()
 
   const validateCSVRowCount = async (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
         try {
-          const text = e.target?.result as string;
-          const lines = text.split('\n').filter(line => line.trim() !== '');
+          const text = e.target?.result as string
+          const lines = text.split("\n").filter((line) => line.trim() !== "")
           // Subtract 1 for header row
-          const dataRows = Math.max(0, lines.length - 1);
-          resolve(dataRows);
+          const dataRows = Math.max(0, lines.length - 1)
+          resolve(dataRows)
         } catch (error) {
-          reject(error);
+          reject(error)
         }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-  };
+      }
+      reader.onerror = () => reject(new Error("Failed to read file"))
+      reader.readAsText(file)
+    })
+  }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const selectedFile = event.target.files?.[0]
     if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-      setIsValidating(true);
-      
+      setFile(selectedFile)
+      setError(null)
+      setIsValidating(true)
+
       try {
         // Validate file type
-        if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
-          setError('Please select a CSV file');
-          setIsValidating(false);
-          return;
+        if (!selectedFile.name.toLowerCase().endsWith(".csv")) {
+          setError("Please select a CSV file")
+          setIsValidating(false)
+          return
         }
-        
+
         // Validate file size (limit to 10MB)
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        const maxSize = 10 * 1024 * 1024 // 10MB
         if (selectedFile.size > maxSize) {
-          setError('File size must be less than 10MB');
-          setIsValidating(false);
-          return;
+          setError("File size must be less than 10MB")
+          setIsValidating(false)
+          return
         }
 
         // Validate row count
-        const rowCount = await validateCSVRowCount(selectedFile);
+        const rowCount = await validateCSVRowCount(selectedFile)
         if (rowCount > MAX_ROWS) {
-          toast.error(`CSV file has ${rowCount} rows, but the maximum allowed is ${MAX_ROWS}. Please reduce the number of rows and try again.`);
-          setError(`File has ${rowCount} rows, but maximum allowed is ${MAX_ROWS}`);
-          setIsValidating(false);
+          toast.error(
+            `CSV file has ${rowCount} rows, but the maximum allowed is ${MAX_ROWS}. Please reduce the number of rows and try again.`
+          )
+          setError(
+            `File has ${rowCount} rows, but maximum allowed is ${MAX_ROWS}`
+          )
+          setIsValidating(false)
           // Redirect back to the starting page after a short delay
           setTimeout(() => {
-            router.push('/csv-upload');
-          }, 2000);
-          return;
+            router.push("/csv-upload")
+          }, 2000)
+          return
         }
 
-        setIsValidating(false);
+        setIsValidating(false)
       } catch (error) {
-        setError('Failed to validate file. Please try again.');
-        setIsValidating(false);
+        setError("Failed to validate file. Please try again.")
+        setIsValidating(false)
       }
     }
-  };
+  }
 
   const handleContinue = () => {
     if (file && !error) {
-      onFileSelected(file);
+      onFileSelected(file)
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -101,10 +108,11 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
         <div className="space-y-2">
           <p className="text-lg font-medium">Choose a CSV file to upload</p>
           <p className="text-sm text-muted-foreground">
-            Supported format: CSV files up to 10MB with maximum {MAX_ROWS} data rows
+            Supported format: CSV files up to 10MB with maximum {MAX_ROWS} data
+            rows
           </p>
         </div>
-        
+
         <div className="mt-6">
           <input
             id="csv-file"
@@ -155,8 +163,8 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
 
       {/* Continue Button */}
       <div className="flex justify-end">
-        <Button 
-          onClick={handleContinue} 
+        <Button
+          onClick={handleContinue}
           disabled={!file || !!error || isValidating}
           size="lg"
         >
@@ -164,5 +172,5 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
         </Button>
       </div>
     </div>
-  );
-} 
+  )
+}

@@ -1,74 +1,88 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CSVPreviewTable } from '@/components/CSVPreviewTable';
-import { Eye, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from "react"
+import { AlertCircle, Eye } from "lucide-react"
+
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { CSVPreviewTable } from "@/components/CSVPreviewTable"
 
 interface CSVPreviewStageProps {
-  file: File;
-  columnMapping: Record<string, string | null>;
-  onProcess: () => void;
-  onBack: () => void;
+  file: File
+  columnMapping: Record<string, string | null>
+  onProcess: () => void
+  onBack: () => void
 }
 
-const REQUIRED_FIELDS = ['street_address', 'full_name'];
+const REQUIRED_FIELDS = ["street_address", "full_name"]
 
 // Helper to find duplicate property addresses in preview rows
-function getDuplicateRowIndices(rows: string[][], mapping: Record<string, string | null>, csvHeaders: string[]) {
-  const addressIdx = csvHeaders.findIndex(h => mapping[h] === 'street_address');
-  const cityIdx = csvHeaders.findIndex(h => mapping[h] === 'city');
-  const zipIdx = csvHeaders.findIndex(h => mapping[h] === 'zip_code');
-  const seen = new Set<string>();
-  const duplicates: number[] = [];
+function getDuplicateRowIndices(
+  rows: string[][],
+  mapping: Record<string, string | null>,
+  csvHeaders: string[]
+) {
+  const addressIdx = csvHeaders.findIndex(
+    (h) => mapping[h] === "street_address"
+  )
+  const cityIdx = csvHeaders.findIndex((h) => mapping[h] === "city")
+  const zipIdx = csvHeaders.findIndex((h) => mapping[h] === "zip_code")
+  const seen = new Set<string>()
+  const duplicates: number[] = []
   rows.forEach((row, i) => {
-    const key = [row[addressIdx], row[cityIdx], row[zipIdx]].join('|').toLowerCase();
+    const key = [row[addressIdx], row[cityIdx], row[zipIdx]]
+      .join("|")
+      .toLowerCase()
     if (seen.has(key)) {
-      duplicates.push(i);
+      duplicates.push(i)
     } else {
-      seen.add(key);
+      seen.add(key)
     }
-  });
-  return duplicates;
+  })
+  return duplicates
 }
 
-export function CSVPreviewStage({ file, columnMapping, onProcess, onBack }: CSVPreviewStageProps) {
-  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [csvRows, setCsvRows] = useState<string[][]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function CSVPreviewStage({
+  file,
+  columnMapping,
+  onProcess,
+  onBack,
+}: CSVPreviewStageProps) {
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([])
+  const [csvRows, setCsvRows] = useState<string[][]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadPreview = async () => {
       try {
-        setIsLoading(true);
-        
+        setIsLoading(true)
+
         // Read the CSV file
-        const text = await file.text();
-        const lines = text.split('\n').filter(l => l.trim());
-        
+        const text = await file.text()
+        const lines = text.split("\n").filter((l) => l.trim())
+
         if (lines.length === 0) {
-          setError('CSV file is empty');
-          return;
+          setError("CSV file is empty")
+          return
         }
 
         // Parse headers
-        const headers = lines[0].split(',');
-        setCsvHeaders(headers);
+        const headers = lines[0].split(",")
+        setCsvHeaders(headers)
 
         // Parse rows (skip header)
-        const rows = lines.slice(1).map(line => line.split(','));
-        setCsvRows(rows);
+        const rows = lines.slice(1).map((line) => line.split(","))
+        setCsvRows(rows)
       } catch (err) {
-        setError('Failed to read CSV file');
+        setError("Failed to read CSV file")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadPreview();
-  }, [file]);
+    loadPreview()
+  }, [file])
 
   if (isLoading) {
     return (
@@ -82,16 +96,24 @@ export function CSVPreviewStage({ file, columnMapping, onProcess, onBack }: CSVP
           <p className="mt-2 text-muted-foreground">Loading preview...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  const duplicateRows = getDuplicateRowIndices(csvRows, columnMapping, csvHeaders);
-  const hasMissingRequired = csvRows.slice(0, 10).some(row =>
+  const duplicateRows = getDuplicateRowIndices(
+    csvRows,
+    columnMapping,
+    csvHeaders
+  )
+  const hasMissingRequired = csvRows.slice(0, 10).some((row) =>
     csvHeaders.some((h, colIdx) => {
-      const dbField = columnMapping[h];
-      return dbField && REQUIRED_FIELDS.includes(dbField) && (!row[colIdx] || row[colIdx].trim() === '');
+      const dbField = columnMapping[h]
+      return (
+        dbField &&
+        REQUIRED_FIELDS.includes(dbField) &&
+        (!row[colIdx] || row[colIdx].trim() === "")
+      )
     })
-  );
+  )
 
   return (
     <div className="space-y-6">
@@ -103,7 +125,8 @@ export function CSVPreviewStage({ file, columnMapping, onProcess, onBack }: CSVP
       {/* File Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-700">
-          <strong>File:</strong> {file.name} ({(file.size / 1024).toFixed(1)} KB)
+          <strong>File:</strong> {file.name} ({(file.size / 1024).toFixed(1)}{" "}
+          KB)
         </p>
         <p className="text-sm text-blue-700">
           <strong>Total rows:</strong> {csvRows.length}
@@ -119,7 +142,8 @@ export function CSVPreviewStage({ file, columnMapping, onProcess, onBack }: CSVP
           {duplicateRows.length > 0 && (
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="h-4 w-4" />
-              {duplicateRows.length} duplicate property rows detected (highlighted in red).
+              {duplicateRows.length} duplicate property rows detected
+              (highlighted in red).
             </div>
           )}
           {hasMissingRequired && (
@@ -157,13 +181,10 @@ export function CSVPreviewStage({ file, columnMapping, onProcess, onBack }: CSVP
         <Button onClick={onBack} variant="outline" size="lg">
           Back to Mapping
         </Button>
-        <Button 
-          onClick={onProcess} 
-          size="lg"
-        >
+        <Button onClick={onProcess} size="lg">
           Process Data
         </Button>
       </div>
     </div>
-  );
-} 
+  )
+}

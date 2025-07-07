@@ -1,44 +1,45 @@
-'use client';
+"use client"
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info } from "lucide-react"
+
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface UploadResult {
-  success: boolean;
-  message: string;
+  success: boolean
+  message: string
   summary: {
-    processedRows: number;
-    errors: number;
-    createdOwners: number;
-    createdProperties: number;
-    createdContacts: number;
-    duplicates: number;
-    mergedOwners: number;
-    mergedProperties: number;
+    processedRows: number
+    errors: number
+    createdOwners: number
+    createdProperties: number
+    createdContacts: number
+    duplicates: number
+    mergedOwners: number
+    mergedProperties: number
     reconciliationSummary: {
-      propertiesCreated: number;
-      propertiesMerged: number;
-      ownersCreated: number;
-      ownersMerged: number;
-    } | null;
-  };
+      propertiesCreated: number
+      propertiesMerged: number
+      ownersCreated: number
+      ownersMerged: number
+    } | null
+  }
   errors: Array<{
-    row: number;
-    address: string;
-    errors: string[];
-  }>;
+    row: number
+    address: string
+    errors: string[]
+  }>
   duplicates: Array<{
-    row: number;
-    address: string;
-    message: string;
-  }>;
+    row: number
+    address: string
+    message: string
+  }>
 }
 
 interface CSVProcessResultsProps {
-  result: UploadResult;
-  onBack: () => void;
+  result: UploadResult
+  onBack: () => void
 }
 
 export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
@@ -48,7 +49,9 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
       <div className="flex items-center gap-3">
         <CheckCircle className="h-8 w-8 text-green-600" />
         <div>
-          <h2 className="text-2xl font-bold text-green-800">CSV processed successfully</h2>
+          <h2 className="text-2xl font-bold text-green-800">
+            CSV processed successfully
+          </h2>
           <p className="text-muted-foreground">{result.message}</p>
         </div>
       </div>
@@ -64,19 +67,27 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{result.summary.processedRows}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {result.summary.processedRows}
+              </div>
               <div className="text-sm text-blue-700">Processed Rows</div>
             </div>
             <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{result.summary.errors}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {result.summary.errors}
+              </div>
               <div className="text-sm text-red-700">Errors</div>
             </div>
             <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{result.summary.duplicates}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {result.summary.duplicates}
+              </div>
               <div className="text-sm text-yellow-700">Duplicates</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{result.summary.createdContacts}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {result.summary.createdContacts}
+              </div>
               <div className="text-sm text-green-700">Contacts</div>
             </div>
           </div>
@@ -92,11 +103,15 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span>Owners Created:</span>
-              <span className="font-semibold">{result.summary.createdOwners}</span>
+              <span className="font-semibold">
+                {result.summary.createdOwners}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Properties Created:</span>
-              <span className="font-semibold">{result.summary.createdProperties}</span>
+              <span className="font-semibold">
+                {result.summary.createdProperties}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -108,11 +123,15 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span>Owners Merged:</span>
-              <span className="font-semibold">{result.summary.mergedOwners || 0}</span>
+              <span className="font-semibold">
+                {result.summary.mergedOwners || 0}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Properties Merged:</span>
-              <span className="font-semibold">{result.summary.mergedProperties || 0}</span>
+              <span className="font-semibold">
+                {result.summary.mergedProperties || 0}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -167,12 +186,15 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
           <CardContent>
             <div className="max-h-60 overflow-y-auto space-y-2">
               {result.errors.map((error, index) => (
-                <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div
+                  key={index}
+                  className="p-3 bg-red-50 border border-red-200 rounded-lg"
+                >
                   <div className="font-medium text-red-800">
                     Row {error.row} ({error.address})
                   </div>
                   <div className="text-sm text-red-700 mt-1">
-                    {error.errors.join(', ')}
+                    {error.errors.join(", ")}
                   </div>
                 </div>
               ))}
@@ -193,7 +215,10 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
           <CardContent>
             <div className="max-h-60 overflow-y-auto space-y-2">
               {result.duplicates.map((duplicate, index) => (
-                <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div
+                  key={index}
+                  className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+                >
                   <div className="font-medium text-yellow-800">
                     Row {duplicate.row} ({duplicate.address})
                   </div>
@@ -214,5 +239,5 @@ export function CSVProcessResults({ result, onBack }: CSVProcessResultsProps) {
         </Button>
       </div>
     </div>
-  );
-} 
+  )
+}

@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import GoogleMapContainer from './GoogleMapContainer'
-import MapZoomControls from './MapZoomControls'
-import MapStateDebugger from './MapStateDebugger'
-import type { PropertyMapPanelProps } from '@/types/map'
-import { PANEL_WIDTHS } from '@/lib/map-constants'
+import { useState } from "react"
+
+import type { PropertyMapPanelProps } from "@/types/map"
+import { PANEL_WIDTHS } from "@/lib/map-constants"
+
+import GoogleMapContainer from "./GoogleMapContainer"
+import MapStateDebugger from "./MapStateDebugger"
+import MapZoomControls from "./MapZoomControls"
 
 export default function PropertyMapPanel({
   properties,
@@ -16,7 +18,7 @@ export default function PropertyMapPanel({
   onMarkerClick,
   onMapCenterChange,
   onMapZoomChange,
-  className = ""
+  className = "",
 }: PropertyMapPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +50,7 @@ export default function PropertyMapPanel({
       )}
       {/* Map Container */}
       <div className="flex-1 relative">
-        <GoogleMapContainer 
+        <GoogleMapContainer
           properties={properties}
           center={center}
           zoom={zoom}
@@ -59,9 +61,9 @@ export default function PropertyMapPanel({
           onMapCenterChange={onMapCenterChange}
           onMapZoomChange={onMapZoomChange}
         />
-        
+
         {/* Zoom Controls */}
-        <MapZoomControls 
+        <MapZoomControls
           position="top-right"
           showResetButton={true}
           showFitAllButton={true}
@@ -75,4 +77,4 @@ export default function PropertyMapPanel({
       </div>
     </section>
   )
-} 
+}

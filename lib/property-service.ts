@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/shared/prisma'
+import { prisma } from "@/lib/shared/prisma"
 
 export interface PropertySearchParams {
   id?: string
@@ -43,15 +43,15 @@ export class PropertyService {
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
-      }
+      },
     })
 
     if (!property) {
-      throw new Error('Property not found')
+      throw new Error("Property not found")
     }
 
     return property
@@ -60,25 +60,35 @@ export class PropertyService {
   /**
    * Get properties with pagination and search
    */
-  static async getProperties(params: PropertySearchParams): Promise<PropertiesResponse> {
-    const { page = 1, limit = 10, search = '' } = params
+  static async getProperties(
+    params: PropertySearchParams
+  ): Promise<PropertiesResponse> {
+    const { page = 1, limit = 10, search = "" } = params
 
     // Calculate pagination
     const skip = (page - 1) * limit
 
     // Build where clause for search
     let whereClause: any = {}
-    
+
     if (search) {
       whereClause = {
         OR: [
-          { street_address: { contains: search, mode: 'insensitive' } },
-          { city: { contains: search, mode: 'insensitive' } },
-          { owners: { some: { firstName: { contains: search, mode: 'insensitive' } } } },
-          { owners: { some: { lastName: { contains: search, mode: 'insensitive' } } } },
-        ]
+          { street_address: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
+          {
+            owners: {
+              some: { firstName: { contains: search, mode: "insensitive" } },
+            },
+          },
+          {
+            owners: {
+              some: { lastName: { contains: search, mode: "insensitive" } },
+            },
+          },
+        ],
       }
-      
+
       // Handle zip code search separately to avoid type issues
       const zipCode = parseInt(search)
       if (!isNaN(zipCode)) {
@@ -88,25 +98,25 @@ export class PropertyService {
 
     // Get total count for pagination
     const totalCount = await prisma.property.count({
-      where: whereClause
+      where: whereClause,
     })
 
     // Get paginated properties
     const properties = await prisma.property.findMany({
       where: whereClause,
       orderBy: {
-        created_at: 'desc'
+        created_at: "desc",
       },
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
       },
       skip,
-      take: limit
+      take: limit,
     })
 
     const totalPages = Math.ceil(totalCount / limit)
@@ -119,8 +129,8 @@ export class PropertyService {
         totalCount,
         limit,
         hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1
-      }
+        hasPreviousPage: page > 1,
+      },
     }
   }
 
@@ -130,7 +140,7 @@ export class PropertyService {
   static async createProperty(data: PropertyCreateInput) {
     // Validate required fields
     if (!data.street_address || !data.city || !data.zip_code || !data.price) {
-      throw new Error('Missing required fields')
+      throw new Error("Missing required fields")
     }
 
     // Prepare the data for Prisma
@@ -142,13 +152,13 @@ export class PropertyService {
       price: data.price,
       return_on_investment: data.return_on_investment,
       number_of_units: data.number_of_units,
-      square_feet: data.square_feet
+      square_feet: data.square_feet,
     }
 
     // Connect owners if provided
     if (data.ownerIds && data.ownerIds.length > 0) {
       propertyData.owners = {
-        connect: data.ownerIds.map(id => ({ id }))
+        connect: data.ownerIds.map((id) => ({ id })),
       }
     }
 
@@ -158,11 +168,11 @@ export class PropertyService {
       include: {
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
         coordinates: true,
-      }
+      },
     })
 
     return property
@@ -175,20 +185,20 @@ export class PropertyService {
     return await prisma.property.findMany({
       where: {
         coordinates: {
-          isNot: null
-        }
+          isNot: null,
+        },
       },
       include: {
         coordinates: true,
         owners: {
           include: {
-            contacts: true
-          }
+            contacts: true,
+          },
         },
       },
       orderBy: {
-        created_at: 'desc'
-      }
+        created_at: "desc",
+      },
     })
   }
-} 
+}

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { PrismaClient } from '@/generated/prisma'
+import { NextResponse } from "next/server"
+import { PrismaClient } from "@/generated/prisma"
 
 const prisma = new PrismaClient()
 
@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     // Try to find existing test user
     let user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     })
 
     // If user doesn't exist, create it
@@ -19,17 +19,20 @@ export async function POST(request: Request) {
         data: {
           email,
           first_name: firstName,
-          last_name: lastName
-        }
+          last_name: lastName,
+        },
       })
     }
 
     return NextResponse.json(user)
   } catch (error) {
-    console.error('API: Error creating/finding test user:', error)
+    console.error("API: Error creating/finding test user:", error)
     return NextResponse.json(
-      { error: 'Failed to create/find test user', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: "Failed to create/find test user",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
-} 
+}

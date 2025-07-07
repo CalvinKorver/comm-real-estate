@@ -1,21 +1,22 @@
-'use client';
+"use client"
 
-import { useEffect } from 'react';
-import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Icons } from '@/components/icons';
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
+
+import { Icons } from "@/components/icons"
 
 export default function SignOutPage() {
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
     // Automatically sign out after a brief delay
     const timer = setTimeout(() => {
-      signOut({ callbackUrl: '/' });
-    }, 2000);
+      signOut({ callbackUrl: "/" })
+    }, 2000)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -30,5 +31,5 @@ export default function SignOutPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

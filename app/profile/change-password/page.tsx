@@ -1,82 +1,89 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { BaseHeader } from '@/components/base-header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { BaseHeader } from "@/components/base-header"
 
 export default function ChangePasswordPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(null);
-    setSuccess(null);
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setError(null)
+    setSuccess(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setSuccess(null)
 
     // Validate passwords
     if (formData.newPassword !== formData.confirmPassword) {
-      setError('New passwords do not match');
-      setIsLoading(false);
-      return;
+      setError("New passwords do not match")
+      setIsLoading(false)
+      return
     }
 
     if (formData.newPassword.length < 8) {
-      setError('New password must be at least 8 characters long');
-      setIsLoading(false);
-      return;
+      setError("New password must be at least 8 characters long")
+      setIsLoading(false)
+      return
     }
 
     try {
-      const response = await fetch('/api/user/change-password', {
-        method: 'PUT',
+      const response = await fetch("/api/user/change-password", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         }),
-      });
+      })
 
       if (response.ok) {
-        setSuccess('Password changed successfully!');
+        setSuccess("Password changed successfully!")
         setFormData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        });
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to change password');
+        const errorData = await response.json()
+        setError(errorData.message || "Failed to change password")
       }
     } catch (error) {
-      setError('An error occurred while changing your password');
+      setError("An error occurred while changing your password")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <>
         <BaseHeader />
@@ -88,22 +95,24 @@ export default function ChangePasswordPage() {
           </div>
         </div>
       </>
-    );
+    )
   }
 
-  if (status === 'unauthenticated') {
+  if (status === "unauthenticated") {
     return (
       <>
         <BaseHeader />
         <div className="container mx-auto px-4 py-12">
           <div className="mx-auto max-w-md">
             <div className="text-center">
-              <p className="text-muted-foreground">Please sign in to change your password.</p>
+              <p className="text-muted-foreground">
+                Please sign in to change your password.
+              </p>
             </div>
           </div>
         </div>
       </>
-    );
+    )
   }
 
   return (
@@ -140,7 +149,10 @@ export default function ChangePasswordPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="currentPassword"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Current Password
                   </label>
                   <Input
@@ -154,7 +166,10 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     New Password
                   </label>
                   <Input
@@ -168,7 +183,10 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Confirm New Password
                   </label>
                   <Input
@@ -182,7 +200,7 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? 'Changing Password...' : 'Change Password'}
+                  {isLoading ? "Changing Password..." : "Change Password"}
                 </Button>
               </form>
             </CardContent>
@@ -190,5 +208,5 @@ export default function ChangePasswordPage() {
         </div>
       </div>
     </>
-  );
+  )
 }

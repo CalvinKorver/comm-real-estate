@@ -1,11 +1,12 @@
 "use client"
 
-import { cn } from "@/lib/shared/utils"
+import { SearchProvider } from "@/contexts/SearchContext"
+
 import { fontSans } from "@/lib/shared/fonts"
+import { cn } from "@/lib/shared/utils"
+import { ProtectedRoute } from "@/components/protected-route"
 import { SearchHeader } from "@/components/search-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
-import { ProtectedRoute } from "@/components/protected-route"
-import { SearchProvider } from "@/contexts/SearchContext"
 
 interface PropertiesLayoutProps {
   children: React.ReactNode
@@ -23,4 +24,4 @@ export default function PropertiesLayout({ children }: PropertiesLayoutProps) {
       </SearchProvider>
     </ProtectedRoute>
   )
-} 
+}

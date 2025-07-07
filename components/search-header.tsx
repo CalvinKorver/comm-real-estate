@@ -1,20 +1,22 @@
-import { siteConfig } from "@/config/site"
-import { Icons } from "@/components/icons"
-import { useSearch } from "@/contexts/SearchContext"
-import { useSession } from 'next-auth/react'
-import { Button } from "@/components/ui/button"
-import { UserNav } from "@/components/user-nav"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useSearch } from "@/contexts/SearchContext"
+import { useSession } from "next-auth/react"
+
+import { siteConfig } from "@/config/site"
+import { Button } from "@/components/ui/button"
+import { Icons } from "@/components/icons"
+import { UserNav } from "@/components/user-nav"
 
 export function SearchHeader() {
-  const { search, onSearchChange, onSearchSubmit, isSearchEnabled } = useSearch()
+  const { search, onSearchChange, onSearchSubmit, isSearchEnabled } =
+    useSearch()
   const { data: session, status } = useSession()
-  const isLoading = status === 'loading'
+  const isLoading = status === "loading"
   const router = useRouter()
 
   const handleSignOut = () => {
-    router.push('/auth/signout')
+    router.push("/auth/signout")
   }
 
   return (
@@ -69,15 +71,16 @@ export function SearchHeader() {
 
         {/* Right section - User controls */}
         <div className="flex items-center space-x-4">
-          <Button 
+          <Button
             className="h-8 w-24 bg-green-600 rounded-full hover:bg-green-700 text-white text-muted-foreground hover:text-foreground"
             variant="ghost"
             size="icon"
             title="upload-csv"
-            onClick={() => router.push('/csv-upload')}>
+            onClick={() => router.push("/csv-upload")}
+          >
             <span className="text-white">Upload</span>
           </Button>
-          
+
           {isLoading ? (
             <div className="h-8 w-8 rounded-full bg-muted animate-pulse"></div>
           ) : (
@@ -87,4 +90,4 @@ export function SearchHeader() {
       </div>
     </header>
   )
-} 
+}

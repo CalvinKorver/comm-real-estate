@@ -1,24 +1,27 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Eye, X } from 'lucide-react'
+import { useState } from "react"
+import Image from "next/image"
+import { Eye, X } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 
 interface PropertyImageGridProps {
   images?: string[]
 }
 
 const DEFAULT_IMAGES = [
-  '/p1-1.jpg',
-  '/p1-2.jpg',
-  '/p1-3.jpg',
-  '/p1-4.jpg',
-  '/p1-5.jpg',
-  '/p1-6.jpg',
+  "/p1-1.jpg",
+  "/p1-2.jpg",
+  "/p1-3.jpg",
+  "/p1-4.jpg",
+  "/p1-5.jpg",
+  "/p1-6.jpg",
 ]
 
-export function PropertyImageGrid({ images = DEFAULT_IMAGES }: PropertyImageGridProps) {
+export function PropertyImageGrid({
+  images = DEFAULT_IMAGES,
+}: PropertyImageGridProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
 
@@ -38,7 +41,8 @@ export function PropertyImageGrid({ images = DEFAULT_IMAGES }: PropertyImageGrid
   }
 
   const handlePrev = () => {
-    const prevIndex = selectedIndex === 0 ? images.length - 1 : selectedIndex - 1
+    const prevIndex =
+      selectedIndex === 0 ? images.length - 1 : selectedIndex - 1
     setSelectedIndex(prevIndex)
     setSelectedImage(images[prevIndex])
   }
@@ -53,57 +57,57 @@ export function PropertyImageGrid({ images = DEFAULT_IMAGES }: PropertyImageGrid
 
   return (
     <>
-        <div className="grid grid-cols-4 gap-2 mb-8 h-[50vh]">
+      <div className="grid grid-cols-4 gap-2 mb-8 h-[50vh]">
         {/* Main image - takes up left 2 columns and full height */}
         <div className="col-span-2 relative group cursor-pointer overflow-hidden rounded-lg">
-            <Image
+          <Image
             src={images[0]}
             alt="Property main image"
             fill
             className="object-cover transition-transform group-hover:scale-105"
             onClick={() => handleImageClick(images[0], 0)}
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-            <Button
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+          <Button
             variant="secondary"
             size="sm"
             className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={() => handleImageClick(images[0], 0)}
-            >
+          >
             <Eye className="h-4 w-4 mr-2" />
             View
-            </Button>
+          </Button>
         </div>
 
         {/* Secondary images - right side grid */}
         <div className="col-span-2 grid grid-cols-2 gap-2 h-full">
-            {images.slice(1, 5).map((image, index) => (
-            <div 
-                key={index + 1} 
-                className="relative group cursor-pointer overflow-hidden rounded-lg bg-muted"
+          {images.slice(1, 5).map((image, index) => (
+            <div
+              key={index + 1}
+              className="relative group cursor-pointer overflow-hidden rounded-lg bg-muted"
             >
-                <Image
+              <Image
                 src={image}
                 alt={`Property image ${index + 2}`}
                 fill
                 className="object-cover transition-transform group-hover:scale-105"
                 onClick={() => handleImageClick(image, index + 1)}
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                {index === 3 && images.length > 5 && (
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+              {index === 3 && images.length > 5 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <Button
+                  <Button
                     variant="secondary"
                     onClick={() => handleImageClick(image, index + 1)}
-                    >
+                  >
                     +{images.length - 5} photos
-                    </Button>
+                  </Button>
                 </div>
-                )}
+              )}
             </div>
-            ))}
+          ))}
         </div>
-        </div>
+      </div>
 
       {/* Lightbox Modal */}
       {selectedImage && (

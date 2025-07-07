@@ -1,182 +1,185 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { BaseHeader } from '@/components/base-header';
-import { ArrowLeft, Upload, Settings, Eye, CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { CSVUploadStage } from '@/components/CSVUploadStage';
-import { CSVColumnMappingStage } from '@/components/CSVColumnMappingStage';
-import { CSVPreviewStage } from '@/components/CSVPreviewStage';
-import { CSVProcessResults } from '@/components/CSVProcessResults';
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, CheckCircle, Eye, Settings, Upload } from "lucide-react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { BaseHeader } from "@/components/base-header"
+import { CSVColumnMappingStage } from "@/components/CSVColumnMappingStage"
+import { CSVPreviewStage } from "@/components/CSVPreviewStage"
+import { CSVProcessResults } from "@/components/CSVProcessResults"
+import { CSVUploadStage } from "@/components/CSVUploadStage"
 
 interface UploadResult {
-  success: boolean;
-  message: string;
+  success: boolean
+  message: string
   summary: {
-    processedRows: number;
-    errors: number;
-    createdOwners: number;
-    createdProperties: number;
-    createdContacts: number;
-    duplicates: number;
-    mergedOwners: number;
-    mergedProperties: number;
+    processedRows: number
+    errors: number
+    createdOwners: number
+    createdProperties: number
+    createdContacts: number
+    duplicates: number
+    mergedOwners: number
+    mergedProperties: number
     reconciliationSummary: {
-      propertiesCreated: number;
-      propertiesMerged: number;
-      ownersCreated: number;
-      ownersMerged: number;
-    } | null;
-  };
+      propertiesCreated: number
+      propertiesMerged: number
+      ownersCreated: number
+      ownersMerged: number
+    } | null
+  }
   errors: Array<{
-    row: number;
-    address: string;
-    errors: string[];
-  }>;
+    row: number
+    address: string
+    errors: string[]
+  }>
   duplicates: Array<{
-    row: number;
-    address: string;
-    message: string;
-  }>;
+    row: number
+    address: string
+    message: string
+  }>
 }
 
-type Stage = 'upload' | 'mapping' | 'preview' | 'results';
+type Stage = "upload" | "mapping" | "preview" | "results"
 
 export default function CSVUploadPage() {
-  const [currentStage, setCurrentStage] = useState<Stage>('upload');
-  const [file, setFile] = useState<File | null>(null);
-  const [columnMapping, setColumnMapping] = useState<Record<string, string | null>>({});
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const router = useRouter();
+  const [currentStage, setCurrentStage] = useState<Stage>("upload")
+  const [file, setFile] = useState<File | null>(null)
+  const [columnMapping, setColumnMapping] = useState<
+    Record<string, string | null>
+  >({})
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   const handleFileSelected = (selectedFile: File) => {
-    setFile(selectedFile);
-    setCurrentStage('mapping');
-  };
+    setFile(selectedFile)
+    setCurrentStage("mapping")
+  }
 
   const handleMappingComplete = (mapping: Record<string, string | null>) => {
-    setColumnMapping(mapping);
-    setCurrentStage('preview');
-  };
+    setColumnMapping(mapping)
+    setCurrentStage("preview")
+  }
 
   const handleProcess = async () => {
-    if (!file) return;
+    if (!file) return
 
-    setIsProcessing(true);
+    setIsProcessing(true)
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('columnMapping', JSON.stringify(columnMapping));
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("columnMapping", JSON.stringify(columnMapping))
 
-      const response = await fetch('/api/csv-upload', {
-        method: 'POST',
+      const response = await fetch("/api/csv-upload", {
+        method: "POST",
         body: formData,
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        const errorMessage = data.error || 'Upload failed';
-        toast.error(errorMessage);
-        
+        const errorMessage = data.error || "Upload failed"
+        toast.error(errorMessage)
+
         // If it's a row limit error, redirect back to upload
-        if (errorMessage.includes('maximum allowed is 100')) {
+        if (errorMessage.includes("maximum allowed is 100")) {
           setTimeout(() => {
-            handleBackToUpload();
-          }, 2000);
+            handleBackToUpload()
+          }, 2000)
         }
-        
-        throw new Error(errorMessage);
+
+        throw new Error(errorMessage)
       }
 
-      setUploadResult(data);
-      setCurrentStage('results');
-      toast.success('CSV file processed successfully!');
+      setUploadResult(data)
+      setCurrentStage("results")
+      toast.success("CSV file processed successfully!")
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error("Upload error:", err)
       // Error toast is already shown above
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const handleBackToUpload = () => {
-    setCurrentStage('upload');
-    setFile(null);
-    setColumnMapping({});
-    setUploadResult(null);
-  };
+    setCurrentStage("upload")
+    setFile(null)
+    setColumnMapping({})
+    setUploadResult(null)
+  }
 
   const handleBackToMapping = () => {
-    setCurrentStage('mapping');
-  };
+    setCurrentStage("mapping")
+  }
 
   const handleBackToPreview = () => {
-    setCurrentStage('preview');
-  };
+    setCurrentStage("preview")
+  }
 
   const getProgressValue = () => {
     switch (currentStage) {
-      case 'upload':
-        return 25;
-      case 'mapping':
-        return 50;
-      case 'preview':
-        return 75;
-      case 'results':
-        return 100;
+      case "upload":
+        return 25
+      case "mapping":
+        return 50
+      case "preview":
+        return 75
+      case "results":
+        return 100
       default:
-        return 0;
+        return 0
     }
-  };
+  }
 
   const getStageIcon = (stage: Stage) => {
     switch (stage) {
-      case 'upload':
-        return <Upload className="h-5 w-5" />;
-      case 'mapping':
-        return <Settings className="h-5 w-5" />;
-      case 'preview':
-        return <Eye className="h-5 w-5" />;
-      case 'results':
-        return <CheckCircle className="h-5 w-5" />;
+      case "upload":
+        return <Upload className="h-5 w-5" />
+      case "mapping":
+        return <Settings className="h-5 w-5" />
+      case "preview":
+        return <Eye className="h-5 w-5" />
+      case "results":
+        return <CheckCircle className="h-5 w-5" />
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   const getStageTitle = (stage: Stage) => {
     switch (stage) {
-      case 'upload':
-        return 'Upload';
-      case 'mapping':
-        return 'Map Columns';
-      case 'preview':
-        return 'Preview';
-      case 'results':
-        return 'Results';
+      case "upload":
+        return "Upload"
+      case "mapping":
+        return "Map Columns"
+      case "preview":
+        return "Preview"
+      case "results":
+        return "Results"
       default:
-        return '';
+        return ""
     }
-  };
+  }
 
   const isStageActive = (stage: Stage) => {
-    const stageOrder: Stage[] = ['upload', 'mapping', 'preview', 'results'];
-    const currentIndex = stageOrder.indexOf(currentStage);
-    const stageIndex = stageOrder.indexOf(stage);
-    return stageIndex <= currentIndex;
-  };
+    const stageOrder: Stage[] = ["upload", "mapping", "preview", "results"]
+    const currentIndex = stageOrder.indexOf(currentStage)
+    const stageIndex = stageOrder.indexOf(stage)
+    return stageIndex <= currentIndex
+  }
 
   const isStageCompleted = (stage: Stage) => {
-    const stageOrder: Stage[] = ['upload', 'mapping', 'preview', 'results'];
-    const currentIndex = stageOrder.indexOf(currentStage);
-    const stageIndex = stageOrder.indexOf(stage);
-    return stageIndex < currentIndex;
-  };
+    const stageOrder: Stage[] = ["upload", "mapping", "preview", "results"]
+    const currentIndex = stageOrder.indexOf(currentStage)
+    const stageIndex = stageOrder.indexOf(stage)
+    return stageIndex < currentIndex
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -200,39 +203,45 @@ export default function CSVUploadPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              {(['upload', 'mapping', 'preview', 'results'] as Stage[]).map((stage) => (
-                <div key={stage} className="flex items-center gap-2">
-                  <div 
-                    className={`p-2 rounded-full ${
-                      isStageActive(stage) 
-                        ? 'bg-primary text-primary-foreground' 
-                        : isStageCompleted(stage)
-                        ? 'bg-green-500 text-white'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {isStageCompleted(stage) ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      getStageIcon(stage)
-                    )}
+              {(["upload", "mapping", "preview", "results"] as Stage[]).map(
+                (stage) => (
+                  <div key={stage} className="flex items-center gap-2">
+                    <div
+                      className={`p-2 rounded-full ${
+                        isStageActive(stage)
+                          ? "bg-primary text-primary-foreground"
+                          : isStageCompleted(stage)
+                            ? "bg-green-500 text-white"
+                            : "bg-muted"
+                      }`}
+                    >
+                      {isStageCompleted(stage) ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        getStageIcon(stage)
+                      )}
+                    </div>
+                    <span
+                      className={`font-medium ${
+                        isStageActive(stage)
+                          ? "text-primary"
+                          : isStageCompleted(stage)
+                            ? "text-green-600"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {getStageTitle(stage)}
+                    </span>
                   </div>
-                  <span 
-                    className={`font-medium ${
-                      isStageActive(stage) 
-                        ? 'text-primary' 
-                        : isStageCompleted(stage)
-                        ? 'text-green-600'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {getStageTitle(stage)}
-                  </span>
-                </div>
-              ))}
+                )
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
-              Step {(['upload', 'mapping', 'preview', 'results'] as Stage[]).indexOf(currentStage) + 1} of 4
+              Step{" "}
+              {(["upload", "mapping", "preview", "results"] as Stage[]).indexOf(
+                currentStage
+              ) + 1}{" "}
+              of 4
             </div>
           </div>
           <Progress value={getProgressValue()} className="h-2" />
@@ -240,20 +249,20 @@ export default function CSVUploadPage() {
 
         {/* Stage Content */}
         <div className="bg-card rounded-lg border p-6">
-          {currentStage === 'upload' && (
+          {currentStage === "upload" && (
             <CSVUploadStage onFileSelected={handleFileSelected} />
           )}
 
-          {currentStage === 'mapping' && file && (
-            <CSVColumnMappingStage 
+          {currentStage === "mapping" && file && (
+            <CSVColumnMappingStage
               file={file}
               onMappingComplete={handleMappingComplete}
               onBack={handleBackToUpload}
             />
           )}
 
-          {currentStage === 'preview' && file && (
-            <CSVPreviewStage 
+          {currentStage === "preview" && file && (
+            <CSVPreviewStage
               file={file}
               columnMapping={columnMapping}
               onProcess={handleProcess}
@@ -261,14 +270,14 @@ export default function CSVUploadPage() {
             />
           )}
 
-          {currentStage === 'results' && uploadResult && (
+          {currentStage === "results" && uploadResult && (
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <CheckCircle className="h-6 w-6 text-green-600" />
                 <h2 className="text-xl font-semibold">Processing Complete</h2>
               </div>
-              <CSVProcessResults 
-                result={uploadResult} 
+              <CSVProcessResults
+                result={uploadResult}
                 onBack={handleBackToUpload}
               />
             </div>
@@ -289,5 +298,5 @@ export default function CSVUploadPage() {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}
