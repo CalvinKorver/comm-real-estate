@@ -114,10 +114,81 @@ npm run dev
 - Use [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres/overview) for production.
 - Update your `DATABASE_URL` accordingly.
 
+## Testing
+
+### Integration Testing
+This project includes a comprehensive integration testing setup using Vitest with Docker-isolated PostgreSQL database.
+
+#### Prerequisites
+- Docker and Docker Compose installed
+
+#### Running Integration Tests
+
+```bash
+# Run all integration tests
+npm run test:integration
+
+# Run integration tests in watch mode
+npm run test:integration:watch
+
+# Run integration tests with UI
+npm run test:integration:ui
+```
+
+#### Manual Database Management
+
+```bash
+# Start test database container
+npm run test:db:setup
+
+# Stop and clean up test database container
+npm run test:db:teardown
+```
+
+#### Test Database Details
+- **Isolated Environment**: Tests run against a separate PostgreSQL database in Docker
+- **Automatic Reset**: Database is cleaned before each test for isolation
+- **Port**: Test database runs on port 5433 (separate from development database)
+- **Container**: `comm-real-estate-test-db`
+
+#### Writing Integration Tests
+Tests should be placed in `tests/integration/` and use the provided test utilities:
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { getTestPrismaClient, seedTestData } from '../setup/test-database'
+
+describe('My Integration Test', () => {
+  const prisma = getTestPrismaClient()
+
+  it('should test database operations', async () => {
+    const property = await prisma.property.create({
+      data: {
+        street_address: '123 Test St',
+        city: 'Test City',
+        zip_code: 12345,
+        // ... other required fields
+      }
+    })
+    
+    expect(property.id).toBeDefined()
+  })
+})
+```
+
+For more details, see `tests/README.md`.
+
+#### Continuous Integration
+Integration tests automatically run on every pull request via GitHub Actions. See `.github/PR_CHECKS.md` for details on setting up required status checks.
+
 ## Scripts
 - `npm run dev` — Start development server
 - `npm run build` — Build for production
 - `npm run start` — Start production server
+- `npm test` — Run unit tests (Jest)
+- `npm run test:integration` — Run integration tests (Vitest)
+- `npm run test:integration:watch` — Run integration tests in watch mode
+- `npm run test:integration:ui` — Run integration tests with UI
 - `npx prisma migrate deploy` — Deploy migrations
 - `npx prisma generate` — Generate Prisma client
 

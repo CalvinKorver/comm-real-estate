@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  test-postgres:
+    image: postgres:15
+    container_name: comm-real-estate-test-db
+    environment:
+      POSTGRES_DB: comm_real_estate_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+    command: postgres -c log_statement=all -c log_destination=stderr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d comm_real_estate_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  test_postgres_data:

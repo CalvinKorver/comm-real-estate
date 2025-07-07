@@ -1,0 +1,96 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    
+    # Job-level environment variables for all steps
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      POSTGRES_PRISMA_URL: postgresql://postgres:postgres@localhost:5432/postgres?pgbouncer=true&connect_timeout=15
+      POSTGRES_URL_NON_POOLING: postgresql://postgres:postgres@localhost:5432/postgres?connect_timeout=15
+      NODE_ENV: test
+      CI: true
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: test-secret-key-for-ci
+      DISABLE_GEOCODING: true
+      DISABLE_EMAIL_SENDING: true
+      DISABLE_S3_UPLOAD: true
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate environment variables
+        run: |
+          echo "Validating required environment variables..."
+          if [ -z "$DATABASE_URL" ]; then
+            echo "ERROR: DATABASE_URL is not set"
+            exit 1
+          fi
+          if [ -z "$POSTGRES_PRISMA_URL" ]; then
+            echo "ERROR: POSTGRES_PRISMA_URL is not set"
+            exit 1
+          fi
+          if [ -z "$POSTGRES_URL_NON_POOLING" ]; then
+            echo "ERROR: POSTGRES_URL_NON_POOLING is not set"
+            exit 1
+          fi
+          echo "✅ All required environment variables are set"
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL service to be ready..."
+          timeout 60s bash -c 'until pg_isready -h localhost -p 5432 -U postgres; do sleep 2; done'
+          echo "✅ PostgreSQL is ready"
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Setup database schema
+        run: |
+          echo "Setting up database schema..."
+          npx prisma db push
+          echo "✅ Database schema created"
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
