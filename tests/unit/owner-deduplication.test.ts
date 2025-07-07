@@ -1,28 +1,29 @@
+import { vi } from 'vitest';
 import { OwnerDeduplicationService, OwnerData, OwnerMatch, ConflictResolution } from '@/lib/services/owner-deduplication';
+import { prisma } from '@/lib/shared/prisma';
 
 // Mock Prisma
-jest.mock('@/lib/shared/prisma', () => ({
+vi.mock('@/lib/shared/prisma', () => ({
   prisma: {
     owner: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
     },
     contact: {
-      create: jest.fn(),
-      createMany: jest.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
     },
   },
 }));
 
 describe('Owner Deduplication Service', () => {
   let service: OwnerDeduplicationService;
-  let mockPrisma: any;
+  const mockPrisma = prisma as any;
 
   beforeEach(() => {
     service = new OwnerDeduplicationService();
-    mockPrisma = require('@/lib/shared/prisma').prisma;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('normalizePhone', () => {

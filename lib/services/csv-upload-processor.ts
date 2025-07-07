@@ -258,6 +258,11 @@ export async function processCSVUpload(
       const address = getMappedValue(values, '', 'street_address') || 'Unknown Address';
       const normalizedAddress = address.toLowerCase().trim();
 
+      // Skip empty rows (rows without addresses)
+      if (!address || !address.trim() || address === 'Unknown Address') {
+        continue; // Silently skip empty rows
+      }
+
       // Check for duplicates
       if (processedAddresses.has(normalizedAddress)) {
         result.duplicates.push({
