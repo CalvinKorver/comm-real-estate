@@ -82,8 +82,32 @@ jobs:
           npx prisma db push
           echo "✅ Database schema created"
 
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Start Next.js server in background
+        run: |
+          echo "Starting Next.js server..."
+          npm start &
+          echo $! > server.pid
+          echo "✅ Next.js server started in background"
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for Next.js server to be ready..."
+          timeout 60s bash -c 'until curl -f http://localhost:3000/api/healthcheck; do sleep 2; done'
+          echo "✅ Next.js server is ready"
+
       - name: Run integration tests
         run: npm run test:integration
+
+      - name: Stop Next.js server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+            rm server.pid
+          fi
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
