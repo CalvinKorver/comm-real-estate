@@ -20,7 +20,7 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_HOST_AUTH_METHOD: trust
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -42,21 +42,24 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?pgbouncer=true&connect_timeout=15
+          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?connect_timeout=15
 
       - name: Run database migrations
         run: npx prisma migrate deploy
         env:
-          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?pgbouncer=true&connect_timeout=15
-          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
+          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?pgbouncer=true&connect_timeout=15
+          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?connect_timeout=15
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?connect_timeout=15
 
       - name: Run integration tests
         run: npm run test:integration
         env:
           CI: true
           NODE_ENV: test
-          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?pgbouncer=true&connect_timeout=15
-          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5433/comm_real_estate_test?connect_timeout=15
+          POSTGRES_PRISMA_URL: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?pgbouncer=true&connect_timeout=15
+          POSTGRES_URL_NON_POOLING: postgresql://test_user:test_password@localhost:5432/comm_real_estate_test?connect_timeout=15
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: test-secret-key-for-ci
           DISABLE_GEOCODING: true
