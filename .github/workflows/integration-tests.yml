@@ -83,7 +83,11 @@ jobs:
           echo "✅ Database schema created"
 
       - name: Build Next.js application
-        run: npm run build
+        run: |
+          echo "Building Next.js application..."
+          npx prisma generate
+          npx next build
+          echo "✅ Next.js application built"
 
       - name: Start Next.js server in background
         run: |
