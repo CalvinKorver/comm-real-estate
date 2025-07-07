@@ -4,6 +4,17 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  // Only run tests in __tests__ directory to avoid conflicts with Vitest
+  testMatch: [
+    '**/__tests__/**/*.{js,ts,tsx}'
+  ],
+  // Explicitly ignore Vitest integration tests
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'tests/integration/',
+    'tests/setup/',
+    'tests/utils/'
+  ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
