@@ -4,6 +4,28 @@ import { CoordinateService } from '@/lib/services/coordinate-service';
 import { PropertyReconciliationService } from '@/lib/services/property-reconciliation';
 import { OwnerDeduplicationService } from '@/lib/services/owner-deduplication';
 
+// Mock the File constructor for Node.js environment
+global.File = class MockFile {
+  constructor(content, filename, options) {
+    this.content = content;
+    this.name = filename;
+    this.type = options?.type || '';
+  }
+  
+  text() {
+    return Promise.resolve(this.content[0]);
+  }
+  
+  stream() {
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(this.content[0]));
+        controller.close();
+      }
+    });
+  }
+};
+
 // Mock the services
 vi.mock('@/lib/services/coordinate-service');
 vi.mock('@/lib/services/property-reconciliation');
