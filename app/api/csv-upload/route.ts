@@ -3,14 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/shared/auth';
 import { processCSVUpload } from '@/lib/services/csv-upload-processor';
 
-const MAX_ROWS = 100;
-
-async function validateCSVRowCount(file: File): Promise<number> {
-  const text = await file.text();
-  const lines = text.split('\n').filter(line => line.trim() !== '');
-  // Subtract 1 for header row
-  return Math.max(0, lines.length - 1);
-}
 
 export async function POST(request: NextRequest) {
   // Check authentication
@@ -52,14 +44,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate row count
-    const rowCount = await validateCSVRowCount(file);
-    if (rowCount > MAX_ROWS) {
-      return NextResponse.json(
-        { error: `CSV file has ${rowCount} rows, but the maximum allowed is ${MAX_ROWS}. Please reduce the number of rows and try again.` },
-        { status: 400 }
-      );
-    }
 
     // Parse column mapping
     let columnMapping: Record<string, string | null> = {};
@@ -74,7 +58,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`Processing CSV file: ${file.name} (${file.size} bytes, ${rowCount} rows)`);
+    console.log(`Processing CSV file: ${file.name} (${file.size} bytes)`);
     console.log('Column mapping:', columnMapping);
 
     // Process the CSV file with column mapping

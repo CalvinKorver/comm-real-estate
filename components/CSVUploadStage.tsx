@@ -11,7 +11,6 @@ interface CSVUploadStageProps {
   onFileSelected: (file: File) => void;
 }
 
-const MAX_ROWS = 100;
 
 export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
   const [file, setFile] = useState<File | null>(null);
@@ -19,24 +18,6 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
   const [isValidating, setIsValidating] = useState(false);
   const router = useRouter();
 
-  const validateCSVRowCount = async (file: File): Promise<number> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const text = e.target?.result as string;
-          const lines = text.split('\n').filter(line => line.trim() !== '');
-          // Subtract 1 for header row
-          const dataRows = Math.max(0, lines.length - 1);
-          resolve(dataRows);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -61,18 +42,6 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
           return;
         }
 
-        // Validate row count
-        const rowCount = await validateCSVRowCount(selectedFile);
-        if (rowCount > MAX_ROWS) {
-          toast.error(`CSV file has ${rowCount} rows, but the maximum allowed is ${MAX_ROWS}. Please reduce the number of rows and try again.`);
-          setError(`File has ${rowCount} rows, but maximum allowed is ${MAX_ROWS}`);
-          setIsValidating(false);
-          // Redirect back to the starting page after a short delay
-          setTimeout(() => {
-            router.push('/csv-upload');
-          }, 2000);
-          return;
-        }
 
         setIsValidating(false);
       } catch (error) {
@@ -101,7 +70,7 @@ export function CSVUploadStage({ onFileSelected }: CSVUploadStageProps) {
         <div className="space-y-2">
           <p className="text-lg font-medium">Choose a CSV file to upload</p>
           <p className="text-sm text-muted-foreground">
-            Supported format: CSV files up to 10MB with maximum {MAX_ROWS} data rows
+            Supported format: CSV files up to 10MB
           </p>
         </div>
         

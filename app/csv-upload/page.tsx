@@ -83,12 +83,6 @@ export default function CSVUploadPage() {
         const errorMessage = data.error || 'Upload failed';
         toast.error(errorMessage);
         
-        // If it's a row limit error, redirect back to upload
-        if (errorMessage.includes('maximum allowed is 100')) {
-          setTimeout(() => {
-            handleBackToUpload();
-          }, 2000);
-        }
         
         throw new Error(errorMessage);
       }
