@@ -97,6 +97,33 @@ describe('TelnyxCallService', () => {
       })
     })
 
+    it('should work with normalized 10-digit phone numbers from CSV', async () => {
+      const mockResponse: TelnyxCallResponse = {
+        data: {
+          call_control_id: 'call-control-123',
+          call_leg_id: 'call-leg-123'
+        }
+      }
+
+      vi.mocked(mockTelnyxClient.createCall).mockResolvedValue(mockResponse)
+
+      // Test with normalized 10-digit number (no formatting)
+      const normalizedParams = { 
+        ...validParams, 
+        to: '9876543210'  // 10-digit normalized format from CSV
+      }
+      
+      const result = await service.initiateCall(normalizedParams)
+
+      expect(result.success).toBe(true)
+      expect(mockTelnyxClient.createCall).toHaveBeenCalledWith({
+        to: '9876543210',
+        from: '+1234567890',
+        connection_id: 'test-app-id',
+        client_state: expect.any(String)
+      })
+    })
+
     it('should include metadata in client_state when provided', async () => {
       const mockResponse: TelnyxCallResponse = {
         data: {

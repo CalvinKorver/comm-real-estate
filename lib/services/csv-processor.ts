@@ -151,10 +151,25 @@ function isValidEmail(email: string): boolean {
 }
 
 function isValidPhone(phone: string): boolean {
-  // Basic phone validation - allows various formats
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '');
-  return phoneRegex.test(cleanPhone);
+  // Remove all non-digit characters
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Must have digits to be valid
+  if (digitsOnly.length === 0) {
+    return false;
+  }
+  
+  // Valid US phone numbers should be:
+  // - 10 digits (US domestic) and first digit 2-9
+  // - 11 digits starting with 1 (US with country code)
+  if (digitsOnly.length === 10) {
+    // First digit should be 2-9 for valid US area codes
+    return digitsOnly[0] >= '2' && digitsOnly[0] <= '9';
+  } else if (digitsOnly.length === 11) {
+    return digitsOnly.startsWith('1');
+  }
+  
+  return false;
 }
 
 export function createContactsForOwner(ownerId: string, row: CSVRow) {

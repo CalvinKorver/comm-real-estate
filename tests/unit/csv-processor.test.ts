@@ -296,7 +296,15 @@ describe('CSV Processor', () => {
     });
 
     it('should reject invalid phone formats', () => {
-      const invalidPhones = ['invalid', '0123456789', 'abc-def-ghij'];
+      const invalidPhones = [
+        'invalid',           // No digits
+        '123456789',         // 9 digits
+        '22345678901',       // 11 digits not starting with 1
+        'abc-def-ghij',      // Letters only
+        '123-456-78',        // 8 digits
+        '0123456789',        // 10 digits starting with 0
+        '1234567890'         // 10 digits starting with 1 (not valid area code)
+      ];
       
       invalidPhones.forEach(phone => {
         const csvRow: CSVRow = {
@@ -314,11 +322,14 @@ describe('CSV Processor', () => {
 
     it('should accept valid phone formats', () => {
       const validPhones = [
-        '206-555-0101',
-        '(206) 555-0101',
-        '206.555.0101',
-        '2065550101',
-        '+1-206-555-0101'
+        '206-555-0101',      // 10 digits with dashes
+        '(206) 555-0101',    // 10 digits with parentheses
+        '206.555.0101',      // 10 digits with dots
+        '206 555 0101',      // 10 digits with spaces
+        '2065550101',        // 10 digits no formatting
+        '+1-206-555-0101',   // 11 digits with country code
+        '1 (206) 555-0101',  // 11 digits with country code
+        '12065550101'        // 11 digits no formatting
       ];
       
       validPhones.forEach(phone => {
@@ -341,7 +352,7 @@ describe('CSV Processor', () => {
         Address: '',
         Zip: 'invalid',
         'Email 1': 'invalid-email',
-        'Wireless 1': 'invalid-phone'
+        'Wireless 1': '123-456'  // Invalid phone (too short)
       };
 
       const result = validateCSVRow(csvRow);
