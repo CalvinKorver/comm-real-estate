@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
+import { testFetch } from '../utils/test-config'
 
 describe('Healthcheck API', () => {
   it('should return 200 status for healthcheck endpoint', async () => {
-    const response = await fetch('http://localhost:3000/api/healthcheck')
+    const response = await testFetch('/api/healthcheck')
     
     expect(response.status).toBe(200)
     
