@@ -19,10 +19,11 @@ export default defineConfig({
     // Set longer timeout for integration tests
     testTimeout: 30000,
     hookTimeout: 30000,
-    // Setup files for test database
-    setupFiles: ['./tests/setup/integration-setup.ts'],
+    // Setup files for test database - order matters!
+    setupFiles: ['./tests/setup/early-setup.ts', './tests/setup/integration-setup.ts'],
     // Global setup for database initialization
     globalSetup: './tests/setup/global-setup.ts',
+    globalTeardown: './tests/setup/global-setup.ts',
     // Configure environment variables
     env: {
       NODE_ENV: 'test',
