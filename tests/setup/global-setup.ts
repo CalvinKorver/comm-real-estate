@@ -46,6 +46,13 @@ export default async function globalSetup() {
     
     console.log('✅ Test database migrations completed')
     
+    // In CI, the server is already started by the workflow
+    if (process.env.CI) {
+      console.log('🔧 CI environment detected - skipping Next.js server startup')
+      console.log('✅ Using CI-managed Next.js server')
+      return
+    }
+    
     // Kill any existing process on port 3001
     try {
       await execAsync('lsof -ti:3001 | xargs kill -9 2>/dev/null || true')

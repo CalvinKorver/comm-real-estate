@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { getTestPrismaClient, seedTestData } from '../setup/test-database'
+import { testFetch } from '../utils/test-config'
 
 describe('Properties API Integration Tests', () => {
   const prisma = getTestPrismaClient()
@@ -17,7 +18,7 @@ describe('Properties API Integration Tests', () => {
 
   describe('GET /api/properties', () => {
     it('should return all properties with pagination', async () => {
-      const response = await fetch('http://localhost:3001/api/properties')
+      const response = await testFetch('/api/properties')
       
       expect(response.status).toBe(200)
       
@@ -43,7 +44,7 @@ describe('Properties API Integration Tests', () => {
     })
 
     it('should return a single property by ID', async () => {
-      const response = await fetch(`http://localhost:3001/api/properties?id=${testProperty.id}`)
+      const response = await testFetch(`/api/properties?id=${testProperty.id}`)
       
       expect(response.status).toBe(200)
       
@@ -55,7 +56,7 @@ describe('Properties API Integration Tests', () => {
     })
 
     it('should return 404 for non-existent property', async () => {
-      const response = await fetch('http://localhost:3001/api/properties?id=non-existent-id')
+      const response = await testFetch('/api/properties?id=non-existent-id')
       
       expect(response.status).toBe(404)
       
@@ -79,7 +80,7 @@ describe('Properties API Integration Tests', () => {
         }
       })
 
-      const response = await fetch('http://localhost:3001/api/properties?page=1&limit=1')
+      const response = await testFetch('/api/properties?page=1&limit=1')
       
       expect(response.status).toBe(200)
       
@@ -90,7 +91,7 @@ describe('Properties API Integration Tests', () => {
     })
 
     it('should support search functionality', async () => {
-      const response = await fetch(`http://localhost:3001/api/properties?search=${encodeURIComponent('Test Street')}`)
+      const response = await testFetch(`/api/properties?search=${encodeURIComponent('Test Street')}`)
       
       expect(response.status).toBe(200)
       
@@ -100,7 +101,7 @@ describe('Properties API Integration Tests', () => {
     })
 
     it('should handle empty search results', async () => {
-      const response = await fetch('http://localhost:3001/api/properties?search=NonExistentAddress')
+      const response = await testFetch('/api/properties?search=NonExistentAddress')
       
       expect(response.status).toBe(200)
       
