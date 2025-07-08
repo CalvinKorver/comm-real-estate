@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createContactsFromCSV, CONTACT_TYPES, normalizePhoneNumber } from '@/types/contact';
+import { createContactsFromCSV, CONTACT_TYPES, normalizePhoneNumber, formatPhoneNumber } from '@/types/contact';
 
 describe('Contact Types', () => {
   describe('CONTACT_TYPES', () => {
@@ -86,6 +86,66 @@ describe('Contact Types', () => {
       testCases.forEach(({ input, expected }) => {
         expect(normalizePhoneNumber(input)).toBe(expected);
       });
+    });
+  });
+
+  describe('formatPhoneNumber', () => {
+    it('should format 10-digit phone numbers correctly', () => {
+      const testCases = [
+        { input: '2065550101', expected: '(206)-555-0101' },
+        { input: '5551234567', expected: '(555)-123-4567' },
+        { input: '3109876543', expected: '(310)-987-6543' }
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        expect(formatPhoneNumber(input)).toBe(expected);
+      });
+    });
+
+    it('should format 11-digit phone numbers starting with 1', () => {
+      const testCases = [
+        { input: '12065550101', expected: '(206)-555-0101' },
+        { input: '15551234567', expected: '(555)-123-4567' },
+        { input: '13109876543', expected: '(310)-987-6543' }
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        expect(formatPhoneNumber(input)).toBe(expected);
+      });
+    });
+
+    it('should format phone numbers with existing formatting', () => {
+      const testCases = [
+        { input: '206-555-0101', expected: '(206)-555-0101' },
+        { input: '(206) 555-0101', expected: '(206)-555-0101' },
+        { input: '+1-206-555-0101', expected: '(206)-555-0101' },
+        { input: '206.555.0101', expected: '(206)-555-0101' },
+        { input: '206 555 0101', expected: '(206)-555-0101' }
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        expect(formatPhoneNumber(input)).toBe(expected);
+      });
+    });
+
+    it('should return original format for invalid phone numbers', () => {
+      const testCases = [
+        { input: '123456789', expected: '123456789' },      // 9 digits
+        { input: '22065550101', expected: '22065550101' },   // 11 digits not starting with 1
+        { input: 'invalid', expected: 'invalid' },           // No digits
+        { input: '123-456-78', expected: '123-456-78' },     // 8 digits
+        { input: '', expected: '' }                          // Empty string
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        expect(formatPhoneNumber(input)).toBe(expected);
+      });
+    });
+
+    it('should handle edge cases', () => {
+      expect(formatPhoneNumber('   ')).toBe('   ');
+      expect(formatPhoneNumber('abc-def-ghij')).toBe('abc-def-ghij');
+      expect(formatPhoneNumber('123-456-7890-1234')).toBe('123-456-7890-1234');
     });
   });
 

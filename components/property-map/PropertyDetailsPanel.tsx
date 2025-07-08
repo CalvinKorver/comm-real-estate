@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Property } from '@/types/property'
 import { PANEL_WIDTHS } from '@/lib/map-constants'
 import { sortContactsByPriority } from '@/utils/contactSorting'
+import { formatPhoneNumber } from '@/types/contact'
 
 interface PropertyDetailsPanelProps {
   property: Property
@@ -151,7 +152,7 @@ export default function PropertyDetailsPanel({
                         <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
                           {contact.phone && (
                             <p className="text-sm">
-                              <span className="text-muted-foreground">Phone:</span> {contact.phone}
+                              <span className="text-muted-foreground">Phone:</span> {formatPhoneNumber(contact.phone)}
                             </p>
                           )}
                           {contact.email && (
@@ -270,7 +271,7 @@ export default function PropertyDetailsPanel({
 
                       {owner.phone_number && (
                         <div className="text-sm text-muted-foreground">
-                          <p className="font-medium">{owner.phone_number}</p>
+                          <p className="font-medium">{formatPhoneNumber(owner.phone_number)}</p>
                         </div>
                       )}
 
@@ -282,7 +283,7 @@ export default function PropertyDetailsPanel({
                               <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">
                                 {contact.phone && (
                                   <p className="text-sm">
-                                    <span className="text-muted-foreground">Phone:</span> {contact.phone}
+                                    <span className="text-muted-foreground">Phone:</span> {formatPhoneNumber(contact.phone)}
                                   </p>
                                 )}
                                 {contact.email && (
