@@ -3,6 +3,15 @@ import { TelnyxCallService } from '@/lib/services/telnyx-call-service'
 import { ITelnyxServiceClient, TelnyxCallResponse } from '@/lib/services/telnyx-service-client'
 import { CallInitiationParams, CallServiceConfig } from '@/lib/services/call-service'
 
+/**
+ * Unit tests for TelnyxCallService
+ * 
+ * Testing Strategy:
+ * - Uses interface-level mocking of ITelnyxServiceClient
+ * - Tests business logic, validation, and error handling in isolation
+ * - Mocks are injected via constructor for predictable behavior
+ */
+
 const mockTelnyxClient: ITelnyxServiceClient = {
   createCall: vi.fn()
 }
