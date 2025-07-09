@@ -188,9 +188,30 @@ export function PropertyEditDialog({
         
         const allContacts = [...ownerPhones, ...ownerEmails]
         
-        return {
-          ownerId: owner.id,
-          contacts: allContacts.map(contact => {
+        // Find deleted contacts for this owner
+        const deletedContacts = owner.contacts?.filter(originalContact => {
+          const stillExists = allContacts.some(contact => 
+            contact.id === originalContact.id && contact.type !== 'deleted'
+          )
+          return !stillExists
+        }) || []
+        
+        const contactActions = [
+          ...allContacts.map(contact => {
+            // Skip deleted contacts (they will be handled separately)
+            if (contact.type === 'deleted') {
+              return {
+                id: contact.id,
+                phone: 'phone' in contact ? contact.phone : '',
+                email: 'email' in contact ? contact.email : '',
+                type: contact.type,
+                label: contact.label,
+                priority: contact.priority,
+                notes: contact.notes,
+                action: 'delete' as const
+              }
+            }
+            
             const originalContact = owner.contacts?.find(c => c.id === contact.id)
             if (!originalContact) {
               // New contact
@@ -228,33 +249,75 @@ export function PropertyEditDialog({
               }
               return null
             }
-          }).filter(Boolean)
+          }).filter(Boolean),
+          // Add deleted contacts
+          ...deletedContacts.map(deletedContact => ({
+            id: deletedContact.id,
+            phone: deletedContact.phone || '',
+            email: deletedContact.email || '',
+            type: deletedContact.type,
+            label: deletedContact.label,
+            priority: deletedContact.priority,
+            notes: deletedContact.notes,
+            action: 'delete' as const
+          }))
+        ]
+        
+        return {
+          ownerId: owner.id,
+          contacts: contactActions
         }
       }).filter(owner => owner.contacts.length > 0) || []
 
       // Prepare notes data with actions
       const originalNotes = property.notes || []
-      const notesData = notes.map(note => {
-        const originalNote = originalNotes.find(n => n.id === note.id)
-        if (!originalNote) {
-          // New note
-          return {
-            id: note.id,
-            content: note.content,
-            action: 'create' as const
-          }
-        } else {
-          // Check if note was modified
-          if (note.content !== originalNote.content) {
+      
+      // Find deleted notes
+      const deletedNotes = originalNotes.filter(originalNote => {
+        const stillExists = notes.some(note => 
+          note.id === originalNote.id && note.type !== 'deleted'
+        )
+        return !stillExists
+      })
+      
+      const notesData = [
+        ...notes.map(note => {
+          // Handle deleted notes
+          if (note.type === 'deleted') {
             return {
               id: note.id,
               content: note.content,
-              action: 'update' as const
+              action: 'delete' as const
             }
           }
-          return null
-        }
-      }).filter(Boolean)
+          
+          const originalNote = originalNotes.find(n => n.id === note.id)
+          if (!originalNote) {
+            // New note
+            return {
+              id: note.id,
+              content: note.content,
+              action: 'create' as const
+            }
+          } else {
+            // Check if note was modified
+            if (note.content !== originalNote.content) {
+              return {
+                id: note.id,
+                content: note.content,
+                action: 'update' as const
+              }
+            }
+            return null
+          }
+        }).filter(Boolean),
+        // Add deleted notes
+        ...deletedNotes.map(deletedNote => ({
+          id: deletedNote.id,
+          content: deletedNote.content,
+          action: 'delete' as const
+        }))
+      ]
 
       // Check if there are any changes
       if (contactsData.length === 0 && notesData.length === 0) {
@@ -267,8 +330,8 @@ export function PropertyEditDialog({
       const optimisticProperty = {
         ...property,
         owners: property.owners?.map(owner => {
-          const ownerPhones = phoneNumbers.filter(p => p.ownerId === owner.id)
-          const ownerEmails = emailContacts.filter(e => e.ownerId === owner.id)
+          const ownerPhones = phoneNumbers.filter(p => p.ownerId === owner.id && p.type !== 'deleted')
+          const ownerEmails = emailContacts.filter(e => e.ownerId === owner.id && e.type !== 'deleted')
           
           const allContacts = [...ownerPhones, ...ownerEmails]
           
@@ -288,7 +351,7 @@ export function PropertyEditDialog({
             }))
           }
         }),
-        notes: notes.map(note => ({
+        notes: notes.filter(note => note.type !== 'deleted').map(note => ({
           id: note.id,
           content: note.content,
           property_id: property.id,
