@@ -390,9 +390,16 @@ export class PropertyService {
 
               case 'delete':
                 if (contact.id && !contact.id.startsWith('temp-')) {
-                  await tx.contact.delete({
-                    where: { id: contact.id }
-                  })
+                  try {
+                    await tx.contact.delete({
+                      where: { id: contact.id }
+                    })
+                  } catch (error: any) {
+                    // Ignore "Record to delete does not exist" errors (P2025)
+                    if (error.code !== 'P2025') {
+                      throw error
+                    }
+                  }
                 }
                 break
             }
@@ -426,9 +433,16 @@ export class PropertyService {
 
             case 'delete':
               if (note.id && !note.id.startsWith('temp-')) {
-                await tx.note.delete({
-                  where: { id: note.id }
-                })
+                try {
+                  await tx.note.delete({
+                    where: { id: note.id }
+                  })
+                } catch (error: any) {
+                  // Ignore "Record to delete does not exist" errors (P2025)
+                  if (error.code !== 'P2025') {
+                    throw error
+                  }
+                }
               }
               break
           }
