@@ -17,6 +17,14 @@ async function clearDatabase() {
     await prisma.contact.deleteMany({});
     console.log('✅ Contacts cleared');
 
+    console.log('🗑️  Clearing property lists...');
+    await prisma.propertyList.deleteMany({});
+    console.log('✅ Property lists cleared');
+
+    console.log('🗑️  Clearing lists...');
+    await prisma.list.deleteMany({});
+    console.log('✅ Lists cleared');
+
     console.log('🗑️  Clearing properties...');
     await prisma.property.deleteMany({});
     console.log('✅ Properties cleared');
@@ -29,6 +37,8 @@ async function clearDatabase() {
     const coordinateCount = await prisma.coordinate.count();
     const propertyImageCount = await prisma.propertyImage.count();
     const contactCount = await prisma.contact.count();
+    const propertyListCount = await prisma.propertyList.count();
+    const listCount = await prisma.list.count();
     const propertyCount = await prisma.property.count();
     const ownerCount = await prisma.owner.count();
 
@@ -37,10 +47,12 @@ async function clearDatabase() {
     console.log(`  - Coordinates: ${coordinateCount}`);
     console.log(`  - Property Images: ${propertyImageCount}`);
     console.log(`  - Contacts: ${contactCount}`);
+    console.log(`  - Property Lists: ${propertyListCount}`);
+    console.log(`  - Lists: ${listCount}`);
     console.log(`  - Properties: ${propertyCount}`);
     console.log(`  - Owners: ${ownerCount}`);
 
-    if (coordinateCount === 0 && propertyImageCount === 0 && contactCount === 0 && propertyCount === 0 && ownerCount === 0) {
+    if (coordinateCount === 0 && propertyImageCount === 0 && contactCount === 0 && propertyListCount === 0 && listCount === 0 && propertyCount === 0 && ownerCount === 0) {
       console.log('✅ All data successfully cleared!');
     } else {
       console.log('⚠️  Some data may still remain');

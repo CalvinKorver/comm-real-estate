@@ -27,6 +27,7 @@ export interface UploadResult {
   geocodingErrors: string[];
   mergedProperties: number;
   mergedOwners: number;
+  createdLists: number;
   reconciliationSummary: {
     propertiesCreated: number;
     propertiesMerged: number;
@@ -220,6 +221,7 @@ export async function processCSVUpload(
       geocodingErrors: [],
       mergedProperties: 0,
       mergedOwners: 0,
+      createdLists: 0,
       reconciliationSummary: {
         propertiesCreated: 0,
         propertiesMerged: 0,
@@ -248,6 +250,39 @@ export async function processCSVUpload(
       const headerIndex = headers.indexOf(targetField);
       return headerIndex >= 0 ? csvRow[headerIndex] || '' : '';
     };
+
+    // Extract list name if ListName column is mapped
+    let listName: string | null = null;
+    let listId: string | null = null;
+    
+    // Check if ListName column is mapped
+    const listNameMapped = Object.values(columnMapping).includes('ListName');
+    
+    if (listNameMapped) {
+      // Get list name from the first row (assuming all rows have the same list name)
+      const firstLine = dataLines[0];
+      if (firstLine) {
+        const values = parseCSVLine(firstLine);
+        const extractedListName = getMappedValue(values, '', 'ListName');
+        if (extractedListName && extractedListName.trim()) {
+          listName = extractedListName.trim();
+          
+          // Create the list
+          try {
+            const list = await prisma.list.create({
+              data: {
+                name: listName
+              }
+            });
+            listId = list.id;
+            result.createdLists = 1;
+          } catch (error) {
+            console.error('Error creating list:', error);
+            // Continue processing even if list creation fails
+          }
+        }
+      }
+    }
 
     // First pass: validate all rows and collect valid ones
     for (let i = 0; i < dataLines.length; i++) {
@@ -341,6 +376,21 @@ export async function processCSVUpload(
           ownerResult.owner.id
         );
 
+        // Associate property with list if we have a list
+        if (listId) {
+          try {
+            await prisma.propertyList.create({
+              data: {
+                property_id: propertyResult.property.id,
+                list_id: listId,
+              }
+            });
+          } catch (error) {
+            console.error('Error associating property with list:', error);
+            // Continue processing even if list association fails
+          }
+        }
+
         // Update counters based on actions
         if (ownerResult.action === 'created') {
           result.createdOwners++;
@@ -405,6 +455,7 @@ export async function processCSVUpload(
       geocodingErrors: [],
       mergedProperties: 0,
       mergedOwners: 0,
+      createdLists: 0,
       reconciliationSummary: {
         propertiesCreated: 0,
         propertiesMerged: 0,
@@ -455,6 +506,7 @@ export async function saveProcessedData(data: ProcessedData): Promise<UploadResu
     geocodingErrors: [],
     mergedProperties: 0,
     mergedOwners: 0,
+    createdLists: 0,
     reconciliationSummary: {
       propertiesCreated: 0,
       propertiesMerged: 0,
@@ -501,6 +553,7 @@ export function suggestColumnMapping(
     'email': ['email', 'e-mail', 'mail'],
     'phone_type': ['phonetype', 'phone_type', 'type'],
     'contact_priority': ['priority', 'contactpriority', 'order'],
+    'ListName': ['listname', 'list_name', 'list', 'category', 'group', 'classification'],
   };
 
   const mapping: Record<string, string | null> = {};

@@ -22,6 +22,7 @@ export interface CSVRow {
   'Landline 2'?: string;
   'Landline 3'?: string;
   'Landline 4'?: string;
+  ListName?: string;
 }
 
 export interface ProcessedOwner {

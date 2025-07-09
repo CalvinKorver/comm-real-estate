@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
         geocodingErrors: result.geocodingErrors.length,
         mergedProperties: result.mergedProperties,
         mergedOwners: result.mergedOwners,
+        createdLists: result.createdLists,
         reconciliationSummary: result.reconciliationSummary,
       },
       errors: result.errors,
