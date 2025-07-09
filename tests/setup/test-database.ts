@@ -40,7 +40,9 @@ export async function resetDatabase(prismaClient?: PrismaClient) {
       prisma.account.deleteMany(),
       prisma.verificationToken.deleteMany(),
       prisma.user.deleteMany(),
-      // Delete the many-to-many relation records by clearing properties table last
+      // Delete the many-to-many relation records
+      prisma.propertyList.deleteMany(),
+      prisma.list.deleteMany(),
       prisma.owner.deleteMany(),
       prisma.property.deleteMany(),
     ])
@@ -68,6 +70,13 @@ export async function seedTestData(prismaClient?: PrismaClient) {
       }
     })
 
+    // Create test list
+    const testList = await prisma.list.create({
+      data: {
+        name: 'Test List',
+      }
+    })
+
     // Create test property
     const testProperty = await prisma.property.create({
       data: {
@@ -80,6 +89,14 @@ export async function seedTestData(prismaClient?: PrismaClient) {
         return_on_investment: 10,
         number_of_units: 1,
         square_feet: 1500,
+      }
+    })
+
+    // Connect property to list
+    await prisma.propertyList.create({
+      data: {
+        property_id: testProperty.id,
+        list_id: testList.id,
       }
     })
 
@@ -107,6 +124,7 @@ export async function seedTestData(prismaClient?: PrismaClient) {
 
     return {
       testUser,
+      testList,
       testProperty,
       testOwner,
       testContact,

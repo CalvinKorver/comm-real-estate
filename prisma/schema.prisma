@@ -45,6 +45,7 @@ model Property {
   owners                Owner[]   @relation("PropertyToOwner")
   coordinates           Coordinate?
   notes                 Note[]
+  lists                 PropertyList[]
 
   @@map("properties")
 }
@@ -173,4 +174,27 @@ model Note {
   property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
 
   @@map("notes")
+}
+
+model List {
+  id          String   @id @default(uuid())
+  name        String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  properties  PropertyList[]
+
+  @@map("lists")
+}
+
+model PropertyList {
+  id          String   @id @default(uuid())
+  property_id String
+  list_id     String
+  created_at  DateTime @default(now())
+  
+  property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  list        List     @relation(fields: [list_id], references: [id], onDelete: Cascade)
+  
+  @@unique([property_id, list_id])
+  @@map("property_lists")
 }

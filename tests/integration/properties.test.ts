@@ -11,6 +11,8 @@ describe('Properties API Integration Tests', () => {
     await prisma.property.deleteMany()
     await prisma.owner.deleteMany()
     await prisma.contact.deleteMany()
+    await prisma.propertyList.deleteMany()
+    await prisma.list.deleteMany()
     
     const seedData = await seedTestData(prisma)
     testProperty = seedData.testProperty
@@ -108,6 +110,45 @@ describe('Properties API Integration Tests', () => {
       const data = await response.json()
       expect(data.properties).toHaveLength(0)
       expect(data.pagination.totalCount).toBe(0)
+    })
+
+    it('should include list information in property response', async () => {
+      const response = await testFetch(`/api/properties?id=${testProperty.id}`)
+      
+      expect(response.status).toBe(200)
+      
+      const data = await response.json()
+      expect(data).toHaveProperty('lists')
+      expect(Array.isArray(data.lists)).toBe(true)
+      expect(data.lists.length).toBeGreaterThan(0)
+      
+      // Check the first list structure
+      const firstList = data.lists[0]
+      expect(firstList).toHaveProperty('list')
+      expect(firstList.list).toHaveProperty('id')
+      expect(firstList.list).toHaveProperty('name')
+      expect(firstList.list.name).toBe('Test List')
+    })
+
+    it('should include list information in properties list response', async () => {
+      const response = await testFetch('/api/properties')
+      
+      expect(response.status).toBe(200)
+      
+      const data = await response.json()
+      expect(data.properties.length).toBeGreaterThan(0)
+      
+      // Check that the first property has list information
+      const property = data.properties[0]
+      expect(property).toHaveProperty('lists')
+      expect(Array.isArray(property.lists)).toBe(true)
+      
+      if (property.lists.length > 0) {
+        const firstList = property.lists[0]
+        expect(firstList).toHaveProperty('list')
+        expect(firstList.list).toHaveProperty('id')
+        expect(firstList.list).toHaveProperty('name')
+      }
     })
   })
 })

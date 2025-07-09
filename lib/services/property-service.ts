@@ -62,6 +62,11 @@ export class PropertyService {
         coordinates: true,
         notes: {
           orderBy: { created_at: 'desc' }
+        },
+        lists: {
+          include: {
+            list: true
+          }
         }
       }
     })
@@ -121,6 +126,11 @@ export class PropertyService {
         coordinates: true,
         notes: {
           orderBy: { created_at: 'desc' }
+        },
+        lists: {
+          include: {
+            list: true
+          }
         }
       },
       skip,
@@ -179,7 +189,12 @@ export class PropertyService {
             contacts: true
           }
         },
-        coordinates: true
+        coordinates: true,
+        lists: {
+          include: {
+            list: true
+          }
+        }
       }
     })
 
@@ -237,6 +252,11 @@ export class PropertyService {
           }
         },
         coordinates: true,
+        lists: {
+          include: {
+            list: true
+          }
+        },
         notes: {
           orderBy: { created_at: 'desc' }
         }
