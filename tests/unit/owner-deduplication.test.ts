@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { OwnerDeduplicationService, OwnerData, OwnerMatch, ConflictResolution } from '@/lib/services/owner-deduplication';
 import { prisma } from '@/lib/shared/prisma';
 

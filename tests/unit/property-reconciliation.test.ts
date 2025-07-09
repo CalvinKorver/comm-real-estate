@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { PropertyReconciliationService, PropertyData, PropertyMatch } from '@/lib/services/property-reconciliation';
 import { prisma } from '@/lib/shared/prisma';
 
