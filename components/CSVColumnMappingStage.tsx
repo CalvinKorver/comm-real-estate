@@ -22,7 +22,9 @@ const DATABASE_FIELDS = [
   // Contact fields
   'phone', 'email', 'phone_type', 'contact_priority',
   // Additional property fields (with default values)
-  'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet'
+  'net_operating_income', 'price', 'return_on_investment', 'number_of_units', 'square_feet',
+  // List field
+  'ListName'
 ];
 
 const REQUIRED_FIELDS = ['street_address', 'full_name'];

@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { processCSVRow, validateCSVRow, createContactsForOwner, CSVRow } from '@/lib/services/csv-processor';
 import { createContactsFromCSV } from '@/types/contact';
 
@@ -158,6 +158,52 @@ describe('CSV Processor', () => {
       const result = processCSVRow(csvRow);
 
       expect(result.property.zip_code).toBe(0);
+    });
+
+    it('should handle ListName field', () => {
+      const csvRow: CSVRow = {
+        OwnerName: 'John Smith',
+        Address: '123 Main St',
+        ListName: 'Investment Properties'
+      };
+
+      const result = processCSVRow(csvRow);
+
+      // ListName should be available in the CSV row but not processed by this function
+      // The actual list creation happens in the upload processor
+      expect(csvRow.ListName).toBe('Investment Properties');
+      expect(result.owner).toEqual({
+        first_name: 'John',
+        last_name: 'Smith',
+        full_name: 'John Smith',
+        llc_contact: undefined,
+        street_address: undefined,
+        city: undefined,
+        state: undefined,
+        zip_code: undefined,
+        contacts: []
+      });
+      expect(result.property).toEqual({
+        street_address: '123 Main St',
+        city: 'unknown',
+        zip_code: 0,
+        state: undefined,
+        parcel_id: undefined
+      });
+    });
+
+    it('should handle empty ListName field', () => {
+      const csvRow: CSVRow = {
+        OwnerName: 'John Smith',
+        Address: '123 Main St',
+        ListName: ''
+      };
+
+      const result = processCSVRow(csvRow);
+
+      expect(csvRow.ListName).toBe('');
+      expect(result.owner.first_name).toBe('John');
+      expect(result.property.street_address).toBe('123 Main St');
     });
   });
 
@@ -364,6 +410,45 @@ describe('CSV Processor', () => {
         Zip: '',
         'Email 1': '',
         'Wireless 1': ''
+      };
+
+      const result = validateCSVRow(csvRow);
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should allow ListName field', () => {
+      const csvRow: CSVRow = {
+        OwnerName: 'John Smith',
+        Address: '123 Main St',
+        ListName: 'Investment Properties'
+      };
+
+      const result = validateCSVRow(csvRow);
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should allow empty ListName field', () => {
+      const csvRow: CSVRow = {
+        OwnerName: 'John Smith',
+        Address: '123 Main St',
+        ListName: ''
+      };
+
+      const result = validateCSVRow(csvRow);
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should allow undefined ListName field', () => {
+      const csvRow: CSVRow = {
+        OwnerName: 'John Smith',
+        Address: '123 Main St'
+        // ListName is undefined
       };
 
       const result = validateCSVRow(csvRow);
