@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { ContactService, Contact, ContactUpdateInput } from '@/lib/services/contact-service';
 import { CreateContactInput } from '@/types/contact';
 import { prisma } from '@/lib/shared/prisma';

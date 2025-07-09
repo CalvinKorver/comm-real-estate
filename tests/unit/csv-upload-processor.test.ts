@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { processCSVUpload, suggestColumnMapping, extractCSVHeaders } from '@/lib/services/csv-upload-processor';
 import { CoordinateService } from '@/lib/services/coordinate-service';
 import { PropertyReconciliationService } from '@/lib/services/property-reconciliation';
