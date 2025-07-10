@@ -3,8 +3,9 @@ import { CSVRow, processCSVRow, validateCSVRow, createContactsForOwner } from '.
 import { prisma } from '@/lib/shared/prisma';
 import { createContactsFromCSV } from '@/types/contact';
 import { CoordinateService } from './coordinate-service';
-import { PropertyReconciliationService } from './property-reconciliation';
+import { PropertyMatch, PropertyReconciliationService } from './property-reconciliation';
 import { OwnerDeduplicationService } from './owner-deduplication';
+import { Property } from '@/generated/prisma';
 
 export interface UploadResult {
   success: boolean;
@@ -378,17 +379,7 @@ export async function processCSVUpload(
 
         // Associate property with list if we have a list
         if (listId) {
-          try {
-            await prisma.propertyList.create({
-              data: {
-                property_id: propertyResult.property.id,
-                list_id: listId,
-              }
-            });
-          } catch (error) {
-            console.error('Error associating property with list:', error);
-            // Continue processing even if list association fails
-          }
+          await createOrFindList(propertyResult, listId);
         }
 
         // Update counters based on actions
@@ -463,6 +454,20 @@ export async function processCSVUpload(
         ownersMerged: 0,
       },
     };
+  }
+}
+
+async function createOrFindList(propertyResult: { property: Property; action: "created" | "merged" | "updated"; match?: PropertyMatch; }, listId: string) {
+  try {
+    await prisma.propertyList.create({
+      data: {
+        property_id: propertyResult.property.id,
+        list_id: listId,
+      }
+    });
+  } catch (error) {
+    console.error('Error associating property with list:', error);
+    // Continue processing even if list association fails
   }
 }
 
