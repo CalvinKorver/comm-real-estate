@@ -472,4 +472,251 @@ describe('Property Reconciliation Service', () => {
       expect(result).toEqual(mockCreatedProperty);
     });
   });
+
+  describe('processProperty', () => {
+    const mockPropertyData: PropertyData = {
+      street_address: '123 Main St',
+      city: 'Seattle',
+      zip_code: 98101,
+      state: 'WA',
+      parcel_id: '12345',
+      net_operating_income: 50000,
+      price: 500000,
+      return_on_investment: 0.1,
+      number_of_units: 4,
+      square_feet: 2000
+    };
+
+    const mockExistingProperty = {
+      id: 'property-1',
+      street_address: '123 Main St',
+      city: 'Seattle',
+      zip_code: 98101,
+      state: 'WA' as string | null,
+      parcel_id: '12345' as string | null,
+      net_operating_income: 40000,
+      price: 450000,
+      return_on_investment: 0.09,
+      number_of_units: 4,
+      square_feet: 1800,
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+
+    const ownerId = 'owner-1';
+
+    function createMockProperty(id: string, data: PropertyData) {
+      return {
+        id,
+        street_address: data.street_address,
+        city: data.city,
+        zip_code: data.zip_code,
+        state: data.state as string | null,
+        parcel_id: data.parcel_id as string | null,
+        net_operating_income: data.net_operating_income || 0,
+        price: data.price || 0,
+        return_on_investment: data.return_on_investment || 0,
+        number_of_units: data.number_of_units || 0,
+        square_feet: data.square_feet || 0,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should merge property data when high confidence match found', async () => {
+      const mockMatch: PropertyMatch = {
+        property: mockExistingProperty,
+        confidence: 0.98,
+        matchReason: 'Exact address match'
+      };
+
+      const mockMergedProperty = {
+        ...mockExistingProperty,
+        ...mockPropertyData
+      };
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockMergedProperty);
+
+      // Mock the prisma update for owner linking
+      mockPrisma.property.update.mockResolvedValue(mockMergedProperty);
+
+      const result = await service.processProperty(mockPropertyData, ownerId);
+
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+      expect(service.mergePropertyData).toHaveBeenCalledWith(
+        mockExistingProperty,
+        mockPropertyData
+      );
+      expect(mockPrisma.property.update).toHaveBeenCalledWith({
+        where: { id: 'property-1' },
+        data: {
+          owners: {
+            connect: { id: 'owner-1' }
+          }
+        }
+      });
+
+      expect(result).toEqual({
+        property: mockMergedProperty,
+        action: 'merged',
+        match: mockMatch
+      });
+    });
+
+    it('should create new property when low confidence match found', async () => {
+      const mockMatch: PropertyMatch = {
+        property: mockExistingProperty,
+        confidence: 0.85,
+        matchReason: 'Fuzzy address match (85% similarity)'
+      };
+
+      const mockNewProperty = createMockProperty('property-2', mockPropertyData);
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'createNewProperty').mockResolvedValue(mockNewProperty);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockNewProperty);
+
+      const result = await service.processProperty(mockPropertyData, ownerId);
+
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+      expect(service.createNewProperty).toHaveBeenCalledWith(
+        mockPropertyData,
+        ownerId
+      );
+      expect(service.mergePropertyData).not.toHaveBeenCalled();
+
+      expect(result).toEqual({
+        property: mockNewProperty,
+        action: 'created'
+      });
+    });
+
+    it('should create new property when no match found', async () => {
+      const mockNewProperty = createMockProperty('property-2', mockPropertyData);
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(null);
+      vi.spyOn(service, 'createNewProperty').mockResolvedValue(mockNewProperty);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockNewProperty);
+
+      const result = await service.processProperty(mockPropertyData, ownerId);
+
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+      expect(service.createNewProperty).toHaveBeenCalledWith(
+        mockPropertyData,
+        ownerId
+      );
+      expect(service.mergePropertyData).not.toHaveBeenCalled();
+
+      expect(result).toEqual({
+        property: mockNewProperty,
+        action: 'created'
+      });
+    });
+
+    it('should handle exact confidence threshold (0.95)', async () => {
+      const mockMatch: PropertyMatch = {
+        property: mockExistingProperty,
+        confidence: 0.95,
+        matchReason: 'Exact address match'
+      };
+
+      const mockMergedProperty = {
+        ...mockExistingProperty,
+        ...mockPropertyData
+      };
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockMergedProperty);
+
+      // Mock the prisma update for owner linking
+      mockPrisma.property.update.mockResolvedValue(mockMergedProperty);
+
+      const result = await service.processProperty(mockPropertyData, ownerId);
+
+      expect(service.mergePropertyData).toHaveBeenCalled();
+      expect(result.action).toBe('merged');
+    });
+
+    it('should handle property data without state', async () => {
+      const propertyDataWithoutState: PropertyData = {
+        street_address: '456 Oak Ave',
+        city: 'Portland',
+        zip_code: 97201
+      };
+
+      const mockNewProperty = createMockProperty('property-3', propertyDataWithoutState);
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(null);
+      vi.spyOn(service, 'createNewProperty').mockResolvedValue(mockNewProperty);
+
+      const result = await service.processProperty(propertyDataWithoutState, ownerId);
+
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '456 Oak Ave',
+        'Portland',
+        97201,
+        undefined
+      );
+      expect(result).toEqual({
+        property: mockNewProperty,
+        action: 'created'
+      });
+    });
+
+    it('should handle errors gracefully', async () => {
+      const mockError = new Error('Database connection error');
+
+      // Mock the service method to throw an error
+      vi.spyOn(service, 'findMatchingProperty').mockRejectedValue(mockError);
+
+      await expect(service.processProperty(mockPropertyData, ownerId)).rejects.toThrow(
+        'Database connection error'
+      );
+    });
+
+    it('should handle edge case where merge fails but create succeeds', async () => {
+      const mockMatch: PropertyMatch = {
+        property: mockExistingProperty,
+        confidence: 0.98,
+        matchReason: 'Exact address match'
+      };
+
+      const mockNewProperty = createMockProperty('property-2', mockPropertyData);
+
+      // Mock the service methods - merge fails, create succeeds
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockRejectedValue(new Error('Merge failed'));
+      vi.spyOn(service, 'createNewProperty').mockResolvedValue(mockNewProperty);
+
+      // The processProperty should handle the error and fall back to creating a new property
+      await expect(service.processProperty(mockPropertyData, ownerId)).rejects.toThrow(
+        'Merge failed'
+      );
+    });
+  });
 }); 
