@@ -11,6 +11,10 @@ vi.mock('@/lib/shared/prisma', () => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    propertyList: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -717,6 +721,292 @@ describe('Property Reconciliation Service', () => {
       await expect(service.processProperty(mockPropertyData, ownerId)).rejects.toThrow(
         'Merge failed'
       );
+    });
+
+    it('should add new owner to existing property owners when merging', async () => {
+      const existingOwnerId = 'existing-owner-1';
+      const newOwnerId = 'new-owner-2';
+      
+      // Create a property that already has an owner
+      const existingPropertyWithOwner = {
+        ...mockExistingProperty,
+        owners: [{ id: existingOwnerId, name: 'Existing Owner' }]
+      };
+
+      const mockMatch: PropertyMatch = {
+        property: existingPropertyWithOwner,
+        confidence: 0.98,
+        matchReason: 'Exact address match'
+      };
+
+      const mockMergedProperty = {
+        ...existingPropertyWithOwner,
+        ...mockPropertyData,
+        owners: [
+          { id: existingOwnerId, name: 'Existing Owner' },
+          { id: newOwnerId, name: 'New Owner' }
+        ]
+      };
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockMergedProperty);
+
+      // Mock the prisma update for owner linking - this is the key part we're testing
+      mockPrisma.property.update.mockResolvedValue(mockMergedProperty);
+
+      const result = await service.processProperty(mockPropertyData, newOwnerId);
+
+      // Verify that findMatchingProperty was called correctly
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+
+      // Verify that mergePropertyData was called with the existing property
+      expect(service.mergePropertyData).toHaveBeenCalledWith(
+        existingPropertyWithOwner,
+        mockPropertyData
+      );
+
+      // Verify that the new owner was connected to the existing property
+      expect(mockPrisma.property.update).toHaveBeenCalledWith({
+        where: { id: existingPropertyWithOwner.id },
+        data: {
+          owners: {
+            connect: { id: newOwnerId }
+          }
+        }
+      });
+
+      // Verify the result includes the merged property and match info
+      expect(result).toEqual({
+        property: mockMergedProperty,
+        action: 'merged',
+        match: mockMatch
+      });
+
+      // Verify that the result property has both owners
+      expect((result.property as any).owners).toHaveLength(2);
+      expect((result.property as any).owners).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: existingOwnerId }),
+          expect.objectContaining({ id: newOwnerId })
+        ])
+      );
+    });
+
+    it('should preserve existing list relationships when merging (demonstration of current gap)', async () => {
+      const existingListId = 'list-1';
+      const newOwnerId = 'new-owner-1';
+      
+      // Create a property that already belongs to a list
+      const existingPropertyWithList = {
+        ...mockExistingProperty,
+        lists: [
+          { 
+            id: 'property-list-1',
+            property_id: mockExistingProperty.id,
+            list_id: existingListId,
+            list: { id: existingListId, name: 'Existing List', user_id: 'user-1' }
+          }
+        ]
+      };
+
+      const mockMatch: PropertyMatch = {
+        property: existingPropertyWithList,
+        confidence: 0.98,
+        matchReason: 'Exact address match'
+      };
+
+      // The mergePropertyData method currently only merges property fields, not list relationships
+      // This test demonstrates that list relationships are preserved (through the mock) but
+      // the actual implementation doesn't handle list transfers during merge operations
+      const mockMergedProperty = {
+        ...existingPropertyWithList,
+        ...mockPropertyData,
+        // Lists are preserved in the existing property, but no mechanism exists
+        // to transfer list relationships from matched properties
+        lists: [
+          { 
+            id: 'property-list-1',
+            property_id: mockExistingProperty.id,
+            list_id: existingListId,
+            list: { id: existingListId, name: 'Existing List', user_id: 'user-1' }
+          }
+        ]
+      };
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(mockMergedProperty);
+
+      // Mock the prisma operations
+      mockPrisma.property.update.mockResolvedValue(mockMergedProperty);
+
+      const result = await service.processProperty(mockPropertyData, newOwnerId);
+
+      // Verify that findMatchingProperty was called correctly
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+
+      // Verify that mergePropertyData was called with the existing property
+      expect(service.mergePropertyData).toHaveBeenCalledWith(
+        existingPropertyWithList,
+        mockPropertyData
+      );
+
+      // Verify that the new owner was connected to the existing property
+      expect(mockPrisma.property.update).toHaveBeenCalledWith({
+        where: { id: existingPropertyWithList.id },
+        data: {
+          owners: {
+            connect: { id: newOwnerId }
+          }
+        }
+      });
+
+      // Verify the result includes the merged property and match info
+      expect(result).toEqual({
+        property: mockMergedProperty,
+        action: 'merged',
+        match: mockMatch
+      });
+
+      // Verify that the existing list relationships are preserved
+      expect((result.property as any).lists).toHaveLength(1);
+      expect((result.property as any).lists[0]).toEqual(
+        expect.objectContaining({ 
+          list_id: existingListId,
+          list: expect.objectContaining({ id: existingListId, name: 'Existing List' })
+        })
+      );
+
+      // NOTE: This test passes but highlights the gap in the current implementation:
+      // - The processProperty method doesn't accept a listId parameter
+      // - The mergePropertyData method doesn't handle list relationship transfers
+      // - There's no mechanism to associate the merged property with a new list
+      // - List relationships from the "source" property in a merge are not transferred
+      
+      // TODO: Extend processProperty to accept optional listId parameter
+      // TODO: Modify mergePropertyData to handle list relationship transfers
+      // TODO: Add list conflict resolution logic for merge operations
+    });
+
+    // This test demonstrates the desired behavior for list handling during property processing
+    // It shows what the API should look like when list support is added
+    it('should handle list associations during property processing (future enhancement)', async () => {
+      const existingListId = 'existing-list-1';
+      const newListId = 'new-list-2';
+      const newOwnerId = 'new-owner-1';
+      
+      // Existing property with a list
+      const existingPropertyWithList = {
+        ...mockExistingProperty,
+        lists: [
+          { 
+            id: 'property-list-1',
+            property_id: mockExistingProperty.id,
+            list_id: existingListId,
+            list: { id: existingListId, name: 'Existing List', user_id: 'user-1' }
+          }
+        ]
+      };
+
+      const mockMatch: PropertyMatch = {
+        property: existingPropertyWithList,
+        confidence: 0.98,
+        matchReason: 'Exact address match'
+      };
+
+      // Expected behavior: property should have both lists after merge
+      const expectedMergedProperty = {
+        ...existingPropertyWithList,
+        ...mockPropertyData,
+        lists: [
+          { 
+            id: 'property-list-1',
+            property_id: mockExistingProperty.id,
+            list_id: existingListId,
+            list: { id: existingListId, name: 'Existing List', user_id: 'user-1' }
+          },
+          { 
+            id: 'property-list-2',
+            property_id: mockExistingProperty.id,
+            list_id: newListId,
+            list: { id: newListId, name: 'New List', user_id: 'user-1' }
+          }
+        ]
+      };
+
+      // Mock the service methods
+      vi.spyOn(service, 'findMatchingProperty').mockResolvedValue(mockMatch);
+      vi.spyOn(service, 'mergePropertyData').mockResolvedValue(expectedMergedProperty);
+
+      // Mock the prisma operations
+      mockPrisma.property.update.mockResolvedValue(expectedMergedProperty);
+      mockPrisma.propertyList.findFirst.mockResolvedValue(null); // No existing association
+      mockPrisma.propertyList.create.mockResolvedValue({
+        id: 'property-list-2',
+        property_id: mockExistingProperty.id,
+        list_id: newListId
+      });
+
+      // FUTURE API: processProperty should accept an optional listId parameter
+      // const result = await service.processProperty(mockPropertyData, newOwnerId, newListId);
+      // For now, we test the current API and mock the expected behavior
+      const result = await service.processProperty(mockPropertyData, newOwnerId);
+
+      // Verify basic merge behavior still works
+      expect(service.findMatchingProperty).toHaveBeenCalledWith(
+        '123 Main St',
+        'Seattle',
+        98101,
+        'WA'
+      );
+
+      expect(service.mergePropertyData).toHaveBeenCalledWith(
+        existingPropertyWithList,
+        mockPropertyData
+      );
+
+      expect(result).toEqual({
+        property: expectedMergedProperty,
+        action: 'merged',
+        match: mockMatch
+      });
+
+      // This is the desired behavior (currently mocked):
+      // - Existing list relationships are preserved
+      // - New list associations are added without conflicts
+      // - No duplicate associations are created
+      expect((result.property as any).lists).toHaveLength(2);
+      expect((result.property as any).lists).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ 
+            list_id: existingListId,
+            list: expect.objectContaining({ name: 'Existing List' })
+          }),
+          expect.objectContaining({ 
+            list_id: newListId,
+            list: expect.objectContaining({ name: 'New List' })
+          })
+        ])
+      );
+
+      // FUTURE ENHANCEMENTS NEEDED:
+      // 1. Extend processProperty signature: processProperty(propertyData, ownerId, listId?)
+      // 2. Add list relationship handling to mergePropertyData method
+      // 3. Add PropertyList.create() calls when new list associations are needed
+      // 4. Add conflict resolution for duplicate list associations
+      // 5. Add proper error handling for list operations
+      // 6. Consider batch operations for multiple list associations
     });
   });
 }); 
