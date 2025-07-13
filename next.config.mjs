@@ -13,6 +13,14 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Handle telnyx module on server side
+      config.externals = config.externals || [];
+      config.externals.push('telnyx');
+    }
+    return config;
+  },
 }
 
 export default nextConfig

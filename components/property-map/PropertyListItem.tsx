@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { PropertyEditDialog } from '@/components/property-edit/PropertyEditDialog'
+import { CallButton } from '@/components/call/CallButton'
 
 interface PropertyListItemProps {
   property: Property
@@ -181,12 +182,13 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                     <TableHead>Phone</TableHead>
                     <TableHead>Label</TableHead>
                     <TableHead>Notes</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {phoneContacts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-muted-foreground text-center py-4">
+                      <TableCell colSpan={4} className="text-muted-foreground text-center py-4">
                         No phone numbers
                       </TableCell>
                     </TableRow>
@@ -204,6 +206,17 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {contact.notes || 'No notes'}
+                          </TableCell>
+                          <TableCell>
+                            {contact.phone && (
+                              <CallButton
+                                phoneNumber={contact.phone}
+                                contactName={owner ? `${owner.first_name} ${owner.last_name}` : undefined}
+                                contactLabel={contact.label}
+                                variant="outline"
+                                size="sm"
+                              />
+                            )}
                           </TableCell>
                         </TableRow>
                       );
