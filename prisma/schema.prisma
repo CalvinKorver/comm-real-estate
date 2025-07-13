@@ -75,7 +75,6 @@ model Owner {
   city            String?
   state           String?
   zip_code        String?
-  phone_number    String?    // Keep existing for backward compatibility
   created_at      DateTime   @default(now())
   updated_at      DateTime   @updatedAt
   properties      Property[] @relation("PropertyToOwner")

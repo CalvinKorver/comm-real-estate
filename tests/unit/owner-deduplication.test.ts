@@ -11,6 +11,7 @@ vi.mock('@/lib/shared/prisma', () => ({
       update: vi.fn(),
     },
     contact: {
+      findMany: vi.fn(),
       create: vi.fn(),
       createMany: vi.fn(),
     },
@@ -378,6 +379,8 @@ describe('Owner Deduplication Service', () => {
       const ownerId = 'owner-1';
       const phone = '206-555-0101';
 
+      mockPrisma.contact.findMany.mockResolvedValue([]);
+
       await service.addContactToOwner(ownerId, phone);
 
       expect(mockPrisma.contact.createMany).toHaveBeenCalledWith({
@@ -386,14 +389,15 @@ describe('Owner Deduplication Service', () => {
           type: 'phone',
           priority: 1,
           owner_id: 'owner-1'
-        }],
-        skipDuplicates: true
+        }]
       });
     });
 
     it('should add email contact to owner', async () => {
       const ownerId = 'owner-1';
       const email = 'john@email.com';
+
+      mockPrisma.contact.findMany.mockResolvedValue([]);
 
       await service.addContactToOwner(ownerId, undefined, email);
 
@@ -403,8 +407,7 @@ describe('Owner Deduplication Service', () => {
           type: 'email',
           priority: 1,
           owner_id: 'owner-1'
-        }],
-        skipDuplicates: true
+        }]
       });
     });
 
@@ -412,6 +415,8 @@ describe('Owner Deduplication Service', () => {
       const ownerId = 'owner-1';
       const phone = '206-555-0101';
       const email = 'john@email.com';
+
+      mockPrisma.contact.findMany.mockResolvedValue([]);
 
       await service.addContactToOwner(ownerId, phone, email);
 
@@ -429,13 +434,14 @@ describe('Owner Deduplication Service', () => {
             priority: 1,
             owner_id: 'owner-1'
           }
-        ],
-        skipDuplicates: true
+        ]
       });
     });
 
     it('should not create contacts when no phone or email provided', async () => {
       const ownerId = 'owner-1';
+
+      mockPrisma.contact.findMany.mockResolvedValue([]);
 
       await service.addContactToOwner(ownerId);
 

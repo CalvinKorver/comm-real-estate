@@ -30,7 +30,6 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       street_address: owner.street_address || '',
       city: owner.city || '',
       zip_code: owner.zip_code || '',
-      phone_number: owner.phone_number || '', // Ensure phone_number is always a string
     })),
     images: property.images || [],
   }
