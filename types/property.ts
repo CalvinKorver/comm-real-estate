@@ -68,7 +68,6 @@ export interface Owner {
   city?: string | null
   state?: string | null
   zip_code?: string | null
-  phone_number?: string | null
   created_at: Date
   updated_at: Date
   contacts?: Contact[]

@@ -16,7 +16,6 @@ export interface OwnerCreateInput {
   city?: string
   state?: string
   zip_code?: string
-  phone_number?: string
 }
 
 export interface OwnerUpdateInput {
@@ -28,7 +27,6 @@ export interface OwnerUpdateInput {
   city?: string
   state?: string
   zip_code?: string
-  phone_number?: string
 }
 
 export interface PaginationResult {
@@ -162,8 +160,7 @@ export class OwnerService {
         street_address: data.street_address,
         city: data.city,
         state: data.state,
-        zip_code: data.zip_code,
-        phone_number: data.phone_number
+        zip_code: data.zip_code
       },
       include: {
         properties: {
@@ -201,8 +198,7 @@ export class OwnerService {
         street_address: data.street_address,
         city: data.city,
         state: data.state,
-        zip_code: data.zip_code,
-        phone_number: data.phone_number
+        zip_code: data.zip_code
       },
       include: {
         properties: {

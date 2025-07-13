@@ -142,8 +142,15 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
                   <h3 className="font-semibold">
                     {owner.first_name} {owner.last_name}
                   </h3>
-                  {owner.phone_number && (
-                    <p className="text-sm text-muted-foreground">{owner.phone_number}</p>
+                  {owner.contacts && owner.contacts.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      {owner.contacts.map((contact) => (
+                        <div key={contact.id}>
+                          {contact.phone && <p>{contact.phone}</p>}
+                          {contact.email && <p>{contact.email}</p>}
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {owner.street_address && (
                     <div className="text-sm text-muted-foreground">
