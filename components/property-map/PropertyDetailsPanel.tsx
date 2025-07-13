@@ -268,15 +268,9 @@ export default function PropertyDetailsPanel({
                         </div>
                       )}
 
-                      {owner.phone_number && (
-                        <div className="text-sm text-muted-foreground">
-                          <p className="font-medium">{owner.phone_number}</p>
-                        </div>
-                      )}
-
                       {owner.contacts && owner.contacts.length > 0 && (
                         <div>
-                          <p className="text-sm text-muted-foreground mb-2">Additional Contacts</p>
+                          <p className="text-sm text-muted-foreground mb-2">Contacts</p>
                           <div className="space-y-2">
                             {sortContactsByPriority(owner.contacts).map((contact) => (
                               <div key={contact.id} className="p-3 bg-gray-50 rounded-lg">

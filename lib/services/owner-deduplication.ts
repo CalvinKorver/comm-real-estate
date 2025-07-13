@@ -265,33 +265,54 @@ export class OwnerDeduplicationService {
   }
 
   /**
-   * Add contact information to an owner
+   * Add contact information to an owner (with proper duplicate checking)
    */
   async addContactToOwner(ownerId: string, phone?: string, email?: string): Promise<void> {
+    const existingContacts = await prisma.contact.findMany({
+      where: { owner_id: ownerId }
+    })
+
     const contactsToCreate = []
 
-    if (phone) {
-      contactsToCreate.push({
-        owner_id: ownerId,
-        phone,
-        type: 'phone',
-        priority: 1
-      })
+    if (phone && phone.trim()) {
+      const normalizedPhone = this.normalizePhone(phone)
+      
+      // Check if this phone number already exists for this owner
+      const existingPhoneContact = existingContacts.find(contact => 
+        contact.phone && this.normalizePhone(contact.phone) === normalizedPhone
+      )
+
+      if (!existingPhoneContact) {
+        contactsToCreate.push({
+          owner_id: ownerId,
+          phone: phone.trim(),
+          type: 'phone',
+          priority: 1
+        })
+      }
     }
 
-    if (email) {
-      contactsToCreate.push({
-        owner_id: ownerId,
-        email,
-        type: 'email',
-        priority: 1
-      })
+    if (email && email.trim()) {
+      const normalizedEmail = email.toLowerCase().trim()
+      
+      // Check if this email already exists for this owner
+      const existingEmailContact = existingContacts.find(contact => 
+        contact.email && contact.email.toLowerCase().trim() === normalizedEmail
+      )
+
+      if (!existingEmailContact) {
+        contactsToCreate.push({
+          owner_id: ownerId,
+          email: email.trim(),
+          type: 'email',
+          priority: 1
+        })
+      }
     }
 
     if (contactsToCreate.length > 0) {
       await prisma.contact.createMany({
-        data: contactsToCreate,
-        skipDuplicates: true
+        data: contactsToCreate
       })
     }
   }

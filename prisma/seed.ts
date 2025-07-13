@@ -28,7 +28,16 @@ async function main() {
       street_address: '123 Main St',
       city: 'San Francisco',
       zip_code: '94105',
-      phone_number: '415-555-0123',
+    },
+  });
+
+  // Create contact for owner1
+  await prisma.contact.create({
+    data: {
+      owner_id: owner1.id,
+      phone: '415-555-0123',
+      type: 'phone',
+      priority: 1,
     },
   });
 
@@ -39,7 +48,16 @@ async function main() {
       street_address: '456 Market St',
       city: 'San Francisco',
       zip_code: '94103',
-      phone_number: '415-555-0124',
+    },
+  });
+
+  // Create contact for owner2
+  await prisma.contact.create({
+    data: {
+      owner_id: owner2.id,
+      phone: '415-555-0124',
+      type: 'phone',
+      priority: 1,
     },
   });
 
@@ -50,7 +68,16 @@ async function main() {
       street_address: '789 Mission St',
       city: 'San Francisco',
       zip_code: '94107',
-      phone_number: '415-555-0125',
+    },
+  });
+
+  // Create contact for owner3
+  await prisma.contact.create({
+    data: {
+      owner_id: owner3.id,
+      phone: '415-555-0125',
+      type: 'phone',
+      priority: 1,
     },
   });
 
