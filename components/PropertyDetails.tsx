@@ -7,6 +7,7 @@ import Link from 'next/link'
 // import { PropertyEditModal } from './PropertyEditModal'
 import { useState } from 'react'
 import type { Property } from '@/types/property'
+import { formatPhone } from '@/lib/utils'
 
 interface PropertyDetailsProps {
   property: Property
@@ -143,7 +144,7 @@ export function PropertyDetails({ property: initialProperty }: PropertyDetailsPr
                     {owner.first_name} {owner.last_name}
                   </h3>
                   {owner.phone_number && (
-                    <p className="text-sm text-muted-foreground">{owner.phone_number}</p>
+                    <p className="text-sm text-muted-foreground">{formatPhone(owner.phone_number)}</p>
                   )}
                   {owner.street_address && (
                     <div className="text-sm text-muted-foreground">

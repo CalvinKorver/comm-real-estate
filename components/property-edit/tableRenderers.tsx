@@ -3,6 +3,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { ColumnRenderer, SelectOption, RendererProps } from '@/types/tableConfig'
 import type { PhoneLabel } from '@/types/property'
+import { formatPhone } from '@/lib/utils'
 
 // Built-in renderers for common column types
 
@@ -14,7 +15,8 @@ export const textRenderer = (field: string, placeholder?: string, type?: string)
     // Only make phone/email fields read-only for existing items (not notes)
     if (!isAddRow && (field === 'phone' || field === 'email') && !item.id?.startsWith('temp-')) {
       // Display mode for primary fields in existing rows
-      return <div className="text-sm">{value}</div>
+      const displayValue = field === 'phone' ? formatPhone(value) : value
+      return <div className="text-sm">{displayValue}</div>
     }
     
     return (

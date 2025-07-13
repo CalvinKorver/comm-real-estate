@@ -3,6 +3,7 @@ import { getOwnerWithProperties } from '@/lib/client/properties'
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { BaseHeader } from '@/components/base-header';
+import { formatPhone } from '@/lib/utils';
 
 export default async function OwnerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -37,7 +38,7 @@ export default async function OwnerPage({ params }: { params: Promise<{ id: stri
               {firstName} {lastName}
             </h1>
             <p className="text-blue-500 py-2">
-              <a href={`tel:${phoneNumber}`}>{phoneNumber}</a>
+              <a href={`tel:${phoneNumber}`}>{formatPhone(phoneNumber)}</a>
             </p>
             <p className="text-muted-foreground">
               {streetAddress}, {city} {zipCode}
