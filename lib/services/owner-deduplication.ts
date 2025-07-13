@@ -12,6 +12,12 @@ export interface OwnerData {
   zip_code?: string
   phone?: string
   email?: string
+  contacts?: Array<{
+    phone?: string;
+    email?: string;
+    type: string;
+    priority: number;
+  }>
 }
 
 export interface OwnerMatch {
@@ -297,6 +303,61 @@ export class OwnerDeduplicationService {
   }
 
   /**
+   * Add multiple contacts to an owner with proper deduplication
+   */
+  async addContactsToOwner(
+    ownerId: string, 
+    contacts: Array<{
+      phone?: string;
+      email?: string;
+      type: string;
+      priority: number;
+    }>
+  ): Promise<void> {
+    if (contacts.length === 0) return;
+
+    // Get existing contacts for this owner
+    const existingContacts = await prisma.contact.findMany({
+      where: { owner_id: ownerId }
+    });
+
+    const contactsToCreate = [];
+
+    for (const contact of contacts) {
+      // Skip if both phone and email are empty
+      if (!contact.phone && !contact.email) continue;
+
+      // Check for duplicates
+      const isDuplicate = existingContacts.some(existing => {
+        if (contact.phone && existing.phone) {
+          return this.normalizePhone(contact.phone) === this.normalizePhone(existing.phone);
+        }
+        if (contact.email && existing.email) {
+          return contact.email.toLowerCase().trim() === existing.email.toLowerCase().trim();
+        }
+        return false;
+      });
+
+      if (!isDuplicate) {
+        contactsToCreate.push({
+          owner_id: ownerId,
+          phone: contact.phone || null,
+          email: contact.email || null,
+          type: contact.type,
+          priority: contact.priority
+        });
+      }
+    }
+
+    if (contactsToCreate.length > 0) {
+      await prisma.contact.createMany({
+        data: contactsToCreate,
+        skipDuplicates: true
+      });
+    }
+  }
+
+  /**
    * Process an owner with full deduplication logic
    */
   async processOwner(ownerData: OwnerData): Promise<{
@@ -307,10 +368,28 @@ export class OwnerDeduplicationService {
     // Find potential duplicates
     const matches = await this.findPotentialDuplicates(ownerData)
 
+    // Prepare contacts array for processing
+    const contactsToAdd = [];
+    
+    // Add legacy phone/email fields as contacts if they exist
+    if (ownerData.phone || ownerData.email) {
+      contactsToAdd.push({
+        phone: ownerData.phone,
+        email: ownerData.email,
+        type: ownerData.phone ? 'Cell' : 'Email',
+        priority: 1
+      });
+    }
+    
+    // Add any additional contacts from the contacts array
+    if (ownerData.contacts) {
+      contactsToAdd.push(...ownerData.contacts);
+    }
+
     if (matches.length === 0) {
       // No matches found - create new owner
       const newOwner = await this.createNewOwner(ownerData)
-      await this.addContactToOwner(newOwner.id, ownerData.phone, ownerData.email)
+      await this.addContactsToOwner(newOwner.id, contactsToAdd)
 
       return {
         owner: newOwner,
@@ -324,7 +403,7 @@ export class OwnerDeduplicationService {
     if (resolution.action === 'create_new') {
       // Create new owner despite matches
       const newOwner = await this.createNewOwner(ownerData)
-      await this.addContactToOwner(newOwner.id, ownerData.phone, ownerData.email)
+      await this.addContactsToOwner(newOwner.id, contactsToAdd)
 
       return {
         owner: newOwner,
@@ -342,7 +421,8 @@ export class OwnerDeduplicationService {
       }
 
       const mergedOwner = await this.mergeOwnerData(existingOwner, ownerData)
-      await this.addContactToOwner(mergedOwner.id, ownerData.phone, ownerData.email)
+      // Add all new contacts to the merged owner - this ensures contacts are merged properly
+      await this.addContactsToOwner(mergedOwner.id, contactsToAdd)
 
       return {
         owner: mergedOwner,

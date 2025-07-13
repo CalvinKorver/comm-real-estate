@@ -353,6 +353,7 @@ export async function processCSVUpload(
           zip_code: owner.zip_code,
           phone: contacts.find(c => c.phone)?.phone,
           email: contacts.find(c => c.email)?.email,
+          contacts: contacts.filter(c => c.phone || c.email), // Pass all contacts for proper merging
         };
 
         const ownerResult = await ownerDeduplicationService.processOwner(ownerData);
@@ -706,11 +707,76 @@ function processCSVRowWithDatabaseMapping(
     finalLastName = parsedName.lastName;
   }
 
-  // Get contact data
+  // Get contact data - collect all contact fields, not just the first one
+  const getAllContactFields = () => {
+    const contactFields: Array<{
+      phone?: string;
+      email?: string;
+      type: string;
+      priority: number;
+    }> = [];
+
+    // Check all headers for contact-related fields
+    headers.forEach((header, index) => {
+      const value = values[index]?.trim();
+      if (!value) return;
+
+      const normalizedHeader = header.toLowerCase().replace(/\s+/g, '').replace(/[^\w]/g, '');
+      
+      // Handle phone numbers (wireless, landline, phone, cell, mobile)
+      if (normalizedHeader.match(/^(wireless|landline|phone|cell|mobile)\d*$/)) {
+        const priorityMatch = normalizedHeader.match(/\d+$/);
+        const priority = priorityMatch ? parseInt(priorityMatch[0]) : 1;
+        const type = normalizedHeader.includes('wireless') || normalizedHeader.includes('cell') || normalizedHeader.includes('mobile') ? 'Cell' : 
+                     normalizedHeader.includes('landline') ? 'Landline' : 'Cell';
+        
+        contactFields.push({
+          phone: value,
+          type,
+          priority
+        });
+      }
+      
+      // Handle emails
+      else if (normalizedHeader.match(/^(email|mail)\d*$/)) {
+        const priorityMatch = normalizedHeader.match(/\d+$/);
+        const priority = priorityMatch ? parseInt(priorityMatch[0]) : 1;
+        
+        contactFields.push({
+          email: value,
+          type: 'Email',
+          priority
+        });
+      }
+    });
+
+    return contactFields;
+  };
+
+  const allContacts = getAllContactFields();
+  
+  // Fallback to legacy single field approach if no numbered fields found
   const phone = getMappedValue('phone');
   const email = getMappedValue('email');
   const phoneType = getMappedValue('phone_type') || 'Cell';
   const contactPriority = parseInt(getMappedValue('contact_priority') || '1', 10) || 1;
+  
+  if (allContacts.length === 0 && (phone || email)) {
+    if (phone) {
+      allContacts.push({
+        phone,
+        type: phoneType,
+        priority: contactPriority,
+      });
+    }
+    if (email) {
+      allContacts.push({
+        email,
+        type: 'Email',
+        priority: contactPriority + 1,
+      });
+    }
+  }
 
   const property = {
     street_address: streetAddress,
@@ -731,25 +797,7 @@ function processCSVRowWithDatabaseMapping(
     zip_code: ownerZipCode || undefined,
   };
 
-  const contacts = [];
-  if (phone) {
-    contacts.push({
-      phone,
-      email: undefined,
-      type: phoneType,
-      priority: contactPriority,
-    });
-  }
-  if (email) {
-    contacts.push({
-      phone: undefined,
-      email,
-      type: 'Email',
-      priority: contactPriority + 1,
-    });
-  }
-
-  return { owner, property, contacts };
+  return { owner, property, contacts: allContacts };
 }
 
 // New validation function for database field mappings
