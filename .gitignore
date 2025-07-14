@@ -68,7 +68,6 @@ jspm_packages
 # Prisma
 prisma/*.db
 prisma/*.db-journal
-prisma/migrations/
 .env.*
 !.env.example
 
