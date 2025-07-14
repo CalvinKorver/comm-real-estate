@@ -17,8 +17,14 @@ const createPrismaClient = () => {
     })
   }
   
-  // Use default configuration for other environments
-  return new PrismaClient()
+  // Use non-pooling connection for production to avoid prepared statement conflicts
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL
+      }
+    }
+  })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
