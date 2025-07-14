@@ -55,7 +55,7 @@ model Coordinate {
 - `PropertyListPanel`: Property list panel component
 
 ### Usage
-Navigate to `/properties/map` to view the interactive property map. The map will:
+Navigate to `/properties` to view the interactive property map. The map will:
 1. Fetch all properties from the API
 2. Filter properties that have coordinates
 3. Create Google Maps markers for each property

@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   // Redirect logic for auth pages
   if (path.startsWith('/auth/') && token) {
     console.log(`[Middleware] User already logged in, redirecting to properties`);
-    return NextResponse.redirect(new URL('/properties/map', request.url));
+    return NextResponse.redirect(new URL('/properties', request.url));
   }
 
   // For all other protected routes

@@ -12,9 +12,5 @@ export const siteConfig = {
       title: "Properties",
       href: "/properties",
     },
-    {
-      title: "Map",
-      href: "/properties/map",
-    },
   ] as NavItem[]
 }

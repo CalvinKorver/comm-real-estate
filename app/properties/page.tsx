@@ -1,22 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Property, Owner } from "@/types/property"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Trash } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog"
-import { Icons } from "@/components/icons"
+import { useState, useEffect, useCallback } from 'react'
+import { Property } from '@/types/property'
+import PropertyMapView from '@/components/property-map/PropertyMapView'
+import { useSearch } from '@/contexts/SearchContext'
 
 interface PaginationData {
   currentPage: number
@@ -28,274 +15,151 @@ interface PaginationData {
 }
 
 export default function PropertiesPage() {
-  const router = useRouter()
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [search, setSearch] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState<PaginationData | null>(null)
+  
+  const { search, setSearch, onSearchChange, setIsSearchEnabled, setOnSearchSubmit } = useSearch()
 
-  const fetchProperties = async (page: number = 1, searchQuery: string = "") => {
+  const fetchProperties = useCallback(async (searchQuery: string = "") => {
     try {
       setIsLoading(true)
+      setError(null)
+      
+      // Build query parameters
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10'
+        limit: '20' // Get 20 properties for map view
       })
       
       if (searchQuery) {
         params.append('search', searchQuery)
       }
       
+      // Fetch properties for the map view
       const response = await fetch(`/api/properties?${params}`)
+      
       if (!response.ok) {
         throw new Error('Failed to fetch properties')
       }
+      
       const data = await response.json()
-      console.log("fetched")
-      console.log(data)
+      console.log("Map: Fetched properties for map view:", data.properties.length)
+      
       setProperties(data.properties)
       setPagination(data.pagination)
-      setError(null)
     } catch (error) {
-      setError('Failed to load properties')
-      console.error('Failed to load properties:', error)
+      console.error('Map: Failed to load properties:', error)
+      setError('Failed to load properties for map view')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  // Handle search form submission
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    fetchProperties(search)
+  }, [fetchProperties, search])
+
+  // Handle property updates from the PropertyEditDialog
+  const handlePropertyUpdated = useCallback((updatedProperty: Property) => {
+    console.log("Map: Property updated:", updatedProperty.id)
+    
+    // Update the property in the local state
+    setProperties(prevProperties => 
+      prevProperties.map(property => 
+        property.id === updatedProperty.id ? updatedProperty : property
+      )
+    )
+  }, [])
 
   useEffect(() => {
-    fetchProperties(currentPage, search)
-  }, [currentPage, search])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setCurrentPage(1) // Reset to first page when searching
-    // fetchProperties will be called by useEffect when currentPage changes
-  }
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage)
-  }
-
-  const handleCreateProperty = () => {
-    router.push('/properties/create')
-  }
-
-  const handleDeleteClick = (e: React.MouseEvent, propertyId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setPropertyToDelete(propertyId)
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!propertyToDelete) return
+    // Enable search when component mounts
+    setIsSearchEnabled(true)
     
-    try {
-      setIsDeleting(true)
-      const response = await fetch(`/api/properties/${propertyToDelete}`, {
-        method: 'DELETE',
-      })
-      if (!response.ok) {
-        throw new Error('Failed to delete property')
-      }
-      await fetchProperties(currentPage, search) // Refresh the list
-    } catch (error) {
-      console.error('Error deleting property:', error)
-      setError('Failed to delete property')
-    } finally {
-      setIsDeleting(false)
-      setPropertyToDelete(null)
+    // Set the search submit handler
+    setOnSearchSubmit(handleSearch)
+    
+    // Cleanup: disable search when component unmounts
+    return () => {
+      setIsSearchEnabled(false)
     }
+  }, [setIsSearchEnabled, setOnSearchSubmit, handleSearch])
+
+  useEffect(() => {
+    fetchProperties()
+  }, [fetchProperties])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-screen">
+        <div className="bg-white border-b shrink-0">
+          <div className="w-full px-4 py-4">
+            <h1 className="text-2xl font-bold text-foreground mb-1">
+              Properties Map
+            </h1>
+            <p className="text-muted-foreground">
+              Loading properties for map view...
+            </p>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading properties...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  const renderPagination = () => {
-    if (!pagination || pagination.totalPages <= 1) return null
-
-    const pages = []
-    const maxVisiblePages = 5
-    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2))
-    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1)
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1)
-    }
-
-    // Previous button
-    if (pagination.hasPreviousPage) {
-      pages.push(
-        <button
-          key="prev"
-          onClick={() => handlePageChange(pagination.currentPage - 1)}
-          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
-        >
-          Previous
-        </button>
-      )
-    }
-
-    // Page numbers
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          className={`px-3 py-2 text-sm font-medium border ${
-            i === pagination.currentPage
-              ? 'bg-emerald-600 text-white border-emerald-600'
-              : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          {i}
-        </button>
-      )
-    }
-
-    // Next button
-    if (pagination.hasNextPage) {
-      pages.push(
-        <button
-          key="next"
-          onClick={() => handlePageChange(pagination.currentPage + 1)}
-          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
-        >
-          Next
-        </button>
-      )
-    }
-
+  if (error) {
     return (
-      <div className="flex justify-center mt-8">
-        <div className="flex space-x-0">
-          {pages}
+      <div className="flex flex-col h-screen">
+        <div className="bg-white border-b shrink-0">
+          <div className="w-full px-4 py-4">
+            <h1 className="text-2xl font-bold text-foreground mb-1">
+              Properties Map
+            </h1>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <p className="text-red-500 font-medium mb-2">Error loading properties</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <button
+              onClick={() => fetchProperties()}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <form onSubmit={handleSearch} className="flex w-full max-w-xl mx-auto">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search (for owners, addresses, etc)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-emerald-600 text-white rounded-r-lg hover:bg-emerald-700 flex items-center justify-center"
-            aria-label="Search"
-          >
-            <Icons.searchIcon className="w-5 h-5" />
-          </button>
-        </form>
-      <div className="flex flex-col items-center mb-8 space-y-4">
-        
-        
-      </div>
-      <div className="space-y-4">
-        {isLoading ? (
-          <p className="text-gray-500">Loading properties...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : properties.length === 0 ? (
-          <p className="text-gray-500">No properties found</p>
-        ) : (
-          properties.map((property) => (
-            <div 
-              key={property.id} 
-              className="block p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow relative bg-gray-200"
-            >
-              <Link 
-                href={`/properties/${property.id}`} 
-                className="block"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-semibold">{property.street_address}</h2>
-                    <p className="text-gray-600">
-                      {property.city}, {property.zip_code}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-medium">
-                      ${property.price.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {property.number_of_units} units
-                    </p>
-                  </div>
-                  
-                  
-                  
-
-                </div>
-                <div className="pt-2">
-                  {/* <h3 className="font-semibold-800">Details</h3> */}
-                  {/* <p className = "text-gray-600 text-sm"> */}
-                  {/* <span >Projected Cashflow: </span> 
-                  <span className="text-sm font-semibold" >${Math.round(Math.random() * 10000)}/month</span>
-                  </p>
-
-                  <p className = "text-gray-600 text-sm">
-                  <span className="text-sm text-gray-600">Annual Taxes: </span>
-                  <span className="font-semibold">$25,000/year</span>
-                  </p> */}
-                
-                  </div>
-              </Link>
-
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Pagination */}
-      {renderPagination()}
-
-      {/* Results info */}
-      {pagination && (
-        <div className="text-center mt-4 text-sm text-gray-600">
-          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of {pagination.totalCount} properties
+    <div className="flex flex-col h-[calc(100vh-var(--header-height))]">
+      {/* Header */}
+      <div className="bg-white border-b shrink-0">
+        <div className="w-full px-4 py-4">
         </div>
-      )}
-
-      <div className="mt-8 flex justify-center">
-        <button
-          onClick={handleCreateProperty}
-          className="w-1/3 max-w-md px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-        >
-          Add Property
-        </button>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!propertyToDelete} onOpenChange={(open: boolean) => !open && setPropertyToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this property and all of its data. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Map View Component - Takes remaining height */}
+      <div className="flex-1 min-h-0">
+        <PropertyMapView 
+          properties={properties} 
+          onPropertyUpdated={handlePropertyUpdated}
+        />
+      </div>
     </div>
   )
-} 
+}
