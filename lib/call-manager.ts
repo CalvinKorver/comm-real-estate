@@ -2,6 +2,7 @@ import { telnyxClient, TelnyxCallState, TelnyxCallOptions } from './telnyx-clien
 
 export interface CallSession {
   id: string;
+  callControlId?: string;
   phoneNumber: string;
   contactName?: string;
   contactLabel?: string;
@@ -72,7 +73,14 @@ export class CallManager {
         callerId: process.env.NEXT_PUBLIC_TELNYX_PHONE_NUMBER,
       };
 
-      await telnyxClient.makeCall(callOptions);
+      const callResult = await telnyxClient.makeCall(callOptions);
+      
+      // Update the session with the call control ID
+      if (callResult.callControlId) {
+        this.currentSession.callControlId = callResult.callControlId;
+        this.notifySessionChange();
+      }
+      
       return session;
     } catch (error) {
       this.currentSession = null;
@@ -83,43 +91,54 @@ export class CallManager {
 
   endCall(): void {
     if (this.currentSession) {
-      telnyxClient.hangup();
-      this.currentSession.endTime = new Date();
-      this.currentSession.status = 'disconnected';
+      // Store a reference to the current session before calling hangup
+      // because hangup() might trigger event listeners that set currentSession to null
+      const session = this.currentSession;
       
-      if (this.currentSession.endTime) {
-        this.currentSession.duration = Math.floor(
-          (this.currentSession.endTime.getTime() - this.currentSession.startTime.getTime()) / 1000
+      telnyxClient.hangup();
+      
+      // Update the stored session reference
+      session.endTime = new Date();
+      session.status = 'ended';
+      
+      if (session.endTime) {
+        session.duration = Math.floor(
+          (session.endTime.getTime() - session.startTime.getTime()) / 1000
         );
       }
 
-      this.notifySessionChange();
+      // Clear the current session
       this.currentSession = null;
+      
+      // Notify with the final session state
+      this.notifySessionChange();
     }
   }
 
   private handleCallStateChange(state: TelnyxCallState): void {
     if (this.currentSession) {
-      this.currentSession.status = state.status;
+      // Store a reference to avoid race conditions
+      const session = this.currentSession;
+      
+      session.status = state.status;
       
       if (state.error) {
-        this.currentSession.error = state.error;
+        session.error = state.error;
       }
 
-      if (state.status === 'disconnected' || state.status === 'failed') {
-        this.currentSession.endTime = new Date();
-        if (this.currentSession.endTime) {
-          this.currentSession.duration = Math.floor(
-            (this.currentSession.endTime.getTime() - this.currentSession.startTime.getTime()) / 1000
+      if (state.status === 'disconnected' || state.status === 'failed' || state.status === 'ended') {
+        session.endTime = new Date();
+        if (session.endTime) {
+          session.duration = Math.floor(
+            (session.endTime.getTime() - session.startTime.getTime()) / 1000
           );
         }
+        
+        // Clear the current session
+        this.currentSession = null;
       }
 
       this.notifySessionChange();
-
-      if (state.status === 'disconnected' || state.status === 'failed') {
-        this.currentSession = null;
-      }
     }
 
     this.notifyStateChange(state);
@@ -157,6 +176,19 @@ export class CallManager {
 
   isCallInProgress(): boolean {
     return this.currentSession !== null;
+  }
+
+  resetCallState(): void {
+    // Reset the call state to idle when starting a new call session
+    this.notifyStateChange({ status: 'idle' });
+  }
+
+  isConnected(): boolean {
+    return telnyxClient.isConnected();
+  }
+
+  getCurrentCallControlId(): string | null {
+    return this.currentSession?.callControlId || telnyxClient.getCurrentCallControlId();
   }
 
   formatPhoneNumber(phoneNumber: string): string {

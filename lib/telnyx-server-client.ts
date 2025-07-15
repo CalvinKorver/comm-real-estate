@@ -62,4 +62,86 @@ export async function generateAccessTokenFromCredential(credentialId: string) {
     console.error('Failed to generate access token:', error);
     throw error;
   }
+}
+
+export async function hangupCall(callControlId: string, clientState?: string) {
+  try {
+    const client = initializeTelnyxClient();
+    
+    const result = await client.calls.hangup(callControlId, {
+      client_state: clientState || 'server_initiated_hangup'
+    });
+    
+    console.log('Call hangup initiated via server client:', {
+      callControlId,
+      clientState,
+      result
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Failed to hangup call:', error);
+    throw error;
+  }
+}
+
+export async function getCallInfo(callControlId: string) {
+  try {
+    const client = initializeTelnyxClient();
+    
+    const call = await client.calls.retrieve(callControlId);
+    
+    console.log('Call info retrieved:', {
+      callControlId,
+      status: call.call_status,
+      direction: call.direction
+    });
+    
+    return call;
+  } catch (error) {
+    console.error('Failed to get call info:', error);
+    throw error;
+  }
+}
+
+export async function answerCall(callControlId: string, clientState?: string) {
+  try {
+    const client = initializeTelnyxClient();
+    
+    const result = await client.calls.answer(callControlId, {
+      client_state: clientState || 'server_answered'
+    });
+    
+    console.log('Call answered via server client:', {
+      callControlId,
+      clientState,
+      result
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Failed to answer call:', error);
+    throw error;
+  }
+}
+
+export async function rejectCall(callControlId: string, cause?: string) {
+  try {
+    const client = initializeTelnyxClient();
+    
+    const result = await client.calls.reject(callControlId, {
+      cause: cause || 'CALL_REJECTED'
+    });
+    
+    console.log('Call rejected via server client:', {
+      callControlId,
+      cause,
+      result
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Failed to reject call:', error);
+    throw error;
+  }
 } 
