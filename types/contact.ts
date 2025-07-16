@@ -23,6 +23,26 @@ export interface CreateContactInput {
   ownerId: string;
 }
 
+// Phone number formatting function for UI display
+export function formatPhoneNumber(phone: string): string {
+  // Remove all non-digit characters
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Handle 10-digit US phone numbers
+  if (digitsOnly.length === 10) {
+    return `(${digitsOnly.slice(0, 3)})-${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6)}`;
+  }
+  
+  // Handle 11-digit numbers (with country code)
+  if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    const tenDigit = digitsOnly.slice(1);
+    return `(${tenDigit.slice(0, 3)})-${tenDigit.slice(3, 6)}-${tenDigit.slice(6)}`;
+  }
+  
+  // For any other format, return as-is
+  return phone;
+}
+
 // Common contact types for consistency
 export const CONTACT_TYPES = {
   EMAIL: 'Email',

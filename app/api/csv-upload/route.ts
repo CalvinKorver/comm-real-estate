@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/shared/auth';
 import { processCSVUpload } from '@/lib/services/csv-upload-processor';
+import { isUserAuthorized, createUnauthorizedResponse } from '@/lib/auth-utils';
 
 
 export async function POST(request: NextRequest) {
@@ -13,6 +14,12 @@ export async function POST(request: NextRequest) {
       { error: 'Authentication required' },
       { status: 401 }
     );
+  }
+
+  // Check if user is authorized
+  const isAuthorized = await isUserAuthorized();
+  if (!isAuthorized) {
+    return createUnauthorizedResponse();
   }
   try {
     // Check if the request has a file

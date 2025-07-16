@@ -2,7 +2,7 @@ import React, { forwardRef, useState } from 'react'
 import type { Property } from '@/types/property'
 import { Ellipsis, Edit, User } from 'lucide-react'
 import { sortContactsByPriority } from '@/utils/contactSorting'
-import { Button } from '@/components/ui/button'
+import { formatPhoneNumber } from '@/types/contact'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +22,10 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { PropertyEditDialog } from '@/components/property-edit/PropertyEditDialog'
+import { CallButton } from '@/components/call/CallButton'
 
 interface PropertyListItemProps {
   property: Property
@@ -87,7 +87,6 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
   const displayNotes = property.notes?.slice(0, 2) || [];
 
   return (
-    <TooltipProvider>
       <div
         ref={ref}
         onClick={(e) => {
@@ -181,12 +180,13 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                     <TableHead>Phone</TableHead>
                     <TableHead>Label</TableHead>
                     <TableHead>Notes</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {phoneContacts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-muted-foreground text-center py-4">
+                      <TableCell colSpan={4} className="text-muted-foreground text-center py-4">
                         No phone numbers
                       </TableCell>
                     </TableRow>
@@ -198,12 +198,23 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                       );
                       return (
                         <TableRow key={contact.id}>
-                          <TableCell className="font-medium">{contact.phone}</TableCell>
+                          <TableCell className="font-medium">{formatPhoneNumber(contact.phone || '')}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {contact.label ? contact.label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'No label'}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {contact.notes || 'No notes'}
+                          </TableCell>
+                          <TableCell>
+                            {contact.phone && (
+                              <CallButton
+                                phoneNumber={contact.phone}
+                                contactName={owner ? `${owner.first_name} ${owner.last_name}` : undefined}
+                                contactLabel={contact.label}
+                                variant="outline"
+                                size="sm"
+                              />
+                            )}
                           </TableCell>
                         </TableRow>
                       );
@@ -268,7 +279,6 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
           </div>
         )}
       </div>
-    </TooltipProvider>
   )
 })
 

@@ -11,6 +11,7 @@ interface CSVColumnMappingStageProps {
   file: File;
   onMappingComplete: (columnMapping: Record<string, string | null>) => void;
   onBack: () => void;
+  isAuthorized?: boolean;
 }
 
 const DATABASE_FIELDS = [
@@ -34,7 +35,7 @@ function hasUnmappedRequiredFields(mapping: Record<string, string | null>) {
   return REQUIRED_FIELDS.some(field => !mappedFields.includes(field));
 }
 
-export function CSVColumnMappingStage({ file, onMappingComplete, onBack }: CSVColumnMappingStageProps) {
+export function CSVColumnMappingStage({ file, onMappingComplete, onBack, isAuthorized = true }: CSVColumnMappingStageProps) {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string | null>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -129,7 +130,7 @@ export function CSVColumnMappingStage({ file, onMappingComplete, onBack }: CSVCo
         </Button>
         <Button 
           onClick={handleContinue} 
-          disabled={hasUnmappedRequiredFields(columnMapping)}
+          disabled={hasUnmappedRequiredFields(columnMapping) || !isAuthorized}
           size="lg"
         >
           Continue to Preview

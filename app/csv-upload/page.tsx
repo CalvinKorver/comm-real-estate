@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BaseHeader } from '@/components/base-header';
-import { ArrowLeft, Upload, Settings, Eye, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Settings, Eye, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { CSVUploadStage } from '@/components/CSVUploadStage';
 import { CSVColumnMappingStage } from '@/components/CSVColumnMappingStage';
 import { CSVPreviewStage } from '@/components/CSVPreviewStage';
 import { CSVProcessResults } from '@/components/CSVProcessResults';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { useUserAuthorization } from '@/hooks/useUserAuthorization';
 
 interface UploadResult {
   success: boolean;
@@ -51,11 +53,17 @@ export default function CSVUploadPage() {
   const [columnMapping, setColumnMapping] = useState<Record<string, string | null>>({});
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showUnauthorizedDialog, setShowUnauthorizedDialog] = useState(false);
   const router = useRouter();
+  const { isAuthorized, isLoading } = useUserAuthorization();
 
   const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile);
-    setCurrentStage('mapping');
+    if (!isAuthorized) {
+      setShowUnauthorizedDialog(true);
+    } else {
+      setCurrentStage('mapping');
+    }
   };
 
   const handleMappingComplete = (mapping: Record<string, string | null>) => {
@@ -243,6 +251,7 @@ export default function CSVUploadPage() {
               file={file}
               onMappingComplete={handleMappingComplete}
               onBack={handleBackToUpload}
+              isAuthorized={isAuthorized}
             />
           )}
 
@@ -282,6 +291,24 @@ export default function CSVUploadPage() {
           )}
         </div>
       </div>
+
+      {/* Unauthorized Dialog */}
+      <AlertDialog open={showUnauthorizedDialog} onOpenChange={setShowUnauthorizedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertDialogTitle>Feature Not Available</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              The CSV upload feature is not available for general use yet. This feature is currently in limited access for authorized users only.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={() => setShowUnauthorizedDialog(false)}>
+            Continue
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 
