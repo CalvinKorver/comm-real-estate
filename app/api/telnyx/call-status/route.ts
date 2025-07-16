@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CallStateService } from '@/lib/services/call-state-service';
+import { isUserAuthorized, createUnauthorizedResponse } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if user is authorized
+    const isAuthorized = await isUserAuthorized();
+    if (!isAuthorized) {
+      return createUnauthorizedResponse();
+    }
     const { searchParams } = new URL(request.url);
     const callControlId = searchParams.get('callControlId');
 
@@ -41,6 +47,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if user is authorized
+    const isAuthorized = await isUserAuthorized();
+    if (!isAuthorized) {
+      return createUnauthorizedResponse();
+    }
     const { callControlId, status, timestamp, hangupCause, clientState } = await request.json();
 
     if (!callControlId || !status) {

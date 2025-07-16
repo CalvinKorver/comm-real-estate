@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createTelephonyCredentials, generateAccessTokenFromCredential } from '@/lib/telnyx-server-client';
+import { isUserAuthorized, createUnauthorizedResponse } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if user is authorized
+    const isAuthorized = await isUserAuthorized();
+    if (!isAuthorized) {
+      return createUnauthorizedResponse();
+    }
     const connectionId = process.env.TELNYX_CONNECTION_ID;
     const telnyxSIPConnectionId = process.env.TELNYX_SIP_CONNECTION_ID;
 

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TelnyxCallService } from '@/lib/services/telnyx-call-service';
+import { isUserAuthorized, createUnauthorizedResponse } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if user is authorized
+    const isAuthorized = await isUserAuthorized();
+    if (!isAuthorized) {
+      return createUnauthorizedResponse();
+    }
     const { callControlId, reason = 'client_initiated' } = await request.json();
 
     if (!callControlId) {

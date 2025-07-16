@@ -7,6 +7,7 @@ import { cn } from "@/lib/shared/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next';
 
@@ -46,9 +47,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-            {children}
-            <Analytics />
-            <Toaster />
+            <TooltipProvider delayDuration={0}>
+              {children}
+              <Analytics />
+              <Toaster />
+            </TooltipProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

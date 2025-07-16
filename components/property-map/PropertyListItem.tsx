@@ -2,7 +2,7 @@ import React, { forwardRef, useState } from 'react'
 import type { Property } from '@/types/property'
 import { Ellipsis, Edit, User } from 'lucide-react'
 import { sortContactsByPriority } from '@/utils/contactSorting'
-import { Button } from '@/components/ui/button'
+import { formatPhoneNumber } from '@/types/contact'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { PropertyEditDialog } from '@/components/property-edit/PropertyEditDialog'
@@ -88,7 +87,6 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
   const displayNotes = property.notes?.slice(0, 2) || [];
 
   return (
-    <TooltipProvider>
       <div
         ref={ref}
         onClick={(e) => {
@@ -200,7 +198,7 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
                       );
                       return (
                         <TableRow key={contact.id}>
-                          <TableCell className="font-medium">{contact.phone}</TableCell>
+                          <TableCell className="font-medium">{formatPhoneNumber(contact.phone || '')}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {contact.label ? contact.label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'No label'}
                           </TableCell>
@@ -281,7 +279,6 @@ const PropertyListItem = forwardRef<HTMLDivElement, PropertyListItemProps>(({ pr
           </div>
         )}
       </div>
-    </TooltipProvider>
   )
 })
 
