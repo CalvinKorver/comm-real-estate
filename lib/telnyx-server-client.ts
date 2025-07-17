@@ -1,7 +1,7 @@
 // Server-side Telnyx client for API routes
 let telnyxClient: any = null;
 
-function initializeTelnyxClient() {
+async function initializeTelnyxClient() {
   if (!telnyxClient) {
     const telnyxApiKey = process.env.TELNYX_API_KEY;
     if (!telnyxApiKey) {
@@ -9,15 +9,11 @@ function initializeTelnyxClient() {
     }
 
     try {
-      // Try different import patterns
-      let telnyx;
-      try {
-        telnyx = require('telnyx').default;
-      } catch {
-        telnyx = require('telnyx');
-      }
+      // Use dynamic import for ES modules
+      const telnyxModule = await import('telnyx');
+      const Telnyx = telnyxModule.default || telnyxModule;
       
-      telnyxClient = telnyx(telnyxApiKey);
+      telnyxClient = new Telnyx(telnyxApiKey);
       
       // Debug: log available methods
       console.log('Telnyx client methods:', Object.keys(telnyxClient));
@@ -32,7 +28,7 @@ function initializeTelnyxClient() {
 
 export async function createTelephonyCredentials(connectionId: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     return await client.telephonyCredentials.create({
       connection_id: connectionId
     });
@@ -44,7 +40,7 @@ export async function createTelephonyCredentials(connectionId: string) {
 
 export async function generateAccessTokenFromCredential(credentialId: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     
     // Check available methods on telephonyCredentials
     console.log('Available telephonyCredentials methods:', Object.keys(client.telephonyCredentials));
@@ -66,7 +62,7 @@ export async function generateAccessTokenFromCredential(credentialId: string) {
 
 export async function hangupCall(callControlId: string, clientState?: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     
     const result = await client.calls.hangup(callControlId, {
       client_state: clientState || 'server_initiated_hangup'
@@ -87,7 +83,7 @@ export async function hangupCall(callControlId: string, clientState?: string) {
 
 export async function getCallInfo(callControlId: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     
     const call = await client.calls.retrieve(callControlId);
     
@@ -106,7 +102,7 @@ export async function getCallInfo(callControlId: string) {
 
 export async function answerCall(callControlId: string, clientState?: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     
     const result = await client.calls.answer(callControlId, {
       client_state: clientState || 'server_answered'
@@ -127,7 +123,7 @@ export async function answerCall(callControlId: string, clientState?: string) {
 
 export async function rejectCall(callControlId: string, cause?: string) {
   try {
-    const client = initializeTelnyxClient();
+    const client = await initializeTelnyxClient();
     
     const result = await client.calls.reject(callControlId, {
       cause: cause || 'CALL_REJECTED'
